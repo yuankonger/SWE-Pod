@@ -7,9 +7,11 @@ Run directly to serve until interrupted:  python3 platform/stack.py
 """
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -19,11 +21,15 @@ OFFSETS = {"broker": 0, "storefront": 1, "orders": 2, "billing": 3, "notificatio
 
 
 class Stack:
-    def __init__(self, root=None, base_port=7000, log_dir=None, start_timeout=120.0):
+    def __init__(self, root=None, base_port=7000, log_dir=None, start_timeout=120.0, data_dir=None):
+        """`data_dir`: where the services keep their databases. Left out, each start gets a fresh directory that
+        is removed on stop; given, the data is kept, so a second start finds what the first one stored."""
         self.root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.ports = {name: base_port + off for name, off in OFFSETS.items()}
         self.log_dir = log_dir or os.path.join("/tmp", "seedco-logs-{}".format(base_port))
         self.start_timeout = start_timeout
+        self.data_dir = data_dir
+        self._own_data_dir = None
         self.procs = {}
         self._logs = []
 
@@ -34,6 +40,7 @@ class Stack:
         os.makedirs(self.log_dir, exist_ok=True)
         env = dict(os.environ, PORT=str(self.ports[name]), BROKER_URL=self.url("broker"),
                    ORDERS_URL=self.url("orders"), BILLING_URL=self.url("billing"),
+                   SEEDCO_DATA_DIR=os.path.join(self.data_dir, name),
                    SEEDCO_BUILD_DIR="/tmp/seedco-build-{}/{}".format(self.ports["broker"], name))
         log = open(os.path.join(self.log_dir, name + ".log"), "w")
         self._logs.append(log)
@@ -41,6 +48,10 @@ class Stack:
                                             start_new_session=True)
 
     def start(self):
+        if self.data_dir is None:
+            self.data_dir = self._own_data_dir = tempfile.mkdtemp(prefix="seedco-data-")
+        for name in SERVICES:
+            os.makedirs(os.path.join(self.data_dir, name), exist_ok=True)
         self._spawn("broker", [sys.executable, os.path.join(self.root, "platform", "broker.py")], self.root)
         for name in SERVICES:
             self._spawn(name, ["./run", "serve"], os.path.join(self.root, "services", name))
@@ -76,6 +87,9 @@ class Stack:
         for f in self._logs:
             f.close()
         self.procs, self._logs = {}, []
+        if self._own_data_dir:
+            shutil.rmtree(self._own_data_dir, ignore_errors=True)
+            self.data_dir = self._own_data_dir = None
 
     def log(self, name):
         try:
@@ -91,7 +105,11 @@ class Stack:
                                      headers={"Content-Type": "application/json"})
         try:
             with urllib.request.urlopen(req, timeout=20) as r:
-                return r.status, json.loads(r.read() or b"null")
+                raw = r.read()
+                try:
+                    return r.status, json.loads(raw or b"null")
+                except ValueError:   # not JSON (an HTML page): the text itself
+                    return r.status, raw.decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
             raw = e.read()
             try:

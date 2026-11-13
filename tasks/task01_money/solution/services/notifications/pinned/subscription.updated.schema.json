@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "subscription.updated",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "const": "subscription.updated"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "subscription",
+        "change"
+      ],
+      "properties": {
+        "subscription": {
+          "type": "object",
+          "required": [
+            "subscription_id",
+            "order_id",
+            "customer_id",
+            "email",
+            "sku",
+            "name",
+            "qty",
+            "unit_price",
+            "status",
+            "current_period_start",
+            "current_period_end"
+          ],
+          "properties": {
+            "subscription_id": {
+              "type": "string"
+            },
+            "order_id": {
+              "type": "string"
+            },
+            "customer_id": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "postal_code": {
+              "type": "integer"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "qty": {
+              "type": "integer"
+            },
+            "unit_price": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "past_due",
+                "canceled",
+                "terminated"
+              ]
+            },
+            "current_period_start": {
+              "type": "string",
+              "format": "date"
+            },
+            "current_period_end": {
+              "type": "string",
+              "format": "date"
+            },
+            "payment_method": {
+              "type": "string"
+            },
+            "pending_sku": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pending_name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "cancel_at_period_end": {
+              "type": "boolean"
+            },
+            "failed_attempts": {
+              "type": "integer"
+            },
+            "next_attempt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "plan_changed",
+            "downgrade_scheduled",
+            "cancel_scheduled",
+            "renewed",
+            "terminated"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "payment.failed",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "const": "payment.failed"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "payment"
+      ],
+      "properties": {
+        "payment": {
+          "type": "object",
+          "required": [
+            "payment_id",
+            "order_id",
+            "customer_id",
+            "amount",
+            "status",
+            "failure_reason"
+          ],
+          "properties": {
+            "payment_id": {
+              "type": "string"
+            },
+            "order_id": {
+              "type": "string"
+            },
+            "customer_id": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "failed"
+              ]
+            },
+            "email": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "payment_method": {
+              "type": "string"
+            },
+            "failure_reason": {
+              "type": "string"
+            },
+            "subscription_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

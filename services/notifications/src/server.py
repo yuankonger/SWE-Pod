@@ -1,4 +1,4 @@
-"""HTTP wiring for Notifications: the outbox endpoint and one polling consumer per topic."""
+"""HTTP wiring for Notifications: the outbox endpoints and one polling consumer per topic."""
 import json
 import os
 import sys
@@ -9,22 +9,27 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 from notifications import TOPICS, Outbox
+from store import Store, default_path
 
-OUTBOX = Outbox()
+OUTBOX = Outbox(Store(default_path()))
 
 
 def consume(broker_url: str, topic: str):
-    offset = 0
+    """Polls one topic from the offset we last stored. The offset is saved after each page is handled."""
+    store = OUTBOX.store
     while True:
         try:
+            offset = store.offset(topic)
             with urllib.request.urlopen("{}/topics/{}?offset={}".format(broker_url, topic, offset), timeout=5) as r:
                 page = json.loads(r.read())
             for event in page["events"]:
-                try:
-                    OUTBOX.handle(event)
-                except Exception as exc:  # one unreadable event must not stop the consumer
-                    print("notifications: dropped an event it could not read: {!r}".format(exc), file=sys.stderr)
-            offset = page["next_offset"]
+                before = len(store.dropped())
+                OUTBOX.consume(event)
+                if len(store.dropped()) > before:
+                    print("notifications: dropped an event it could not read: {}".format(store.dropped()[-1]["reason"]),
+                          file=sys.stderr, flush=True)
+            if page["next_offset"] != offset:
+                store.set_offset(topic, page["next_offset"])
         except OSError:
             pass
         time.sleep(0.1)
@@ -36,10 +41,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path)
+        query = parse_qs(u.query)
         if u.path == "/health":
             body = {"ok": True}
         elif u.path == "/outbox":
-            body = {"emails": OUTBOX.for_customer(parse_qs(u.query).get("customer_id", [None])[0])}
+            body = {"emails": OUTBOX.for_customer(query.get("customer_id", [None])[0])}
+        elif u.path == "/dropped":
+            body = {"dropped": OUTBOX.store.dropped()}
         else:
             self.send_response(404)
             self.end_headers()

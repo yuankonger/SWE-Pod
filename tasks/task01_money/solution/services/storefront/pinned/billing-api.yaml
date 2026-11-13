@@ -1,6 +1,6 @@
 # Billing API. Owner: Billing. Readers keep a pinned copy; ask Billing before relying on anything not written here.
 openapi: 3.0.3
-info: {title: Billing API, version: 1.0.0}
+info: {title: Billing API, version: 2.0.0}
 paths:
   /quotes:
     post:
@@ -13,19 +13,81 @@ paths:
         '400': {description: Invalid request}
   /charges:
     post:
-      summary: Take a payment for an order.
+      summary: Take a payment for an order. A declined card is a 200 with status failed, and a payment.failed event.
+      parameters:
+        - {name: Idempotency-Key, in: header, schema: {type: string}, description: 'A repeat with the same key and the same order, customer and amount returns the first payment. The same key with different values is a 409.'}
       requestBody:
         required: true
         content: {application/json: {schema: {$ref: '#/components/schemas/ChargeRequest'}}}
       responses:
         '200': {description: The payment, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
         '400': {description: Invalid request}
-  /invoices:
+        '409': {description: The Idempotency-Key was used for a different charge}
+  /payments:
     get:
-      summary: Invoices, oldest first. An invoice is issued when Billing reads the order.placed event.
+      summary: Payments, oldest first.
       parameters: [{name: order_id, in: query, schema: {type: string}}]
       responses:
+        '200': {description: Payments, content: {application/json: {schema: {type: object, properties: {payments: {type: array, items: {$ref: '#/components/schemas/Payment'}}}}}}}
+  /refunds:
+    get:
+      summary: Refunds, oldest first. A refund is issued when Billing reads the order.cancelled event.
+      parameters: [{name: order_id, in: query, schema: {type: string}}]
+      responses:
+        '200': {description: Refunds, content: {application/json: {schema: {type: object, properties: {refunds: {type: array, items: {$ref: '#/components/schemas/Refund'}}}}}}}
+  /invoices:
+    get:
+      summary: Invoices, oldest first. An order's invoice is issued when Billing reads the order.placed event; renewals and plan changes add more invoices to the same order.
+      parameters: [{name: order_id, in: query, schema: {type: string}}, {name: customer_id, in: query, schema: {type: string}}]
+      responses:
         '200': {description: Invoices, content: {application/json: {schema: {type: object, properties: {invoices: {type: array, items: {$ref: '#/components/schemas/Invoice'}}}}}}}
+  /plans:
+    get:
+      summary: The plans that renew monthly, with the price a renewal charges.
+      responses:
+        '200': {description: Plans, content: {application/json: {schema: {type: object, properties: {plans: {type: array, items: {$ref: '#/components/schemas/Plan'}}}}}}}
+  /subscriptions:
+    get:
+      summary: Subscriptions, oldest first. One is started for each plan line of a paid order.
+      parameters: [{name: customer_id, in: query, schema: {type: string}}]
+      responses:
+        '200': {description: Subscriptions, content: {application/json: {schema: {type: object, properties: {subscriptions: {type: array, items: {$ref: '#/components/schemas/Subscription'}}}}}}}
+  /subscriptions/{subscription_id}/plan:
+    post:
+      summary: Change plan. A more expensive plan starts now and is charged pro rata; a cheaper one starts at the period end.
+      parameters: [{name: subscription_id, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [sku], properties: {sku: {type: string}, as_of: {type: string, format: date, description: Defaults to today (UTC)}}}}}
+      responses:
+        '200': {description: The subscription, content: {application/json: {schema: {$ref: '#/components/schemas/Subscription'}}}}
+        '400': {description: Unknown plan, or the subscription is not active}
+        '402': {description: The pro-rata charge was declined; the plan is unchanged}
+        '404': {description: No such subscription}
+  /subscriptions/{subscription_id}/cancel:
+    post:
+      summary: End the subscription at the end of the period already paid for.
+      parameters: [{name: subscription_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: The subscription, content: {application/json: {schema: {$ref: '#/components/schemas/Subscription'}}}}
+        '404': {description: No such subscription}
+  /customers/{customer_id}/payment-method:
+    put:
+      summary: Replace the payment method on all of the customer's subscriptions.
+      parameters: [{name: customer_id, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [payment_method], properties: {payment_method: {type: string}}}}}
+      responses:
+        '200': {description: The customer's subscriptions}
+  /renewals/run:
+    post:
+      summary: Renew every subscription whose period has ended by as_of, and retry failed renewals that are due. Run daily by the scheduler.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, properties: {as_of: {type: string, format: date, description: Defaults to today (UTC)}}}}}
+      responses:
+        '200': {description: Counts, content: {application/json: {schema: {type: object, properties: {as_of: {type: string}, renewed: {type: integer}, failed: {type: integer}, ended: {type: integer}}}}}}
 components:
   schemas:
     Money:
@@ -47,26 +109,78 @@ components:
     ChargeRequest:
       type: object
       required: [order_id, customer_id, amount]
-      properties: {order_id: {type: string}, customer_id: {type: string}, amount: {$ref: '#/components/schemas/Money'}}
+      properties:
+        order_id: {type: string}
+        customer_id: {type: string}
+        amount: {$ref: '#/components/schemas/Money'}
+        email: {type: string, description: Where a payment-failed notice goes}
+        payment_method: {type: string, description: 'Defaults to pm_card_ok. pm_card_declined is the test card that always declines.'}
     Payment:
       type: object
       required: [payment_id, order_id, customer_id, amount, status]
-      properties: {payment_id: {type: string}, order_id: {type: string}, customer_id: {type: string}, amount: {$ref: '#/components/schemas/Money'}, status: {type: string, enum: [succeeded, failed]}}
+      properties:
+        payment_id: {type: string}
+        order_id: {type: string}
+        customer_id: {type: string}
+        amount: {$ref: '#/components/schemas/Money'}
+        status: {type: string, enum: [succeeded, failed, refunded]}
+        email: {type: string, nullable: true}
+        payment_method: {type: string}
+        failure_reason: {type: string, nullable: true}
+        subscription_id: {type: string, nullable: true, description: Set on renewal and plan-change payments}
+    Refund:
+      type: object
+      required: [refund_id, payment_id, order_id, customer_id, amount, created_at]
+      properties: {refund_id: {type: string}, payment_id: {type: string}, order_id: {type: string}, customer_id: {type: string}, amount: {$ref: '#/components/schemas/Money'}, created_at: {type: string, format: date-time}}
     InvoiceLine:
       type: object
-      required: [sku, name, qty, unit_price, amount]
-      properties: {sku: {type: string}, name: {type: string}, qty: {type: integer}, unit_price: {$ref: '#/components/schemas/Money'}, amount: {$ref: '#/components/schemas/Money'}}
+      required: [type, sku, name, qty, unit_price, amount]
+      properties:
+        type: {type: string, enum: [RECURRING, FIXED, PRORATION, CREDIT], description: 'RECURRING: a plan period. FIXED: a one-off item. PRORATION and CREDIT: the two lines of a plan change; a CREDIT amount is negative.'}
+        sku: {type: string}
+        name: {type: string}
+        qty: {type: integer}
+        unit_price: {$ref: '#/components/schemas/Money'}
+        amount: {$ref: '#/components/schemas/Money'}
     Invoice:
       type: object
-      required: [invoice_id, order_id, customer_id, email, lines, subtotal, tax, total, status, issued_at]
+      required: [invoice_id, order_id, customer_id, email, reason, lines, subtotal, tax, total, status, issued_at]
       properties:
         invoice_id: {type: string}
         order_id: {type: string}
+        subscription_id: {type: string, nullable: true}
         customer_id: {type: string}
         email: {type: string}
+        reason: {type: string, enum: [order, renewal, plan_change]}
         lines: {type: array, items: {$ref: '#/components/schemas/InvoiceLine'}}
         subtotal: {$ref: '#/components/schemas/Money'}
         tax: {$ref: '#/components/schemas/Money'}
         total: {$ref: '#/components/schemas/Money'}
-        status: {type: string, enum: [paid]}
+        status: {type: string, enum: [paid, refunded]}
         issued_at: {type: string, format: date-time}
+    Plan:
+      type: object
+      required: [sku, name, unit_price]
+      properties: {sku: {type: string}, name: {type: string}, unit_price: {$ref: '#/components/schemas/Money'}}
+    Subscription:
+      type: object
+      required: [subscription_id, order_id, customer_id, email, sku, name, qty, unit_price, status, current_period_start, current_period_end]
+      properties:
+        subscription_id: {type: string}
+        order_id: {type: string, description: The order that started it}
+        customer_id: {type: string}
+        email: {type: string}
+        postal_code: {type: integer}
+        sku: {type: string}
+        name: {type: string}
+        qty: {type: integer}
+        unit_price: {$ref: '#/components/schemas/Money'}
+        status: {type: string, enum: [active, past_due, canceled, terminated]}
+        current_period_start: {type: string, format: date}
+        current_period_end: {type: string, format: date}
+        payment_method: {type: string}
+        pending_sku: {type: string, nullable: true, description: The plan it changes to at the period end}
+        pending_name: {type: string, nullable: true}
+        cancel_at_period_end: {type: boolean}
+        failed_attempts: {type: integer}
+        next_attempt: {type: string, format: date, nullable: true}

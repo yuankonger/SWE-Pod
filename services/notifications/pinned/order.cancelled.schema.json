@@ -57,6 +57,8 @@
                 "placed",
                 "paid",
                 "payment_failed",
+                "shipped",
+                "delivered",
                 "cancelled"
               ]
             },
@@ -98,7 +100,16 @@
             "payment_id": {
               "type": "string"
             },
+            "payment_method": {
+              "type": "string"
+            },
             "created_at": {
+              "type": "string"
+            },
+            "updated_at": {
+              "type": "string"
+            },
+            "shipped_at": {
               "type": "string"
             }
           }

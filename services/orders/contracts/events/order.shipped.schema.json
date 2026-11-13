@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "order.shipped",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "const": "order.shipped"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "order"
+      ],
+      "properties": {
+        "order": {
+          "type": "object",
+          "required": [
+            "order_id",
+            "customer_id",
+            "email",
+            "postal_code",
+            "status",
+            "lines",
+            "subtotal",
+            "tax",
+            "total"
+          ],
+          "properties": {
+            "order_id": {
+              "type": "string"
+            },
+            "customer_id": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "postal_code": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "placed",
+                "paid",
+                "payment_failed",
+                "shipped",
+                "delivered",
+                "cancelled"
+              ]
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "sku",
+                  "name",
+                  "qty",
+                  "unit_price"
+                ],
+                "properties": {
+                  "sku": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "qty": {
+                    "type": "integer"
+                  },
+                  "unit_price": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "subtotal": {
+              "type": "number"
+            },
+            "tax": {
+              "type": "number"
+            },
+            "total": {
+              "type": "number"
+            },
+            "payment_id": {
+              "type": "string"
+            },
+            "payment_method": {
+              "type": "string"
+            },
+            "created_at": {
+              "type": "string"
+            },
+            "updated_at": {
+              "type": "string"
+            },
+            "shipped_at": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

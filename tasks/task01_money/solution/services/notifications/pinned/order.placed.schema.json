@@ -57,6 +57,8 @@
                 "placed",
                 "paid",
                 "payment_failed",
+                "shipped",
+                "delivered",
                 "cancelled"
               ]
             },
@@ -80,17 +82,82 @@
                   "qty": {
                     "type": "integer"
                   },
-                  "unit_price": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}}
+                  "unit_price": {
+                    "type": "object",
+                    "required": [
+                      "currency",
+                      "minor"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "USD"
+                      },
+                      "minor": {
+                        "type": "integer"
+                      }
+                    }
+                  }
                 }
               }
             },
-            "subtotal": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
-            "tax": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
-            "total": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
+            "subtotal": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "tax": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "total": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
             "payment_id": {
               "type": "string"
             },
+            "payment_method": {
+              "type": "string"
+            },
             "created_at": {
+              "type": "string"
+            },
+            "updated_at": {
+              "type": "string"
+            },
+            "shipped_at": {
               "type": "string"
             }
           }

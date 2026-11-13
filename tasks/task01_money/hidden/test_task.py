@@ -114,6 +114,27 @@ class Task01(unittest.TestCase):
         page = self.s.get("storefront", "/account/cust_42/orders")[1]["orders"][0]
         self.assertEqual(page["invoice"]["total_display"], "$61.15")
 
+    def test_events_notifications__renewal_receipt_shows_the_same_dollars(self):
+        subs = self.s.wait_for(lambda: (self.s.get("billing", "/subscriptions?customer_id=cust_42")[1] or {}).get("subscriptions"))
+        self.assertTrue(subs, "billing started no subscription for the order")
+        status, run = self.s.post("billing", "/renewals/run", {"as_of": subs[0]["current_period_end"]})
+        self.assertEqual(status, 200, run)   # the run renews every subscription that is due, the other customer's too
+        renewals = [i for i in self.s.get("billing", "/invoices?customer_id=cust_42")[1]["invoices"] if i.get("reason") == "renewal"]
+        self.assertEqual([i["total"] for i in renewals], [USD(5435)])    # 2 x 2499 = 4998; tax 8.75% = 437.3 -> 437
+        receipt = self.s.wait_for(lambda: [e for e in self.s.get("notifications", "/outbox?customer_id=cust_42")[1]["emails"]
+                                           if e["subject"].startswith("Renewal receipt")])
+        self.assertTrue(receipt, "no renewal receipt was sent")
+        for text in ("2 x Small monthly box  $49.98", "Tax: $4.37", "Total: $54.35"):
+            self.assertIn(text, receipt[0]["body"])
+
+    def test_storefront_billing__subscription_page_shows_the_monthly_price(self):
+        subs = self.s.wait_for(lambda: (self.s.get("billing", "/subscriptions?customer_id=cust_77")[1] or {}).get("subscriptions"))
+        self.assertTrue(subs, "billing started no subscription for the order")
+        self.assertEqual(subs[0]["unit_price"], USD(3950), "the subscription is not priced in Money objects")
+        status, page = self.s.get("storefront", "/account/cust_77/subscriptions")
+        self.assertEqual(status, 200, page)
+        self.assertEqual(page["subscriptions"][0]["price_display"], "$118.50 a month")    # 3 x 39.50
+
     def test_rounding__tax_rounds_half_up_to_the_cent_end_to_end(self):
         self.assertEqual(self.big_status, 201, self.big)
         big = self.s.get("orders", "/orders/" + self.big["order_id"])[1]

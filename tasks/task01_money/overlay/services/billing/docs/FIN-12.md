@@ -12,7 +12,9 @@ Decided by Finance and Billing. Billing owns how money is represented on every c
 3. There is no transition period. Once this ships, Billing rejects a plain number where Money is expected, on
    requests and on events.
 4. Tax is computed on the subtotal in minor units and rounded half up to the cent. Rates do not change.
+   Proration (plan changes) is computed in minor units and rounded half up to the cent as well.
 5. What customers see does not change: pages and emails still show dollars, such as `$24.99`.
 
-Every service that sends, stores or shows money is affected: Orders (catalogue prices, orders, the charge call,
-order events), Storefront (pages) and Notifications (emails).
+Every service that sends, stores or shows money is affected: Orders (catalogue prices, carts, orders, the charge
+call, order events), Storefront (pages) and Notifications (emails). In Billing it covers quotes, payments, refunds,
+invoices, plans and subscriptions.

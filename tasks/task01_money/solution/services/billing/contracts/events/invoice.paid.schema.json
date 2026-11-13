@@ -32,6 +32,7 @@
             "order_id",
             "customer_id",
             "email",
+            "reason",
             "lines",
             "subtotal",
             "tax",
@@ -46,17 +47,32 @@
             "order_id": {
               "type": "string"
             },
+            "subscription_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "customer_id": {
               "type": "string"
             },
             "email": {
               "type": "string"
             },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "order",
+                "renewal",
+                "plan_change"
+              ]
+            },
             "lines": {
               "type": "array",
               "items": {
                 "type": "object",
                 "required": [
+                  "type",
                   "sku",
                   "name",
                   "qty",
@@ -64,6 +80,15 @@
                   "amount"
                 ],
                 "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "RECURRING",
+                      "FIXED",
+                      "PRORATION",
+                      "CREDIT"
+                    ]
+                  },
                   "sku": {
                     "type": "string"
                   },
@@ -73,18 +98,89 @@
                   "qty": {
                     "type": "integer"
                   },
-                  "unit_price": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
-                  "amount": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}}
+                  "unit_price": {
+                    "type": "object",
+                    "required": [
+                      "currency",
+                      "minor"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "USD"
+                      },
+                      "minor": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "amount": {
+                    "type": "object",
+                    "required": [
+                      "currency",
+                      "minor"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "USD"
+                      },
+                      "minor": {
+                        "type": "integer"
+                      }
+                    }
+                  }
                 }
               }
             },
-            "subtotal": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
-            "tax": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
-            "total": {"type": "object", "required": ["currency", "minor"], "properties": {"currency": {"const": "USD"}, "minor": {"type": "integer"}}},
+            "subtotal": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "tax": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
+            "total": {
+              "type": "object",
+              "required": [
+                "currency",
+                "minor"
+              ],
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "minor": {
+                  "type": "integer"
+                }
+              }
+            },
             "status": {
               "type": "string",
               "enum": [
-                "paid"
+                "paid",
+                "refunded"
               ]
             },
             "issued_at": {

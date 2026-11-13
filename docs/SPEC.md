@@ -462,8 +462,8 @@ The seed company, the kernel, a stand-in harness and task 1 are built and verifi
 
 | Piece | State | Verified by |
 | --- | --- | --- |
-| Toolchain image (Node 24, Java 17, .NET 8, Python 3.11) | Built, 2.2 GB | Each service's tests run inside it |
-| Four services with contracts, pinned copies and owner notes | Built | 16 unit tests; 3 end-to-end tests through all four services |
+| Toolchain image (Node 24, Java 17, .NET 8, Python 3.11, H2, SQLite) | Built, 2.35 GB | Each service's tests run inside it |
+| Four services with contracts, pinned copies and owner notes; each with its own database, and a shop frontend, carts, subscriptions, renewals and refunds (added 12 November 2026) | Built | 44 unit tests; 7 end-to-end tests through all four services, one across a restart |
 | Event broker and stack runner | Built | The end-to-end tests |
 | Kernel: round-robin turns, shared token budget, messaging, event log | Built | 6 kernel tests with scripted agents |
 | Stand-in harness: one Claude call per turn through the Anthropic SDK | Written, not run | Request parameters checked against the SDK only |
@@ -474,9 +474,9 @@ The seed company, the kernel, a stand-in harness and task 1 are built and verifi
 
 | Test | Result |
 | --- | --- |
-| Solvable: scripted reference team, through the harness | 10 of 10 hidden checks, team and solo |
-| No shortcut: untouched company | 0 of 10 |
-| Partial: only Billing migrated | 2 of 10 |
+| Solvable: scripted reference team, through the harness | 12 of 12 hidden checks, team and solo |
+| No shortcut: untouched company | 0 of 12 |
+| Partial: only Billing migrated | 2 of 12 |
 | Needs coordination: model team without messaging | Not run yet |
 | Needs a team, headroom: model runs | Not run yet |
 | Cheap: measured token and wall time per episode | Not run yet |

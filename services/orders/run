@@ -13,7 +13,9 @@ case "${1:-}" in
     build
     mkdir -p "$OUT/test"
     javac -nowarn -cp "$JARS/*:$OUT/main" -d "$OUT/test" $(find test -name '*.java')
-    java -jar "$JARS"/junit-platform-console-standalone-*.jar execute --class-path "$OUT/main:$OUT/test:$JARS/*" \
+    # the JUnit launcher does not expand "dir/*", so the library jars are listed one by one
+    LIBS=$(ls "$JARS"/*.jar | grep -v junit-platform-console | tr '\n' ':')
+    java -jar "$JARS"/junit-platform-console-standalone-*.jar execute --class-path "$OUT/main:$OUT/test:$LIBS" \
       --scan-class-path "$OUT/test" --disable-banner --details=summary --fail-if-no-tests
     ;;
   serve)
