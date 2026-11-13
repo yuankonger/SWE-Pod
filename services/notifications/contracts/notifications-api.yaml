@@ -1,0 +1,19 @@
+# Notifications API. Owner: Notifications. The outbox stands in for the mail provider.
+openapi: 3.0.3
+info: {title: Notifications API, version: 1.0.0}
+paths:
+  /outbox:
+    get:
+      summary: Every email sent, oldest first. One email per event.
+      parameters: [{name: customer_id, in: query, schema: {type: string}}]
+components:
+  schemas:
+    Email:
+      type: object
+      properties:
+        event_id: {type: string}
+        kind: {type: string, enum: [order_confirmation, receipt, cancellation]}
+        customer_id: {type: string}
+        to: {type: string}
+        subject: {type: string}
+        body: {type: string}

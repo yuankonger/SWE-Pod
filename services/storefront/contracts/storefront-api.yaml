@@ -1,0 +1,23 @@
+# Storefront API. Owner: Storefront. This is what the web and mobile clients call.
+openapi: 3.0.3
+info: {title: Storefront API, version: 1.0.0}
+paths:
+  /checkout:
+    post: {summary: 'Place an order. Body as Orders PlaceOrder. Returns an OrderPage (201).'}
+  /account/{customer_id}/orders:
+    get: {summary: 'The customer''s orders as OrderPages, each with its invoice once Billing has issued one.'}
+  /orders/{order_id}/cancel:
+    post: {summary: Cancel an order. Returns the OrderPage.}
+components:
+  schemas:
+    OrderPage:
+      type: object
+      properties:
+        order_id: {type: string}
+        status: {type: string}
+        status_label: {type: string}
+        lines: {type: array, items: {type: object, properties: {name: {type: string}, qty: {type: integer}, unit_price_display: {type: string}, line_total_display: {type: string}}}}
+        subtotal_display: {type: string, example: '$56.23'}
+        tax_display: {type: string}
+        total_display: {type: string}
+        invoice: {type: object, nullable: true, properties: {invoice_id: {type: string}, total_display: {type: string}, status: {type: string}}}

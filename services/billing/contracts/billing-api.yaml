@@ -1,0 +1,68 @@
+# Billing API. Owner: Billing. Readers keep a pinned copy; ask Billing before relying on anything not written here.
+openapi: 3.0.3
+info: {title: Billing API, version: 1.0.0}
+paths:
+  /quotes:
+    post:
+      summary: Price a set of lines, with tax.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/QuoteRequest'}}}
+      responses:
+        '200': {description: The quote, content: {application/json: {schema: {$ref: '#/components/schemas/Quote'}}}}
+        '400': {description: Invalid request}
+  /charges:
+    post:
+      summary: Take a payment for an order.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ChargeRequest'}}}
+      responses:
+        '200': {description: The payment, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        '400': {description: Invalid request}
+  /invoices:
+    get:
+      summary: Invoices, oldest first. An invoice is issued when Billing reads the order.placed event.
+      parameters: [{name: order_id, in: query, schema: {type: string}}]
+      responses:
+        '200': {description: Invoices, content: {application/json: {schema: {type: object, properties: {invoices: {type: array, items: {$ref: '#/components/schemas/Invoice'}}}}}}}
+components:
+  schemas:
+    QuoteRequest:
+      type: object
+      required: [postal_code, lines]
+      properties:
+        postal_code: {type: integer}
+        lines:
+          type: array
+          items: {type: object, required: [sku, qty, unit_price], properties: {sku: {type: string}, qty: {type: integer}, unit_price: {type: number}}}
+    Quote:
+      type: object
+      required: [subtotal, tax, total]
+      properties: {subtotal: {type: number}, tax: {type: number}, total: {type: number}}
+    ChargeRequest:
+      type: object
+      required: [order_id, customer_id, amount]
+      properties: {order_id: {type: string}, customer_id: {type: string}, amount: {type: number}}
+    Payment:
+      type: object
+      required: [payment_id, order_id, customer_id, amount, status]
+      properties: {payment_id: {type: string}, order_id: {type: string}, customer_id: {type: string}, amount: {type: number}, status: {type: string, enum: [succeeded, failed]}}
+    InvoiceLine:
+      type: object
+      required: [sku, name, qty, unit_price, amount]
+      properties: {sku: {type: string}, name: {type: string}, qty: {type: integer}, unit_price: {type: number}, amount: {type: number}}
+    Invoice:
+      type: object
+      required: [invoice_id, order_id, customer_id, email, lines, subtotal, tax, total, status, issued_at]
+      properties:
+        invoice_id: {type: string}
+        order_id: {type: string}
+        customer_id: {type: string}
+        email: {type: string}
+        lines: {type: array, items: {$ref: '#/components/schemas/InvoiceLine'}}
+        subtotal: {type: number}
+        tax: {type: number}
+        total: {type: number}
+        status: {type: string, enum: [paid]}
+        issued_at: {type: string, format: date-time}

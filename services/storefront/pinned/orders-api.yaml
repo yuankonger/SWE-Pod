@@ -1,0 +1,66 @@
+# Orders API. Owner: Orders. Readers keep a pinned copy; ask Orders before relying on anything not written here.
+openapi: 3.0.3
+info: {title: Orders API, version: 1.0.0}
+paths:
+  /orders:
+    post:
+      summary: Place an order. Quotes and charges through Billing, then publishes order.placed.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/PlaceOrder'}}}
+      responses:
+        '201': {description: The order, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {description: Invalid request}
+        '502': {description: Billing could not be reached or refused}
+    get:
+      summary: List orders, oldest first.
+      parameters: [{name: customer_id, in: query, schema: {type: string}}]
+      responses:
+        '200': {description: Orders, content: {application/json: {schema: {type: object, properties: {orders: {type: array, items: {$ref: '#/components/schemas/Order'}}}}}}}
+  /orders/{order_id}:
+    get:
+      parameters: [{name: order_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: The order, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '404': {description: No such order}
+  /orders/{order_id}/cancel:
+    post:
+      summary: Cancel an order. Publishes order.cancelled once.
+      parameters: [{name: order_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: The order, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+components:
+  schemas:
+    PlaceOrder:
+      type: object
+      required: [customer_id, email, postal_code, items]
+      properties:
+        customer_id: {type: string}
+        email: {type: string}
+        postal_code: {type: integer}
+        items:
+          type: array
+          items: {type: object, required: [sku, qty], properties: {sku: {type: string}, qty: {type: integer, minimum: 1}}}
+    OrderLine:
+      type: object
+      required: [sku, name, qty, unit_price]
+      properties:
+        sku: {type: string}
+        name: {type: string}
+        qty: {type: integer}
+        unit_price: {type: number}
+    Order:
+      type: object
+      required: [order_id, customer_id, email, postal_code, status, lines, subtotal, tax, total]
+      properties:
+        order_id: {type: string}
+        customer_id: {type: string}
+        email: {type: string}
+        postal_code: {type: integer}
+        status: {type: string, enum: [placed, paid, payment_failed, cancelled]}
+        lines: {type: array, items: {$ref: '#/components/schemas/OrderLine'}}
+        subtotal: {type: number}
+        tax: {type: number}
+        total: {type: number}
+        payment_id: {type: string}
+        created_at: {type: string, format: date-time}

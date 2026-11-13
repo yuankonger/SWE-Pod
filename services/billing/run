@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Billing (C#). Same task names in every service: ./run test | ./run serve
+set -euo pipefail
+cd "$(dirname "$0")"
+OUT=${SEEDCO_BUILD_DIR:-/tmp/seedco-build/billing}
+export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
+case "${1:-}" in
+  test)
+    dotnet test tests/Billing.Tests.csproj --nologo -v q --artifacts-path "$OUT"
+    ;;
+  serve)
+    dotnet build src/Billing.csproj --nologo -v q -c Release --artifacts-path "$OUT" >&2
+    exec dotnet "$OUT/bin/Billing/release/Billing.dll"
+    ;;
+  *) echo "usage: ./run test|serve" >&2; exit 2 ;;
+esac

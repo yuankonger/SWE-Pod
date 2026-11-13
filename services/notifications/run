@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Notifications (Python). Same task names in every service: ./run test | ./run serve
+set -euo pipefail
+cd "$(dirname "$0")"
+export PYTHONDONTWRITEBYTECODE=1
+case "${1:-}" in
+  test) python3 -m unittest discover -s test -p 'test_*.py' ;;
+  serve) cd src && exec python3 server.py ;;
+  *) echo "usage: ./run test|serve" >&2; exit 2 ;;
+esac
