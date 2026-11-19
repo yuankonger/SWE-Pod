@@ -1,0 +1,25 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/platform-app-problems"
+description = "Apps report their problems to the shop, and staff see them in the back office"
+keywords = ["swe-pod", "multi-repository", "feature", "live system"]
+
+[metadata]
+category = "software-engineering"
+repositories = 3
+source = "Saleor, the Saleor dashboard and the Saleor apps (BSD-3-Clause), February 2026, running as one company"
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 10800.0
+
+[environment]
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 40960
+workdir = "/work"

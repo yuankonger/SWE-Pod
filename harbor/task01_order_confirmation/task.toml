@@ -1,0 +1,28 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/task01-order-confirmation"
+description = "Staff confirm orders before they are fulfilled"
+keywords = ["swe-pod", "multi-service", "interface agreement"]
+
+[metadata]
+category = "software-engineering"
+change_type = "Change a business rule; add an enum state and an event"
+owners_touched = 4
+criteria = 17
+seed = "Saleor's automaticallyConfirmAllNewOrders channel setting, the orderConfirm mutation and the ORDER_CONFIRMED event; Saleor's AvaTax app commits tax documents on ORDER_CONFIRMED and its SMTP app sends the confirmation email on it"
+
+[verifier]
+# The verifier starts nine services and Prometheus in the agent's container and drives them over HTTP.
+timeout_sec = 1800.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 2400.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+workdir = "/work"

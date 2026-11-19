@@ -1,0 +1,93 @@
+# The payment-path company: the API, its payment app, the app's store, the payment provider's stand-in, and the
+# one-off setup that installs the app in the API and configures it. `docker compose up -d` after build.sh.
+name: seedco-payments
+x-keys: &keys
+  STRIPE_PK: pk_test_seedco51a7c0e2b9d4
+  STRIPE_RK: rk_test_seedco8e03f6a1c7b2
+  STRIPE_WH_SECRET: whsec_seedco4d2a9f70c1e6
+  PROVIDER_ADMIN: provider-admin-6c1e0b93
+  APP_SECRET_KEY: 5b0c7e1f9a2d4c6e8f00112233445566778899aabbccddeeff0123456789abcd
+services:
+  core:
+    image: seedco-payments-core:1
+    command: ["/opt/seedco/core_start.sh"]
+    environment:
+      ALLOWED_HOSTS: "*"
+      PUBLIC_URL: http://core.internal:8000
+      HTTP_IP_FILTER_ENABLED: "False"
+    ports: ["127.0.0.1:18000:8000"]
+    networks:
+      default:
+        aliases: [core.internal]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -o /dev/null -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{__typename}\"}' http://127.0.0.1:8000/graphql/"]
+      interval: 5s
+      timeout: 8s
+      retries: 120
+  provider:
+    image: seedco-payments-core:1
+    command: ["/opt/seedco/provider_start.sh"]
+    environment:
+      <<: *keys
+      STRIPE: '{"keys": ["pk_test_seedco51a7c0e2b9d4", "rk_test_seedco8e03f6a1c7b2"], "admin": "provider-admin-6c1e0b93", "deliver_after": 0.5, "retry_after": [2, 10, 30]}'
+    volumes: ["certs:/certs"]
+    networks:
+      default:
+        aliases: [api.stripe.com]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s --cacert /certs/ca.pem -o /dev/null https://api.stripe.com/v1/payment_intents"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+  dynamodb:
+    image: amazon/dynamodb-local:2.5.4
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+  stripe:
+    image: seedco-payments-stripe:1
+    command: ["pnpm", "start"]
+    environment:
+      SECRET_KEY: 5b0c7e1f9a2d4c6e8f00112233445566778899aabbccddeeff0123456789abcd
+      APL: dynamodb
+      DYNAMODB_MAIN_TABLE_NAME: stripe-main-table
+      AWS_REGION: localhost
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      AWS_ENDPOINT_URL: http://dynamodb:8000
+      APP_API_BASE_URL: http://stripe.internal:3000
+      APP_IFRAME_BASE_URL: http://stripe.internal:3000
+      ALLOWED_DOMAIN_PATTERN: "/.*/"
+      NODE_EXTRA_CA_CERTS: /certs/ca.pem
+      ENV: local
+    volumes: ["certs:/certs:ro"]
+    networks:
+      default:
+        aliases: [stripe.internal]
+    depends_on:
+      provider: {condition: service_healthy}
+      dynamodb: {condition: service_started}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -o /dev/null http://127.0.0.1:3000/api/manifest"]
+      interval: 5s
+      timeout: 8s
+      retries: 60
+  setup:
+    image: seedco-payments-core:1
+    command: ["python3", "/opt/seedco/setup.py"]
+    environment:
+      <<: *keys
+    volumes: ["certs:/certs:ro", "state:/state"]
+    depends_on:
+      core: {condition: service_healthy}
+      stripe: {condition: service_healthy}
+  traffic:
+    image: seedco-payments-core:1
+    command: ["python3", "/opt/seedco/traffic.py"]
+    profiles: [traffic]
+    environment:
+      <<: *keys
+    volumes: ["certs:/certs:ro", "state:/state"]
+    depends_on:
+      setup: {condition: service_completed_successfully}
+volumes:
+  certs:
+  state:

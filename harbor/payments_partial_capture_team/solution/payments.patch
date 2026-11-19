@@ -1,0 +1,79 @@
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+index 920ec26c..dc75eced 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+@@ -23,6 +23,7 @@ import {
+ } from "@/modules/saleor/transaction-requested-event-helpers";
+ import { getSaleorOrderStripeMetadata } from "@/modules/stripe/saleor-order-stripe-metadata";
+ import { mapStripeErrorToApiError } from "@/modules/stripe/stripe-api-error";
++import { StripeMoney } from "@/modules/stripe/stripe-money";
+ import { createStripePaymentIntentId } from "@/modules/stripe/stripe-payment-intent-id";
+ import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
+ import { ChargeFailureResult } from "@/modules/transaction-result/failure-result";
+@@ -112,8 +113,32 @@ export class TransactionChargeRequestedUseCase {
+ 
+     const paymentIntentIdResult = createStripePaymentIntentId(transaction.pspReference);
+ 
++    /*
++     * Staff may charge less than what was authorized. The amount asked for comes without its currency, so the
++     * payment intent is read first: its currency says how the amount is written in Stripe's units.
++     */
++    let amountToCapture: number | undefined;
++    const authorizedPaymentIntent = await stripePaymentIntentsApi.getPaymentIntent({
++      id: paymentIntentIdResult,
++    });
++
++    if (authorizedPaymentIntent.isOk()) {
++      const requested = StripeMoney.createFromSaleorAmount({
++        amount: event.action.amount,
++        currency: authorizedPaymentIntent.value.currency.toUpperCase(),
++      });
++
++      if (requested.isOk() && requested.value.amount > 0) {
++        amountToCapture = Math.min(
++          requested.value.amount,
++          authorizedPaymentIntent.value.amount_capturable,
++        );
++      }
++    }
++
+     const capturePaymentIntentResult = await stripePaymentIntentsApi.capturePaymentIntent({
+       id: paymentIntentIdResult,
++      amountToCapture,
+       idempotencyKey: getIdempotencyKeyFromRequestedEventPayload(event),
+       metadata: getSaleorOrderStripeMetadata(transaction),
+     });
+diff --git a/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts b/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
+index 6b48d505..b5817859 100644
+--- a/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
++++ b/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
+@@ -62,11 +62,15 @@ export class StripePaymentIntentsApi implements IStripePaymentIntentsApi {
+     id: StripePaymentIntentId;
+     idempotencyKey: string | undefined;
+     metadata?: AllowedStripeObjectMetadata;
++    amountToCapture?: number;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>> {
+     return ResultAsync.fromPromise(
+       this.stripeApiWrapper.paymentIntents.capture(
+         args.id,
+-        args.metadata && { metadata: args.metadata },
++        {
++          ...(args.metadata && { metadata: args.metadata }),
++          ...(args.amountToCapture !== undefined && { amount_to_capture: args.amountToCapture }),
++        },
+         {
+           idempotencyKey: args.idempotencyKey,
+         },
+diff --git a/apps/stripe/src/modules/stripe/types.ts b/apps/stripe/src/modules/stripe/types.ts
+index e7c13f0d..cca29c6d 100644
+--- a/apps/stripe/src/modules/stripe/types.ts
++++ b/apps/stripe/src/modules/stripe/types.ts
+@@ -66,6 +66,8 @@ export interface IStripePaymentIntentsApi {
+     id: StripePaymentIntentId;
+     idempotencyKey: string | undefined;
+     metadata?: AllowedStripeObjectMetadata;
++    /** In Stripe's minor units. Left out, the whole capturable amount is captured. */
++    amountToCapture?: number;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>>;
+   cancelPaymentIntent(args: {
+     id: StripePaymentIntentId;

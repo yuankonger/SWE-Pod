@@ -1,0 +1,15 @@
+{
+ "used_new": [
+  "AccountError.attributes",
+  "Mutation.customerTypeAssignAttributes",
+  "Mutation.customerTypeCreate",
+  "Mutation.customerTypeDelete",
+  "Mutation.customerTypeReorderAttributes",
+  "Mutation.customerTypeUnassignAttributes",
+  "Mutation.customerTypeUpdate",
+  "Query.customerType",
+  "Query.customerTypes",
+  "User.assignedAttributes",
+  "User.customerType"
+ ]
+}

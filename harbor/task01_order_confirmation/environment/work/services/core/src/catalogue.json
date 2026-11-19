@@ -1,0 +1,909 @@
+{
+ "categories": [
+  {
+   "id": "1",
+   "slug": "boxes",
+   "name": "Boxes",
+   "parent": null
+  },
+  {
+   "id": "2",
+   "slug": "tea",
+   "name": "Tea",
+   "parent": null
+  },
+  {
+   "id": "3",
+   "slug": "black-tea",
+   "name": "Black tea",
+   "parent": "tea"
+  },
+  {
+   "id": "4",
+   "slug": "green-tea",
+   "name": "Green tea",
+   "parent": "tea"
+  },
+  {
+   "id": "5",
+   "slug": "herbal-tea",
+   "name": "Herbal tea",
+   "parent": "tea"
+  },
+  {
+   "id": "6",
+   "slug": "coffee",
+   "name": "Coffee",
+   "parent": null
+  },
+  {
+   "id": "7",
+   "slug": "whole-bean",
+   "name": "Whole bean",
+   "parent": "coffee"
+  },
+  {
+   "id": "8",
+   "slug": "ground",
+   "name": "Ground",
+   "parent": "coffee"
+  },
+  {
+   "id": "9",
+   "slug": "pantry",
+   "name": "Pantry",
+   "parent": null
+  },
+  {
+   "id": "10",
+   "slug": "honey-and-jam",
+   "name": "Honey & jam",
+   "parent": "pantry"
+  },
+  {
+   "id": "11",
+   "slug": "biscuits",
+   "name": "Biscuits",
+   "parent": "pantry"
+  },
+  {
+   "id": "12",
+   "slug": "teaware",
+   "name": "Teaware",
+   "parent": null
+  },
+  {
+   "id": "13",
+   "slug": "pots",
+   "name": "Pots",
+   "parent": "teaware"
+  },
+  {
+   "id": "14",
+   "slug": "cups",
+   "name": "Cups",
+   "parent": "teaware"
+  },
+  {
+   "id": "15",
+   "slug": "brewing",
+   "name": "Brewing",
+   "parent": null
+  },
+  {
+   "id": "16",
+   "slug": "gifts",
+   "name": "Gifts",
+   "parent": null
+  },
+  {
+   "id": "17",
+   "slug": "gift-cards",
+   "name": "Gift cards",
+   "parent": "gifts"
+  }
+ ],
+ "product_types": [
+  {
+   "id": "1",
+   "name": "Subscription box",
+   "slug": "subscription-box"
+  },
+  {
+   "id": "2",
+   "name": "Add-on",
+   "slug": "add-on"
+  },
+  {
+   "id": "3",
+   "name": "Loose tea",
+   "slug": "loose-tea"
+  },
+  {
+   "id": "4",
+   "name": "Coffee",
+   "slug": "coffee"
+  },
+  {
+   "id": "5",
+   "name": "Pantry item",
+   "slug": "pantry-item"
+  },
+  {
+   "id": "6",
+   "name": "Teaware",
+   "slug": "teaware"
+  },
+  {
+   "id": "7",
+   "name": "Equipment",
+   "slug": "equipment"
+  },
+  {
+   "id": "8",
+   "name": "Gift card",
+   "slug": "gift-card"
+  }
+ ],
+ "products": [
+  {
+   "id": "1",
+   "name": "Small monthly box",
+   "slug": "small-monthly-box",
+   "category": "boxes",
+   "product_type": "subscription-box",
+   "variants": [
+    {
+     "id": "1",
+     "name": "",
+     "sku": "BOX-S",
+     "price": "24.99"
+    }
+   ]
+  },
+  {
+   "id": "2",
+   "name": "Large monthly box",
+   "slug": "large-monthly-box",
+   "category": "boxes",
+   "product_type": "subscription-box",
+   "variants": [
+    {
+     "id": "2",
+     "name": "",
+     "sku": "BOX-L",
+     "price": "39.50"
+    }
+   ]
+  },
+  {
+   "id": "3",
+   "name": "Tea add-on",
+   "slug": "tea-add-on",
+   "category": "tea",
+   "product_type": "add-on",
+   "variants": [
+    {
+     "id": "3",
+     "name": "",
+     "sku": "ADD-TEA",
+     "price": "6.25"
+    }
+   ]
+  },
+  {
+   "id": "4",
+   "name": "Assam Breakfast",
+   "slug": "assam-breakfast",
+   "category": "black-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "4",
+     "name": "50 g",
+     "sku": "TEA-ASM-50",
+     "price": "7.50"
+    },
+    {
+     "id": "5",
+     "name": "100 g",
+     "sku": "TEA-ASM-100",
+     "price": "13.00"
+    },
+    {
+     "id": "6",
+     "name": "250 g",
+     "sku": "TEA-ASM-250",
+     "price": "28.00"
+    },
+    {
+     "id": "7",
+     "name": "500 g",
+     "sku": "TEA-ASM-500",
+     "price": "49.00"
+    },
+    {
+     "id": "8",
+     "name": "1 kg",
+     "sku": "TEA-ASM-1000",
+     "price": "89.00"
+    }
+   ]
+  },
+  {
+   "id": "5",
+   "name": "Earl Grey Crème",
+   "slug": "earl-grey-cr-me",
+   "category": "black-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "9",
+     "name": "50 g",
+     "sku": "TEA-EGC-50",
+     "price": "8.25"
+    },
+    {
+     "id": "10",
+     "name": "100 g",
+     "sku": "TEA-EGC-100",
+     "price": "14.50"
+    },
+    {
+     "id": "11",
+     "name": "250 g",
+     "sku": "TEA-EGC-250",
+     "price": "31.00"
+    }
+   ]
+  },
+  {
+   "id": "6",
+   "name": "Darjeeling First Flush",
+   "slug": "darjeeling-first-flush",
+   "category": "black-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "12",
+     "name": "50 g",
+     "sku": "TEA-DJF-50",
+     "price": "14.00"
+    },
+    {
+     "id": "13",
+     "name": "100 g",
+     "sku": "TEA-DJF-100",
+     "price": "26.00"
+    }
+   ]
+  },
+  {
+   "id": "7",
+   "name": "Sencha Fukamushi",
+   "slug": "sencha-fukamushi",
+   "category": "green-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "14",
+     "name": "50 g",
+     "sku": "TEA-SEN-50",
+     "price": "11.00"
+    },
+    {
+     "id": "15",
+     "name": "100 g",
+     "sku": "TEA-SEN-100",
+     "price": "19.99"
+    },
+    {
+     "id": "16",
+     "name": "250 g",
+     "sku": "TEA-SEN-250",
+     "price": "44.00"
+    }
+   ]
+  },
+  {
+   "id": "8",
+   "name": "Dragon Well (Lóngjǐng)",
+   "slug": "dragon-well-l-ngj-ng",
+   "category": "green-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "17",
+     "name": "50 g",
+     "sku": "TEA-LJ-50",
+     "price": "16.50"
+    },
+    {
+     "id": "18",
+     "name": "100 g",
+     "sku": "TEA-LJ-100",
+     "price": "30.00"
+    },
+    {
+     "id": "19",
+     "name": "250 g",
+     "sku": "TEA-LJ-250",
+     "price": "68.00"
+    },
+    {
+     "id": "20",
+     "name": "500 g",
+     "sku": "TEA-LJ-500",
+     "price": "125.00"
+    },
+    {
+     "id": "21",
+     "name": "1 kg",
+     "sku": "TEA-LJ-1000",
+     "price": "230.00"
+    }
+   ]
+  },
+  {
+   "id": "9",
+   "name": "Matcha, ceremonial grade",
+   "slug": "matcha-ceremonial-grade",
+   "category": "green-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "22",
+     "name": "30 g tin",
+     "sku": "TEA-MAT-30",
+     "price": "32.00"
+    }
+   ]
+  },
+  {
+   "id": "10",
+   "name": "Chamomile & Honeybush",
+   "slug": "chamomile-honeybush",
+   "category": "herbal-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "23",
+     "name": "50 g",
+     "sku": "TEA-CHM-50",
+     "price": "6.75"
+    },
+    {
+     "id": "24",
+     "name": "100 g",
+     "sku": "TEA-CHM-100",
+     "price": "11.50"
+    },
+    {
+     "id": "25",
+     "name": "250 g",
+     "sku": "TEA-CHM-250",
+     "price": "24.00"
+    }
+   ]
+  },
+  {
+   "id": "11",
+   "name": "Rooibos \"Crème Brûlée\"",
+   "slug": "rooibos-cr-me-br-l-e",
+   "category": "herbal-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "26",
+     "name": "50 g",
+     "sku": "TEA-RCB-50",
+     "price": "7.25"
+    },
+    {
+     "id": "27",
+     "name": "100 g",
+     "sku": "TEA-RCB-100",
+     "price": "12.50"
+    },
+    {
+     "id": "28",
+     "name": "250 g",
+     "sku": "TEA-RCB-250",
+     "price": "26.50"
+    },
+    {
+     "id": "29",
+     "name": "500 g",
+     "sku": "TEA-RCB-500",
+     "price": "47.00"
+    },
+    {
+     "id": "30",
+     "name": "1 kg",
+     "sku": "TEA-RCB-1000",
+     "price": "85.00"
+    }
+   ]
+  },
+  {
+   "id": "12",
+   "name": "Peppermint",
+   "slug": "peppermint",
+   "category": "herbal-tea",
+   "product_type": "loose-tea",
+   "variants": [
+    {
+     "id": "31",
+     "name": "50 g",
+     "sku": "TEA-PEP-50",
+     "price": "5.50"
+    }
+   ]
+  },
+  {
+   "id": "13",
+   "name": "House Espresso",
+   "slug": "house-espresso",
+   "category": "whole-bean",
+   "product_type": "coffee",
+   "variants": [
+    {
+     "id": "32",
+     "name": "250 g",
+     "sku": "COF-ESP-250",
+     "price": "12.00"
+    },
+    {
+     "id": "33",
+     "name": "500 g",
+     "sku": "COF-ESP-500",
+     "price": "22.00"
+    },
+    {
+     "id": "34",
+     "name": "1 kg",
+     "sku": "COF-ESP-1000",
+     "price": "40.00"
+    },
+    {
+     "id": "35",
+     "name": "2.5 kg",
+     "sku": "COF-ESP-2500",
+     "price": "92.00"
+    },
+    {
+     "id": "36",
+     "name": "5 kg",
+     "sku": "COF-ESP-5000",
+     "price": "175.00"
+    }
+   ]
+  },
+  {
+   "id": "14",
+   "name": "Ethiopia Guji, natural",
+   "slug": "ethiopia-guji-natural",
+   "category": "whole-bean",
+   "product_type": "coffee",
+   "variants": [
+    {
+     "id": "37",
+     "name": "250 g",
+     "sku": "COF-GUJ-250",
+     "price": "16.50"
+    },
+    {
+     "id": "38",
+     "name": "500 g",
+     "sku": "COF-GUJ-500",
+     "price": "31.00"
+    },
+    {
+     "id": "39",
+     "name": "1 kg",
+     "sku": "COF-GUJ-1000",
+     "price": "58.00"
+    }
+   ]
+  },
+  {
+   "id": "15",
+   "name": "Decaf Colombia",
+   "slug": "decaf-colombia",
+   "category": "ground",
+   "product_type": "coffee",
+   "variants": [
+    {
+     "id": "40",
+     "name": "250 g",
+     "sku": "COF-DEC-250",
+     "price": "13.50"
+    },
+    {
+     "id": "41",
+     "name": "500 g",
+     "sku": "COF-DEC-500",
+     "price": "25.00"
+    }
+   ]
+  },
+  {
+   "id": "16",
+   "name": "Filter blend",
+   "slug": "filter-blend",
+   "category": "ground",
+   "product_type": "coffee",
+   "variants": [
+    {
+     "id": "42",
+     "name": "250 g, fine",
+     "sku": "COF-FIL-250-F",
+     "price": "11.00"
+    },
+    {
+     "id": "43",
+     "name": "250 g, medium",
+     "sku": "COF-FIL-250-M",
+     "price": "11.00"
+    },
+    {
+     "id": "44",
+     "name": "250 g, coarse",
+     "sku": "COF-FIL-250-C",
+     "price": "11.00"
+    },
+    {
+     "id": "45",
+     "name": "500 g, fine",
+     "sku": "COF-FIL-500-F",
+     "price": "20.00"
+    },
+    {
+     "id": "46",
+     "name": "500 g, medium",
+     "sku": "COF-FIL-500-M",
+     "price": "20.00"
+    },
+    {
+     "id": "47",
+     "name": "500 g, coarse",
+     "sku": "COF-FIL-500-C",
+     "price": "20.00"
+    },
+    {
+     "id": "48",
+     "name": "1 kg, fine",
+     "sku": "COF-FIL-1000-F",
+     "price": "37.00"
+    },
+    {
+     "id": "49",
+     "name": "1 kg, medium",
+     "sku": "COF-FIL-1000-M",
+     "price": "37.00"
+    },
+    {
+     "id": "50",
+     "name": "1 kg, coarse",
+     "sku": "COF-FIL-1000-C",
+     "price": "37.00"
+    },
+    {
+     "id": "51",
+     "name": "2.5 kg, medium",
+     "sku": "COF-FIL-2500-M",
+     "price": "85.00"
+    }
+   ]
+  },
+  {
+   "id": "17",
+   "name": "Beekeeper's wildflower honey",
+   "slug": "beekeeper-s-wildflower-honey",
+   "category": "honey-and-jam",
+   "product_type": "pantry-item",
+   "variants": [
+    {
+     "id": "52",
+     "name": "227 g jar",
+     "sku": "PAN-HON-227",
+     "price": "9.50"
+    }
+   ]
+  },
+  {
+   "id": "18",
+   "name": "Seville orange marmalade",
+   "slug": "seville-orange-marmalade",
+   "category": "honey-and-jam",
+   "product_type": "pantry-item",
+   "variants": [
+    {
+     "id": "53",
+     "name": "340 g jar",
+     "sku": "PAN-MAR-340",
+     "price": "6.99"
+    }
+   ]
+  },
+  {
+   "id": "19",
+   "name": "Shortbread fingers",
+   "slug": "shortbread-fingers",
+   "category": "biscuits",
+   "product_type": "pantry-item",
+   "variants": [
+    {
+     "id": "54",
+     "name": "Tin of 12",
+     "sku": "PAN-SHB-12",
+     "price": "8.50"
+    },
+    {
+     "id": "55",
+     "name": "Tin of 24",
+     "sku": "PAN-SHB-24",
+     "price": "15.00"
+    },
+    {
+     "id": "56",
+     "name": "Refill bag",
+     "sku": null,
+     "price": "5.00"
+    },
+    {
+     "id": "57",
+     "name": "Case of 6 tins",
+     "sku": "PAN-SHB-CASE",
+     "price": "45.00"
+    }
+   ]
+  },
+  {
+   "id": "20",
+   "name": "Stem ginger biscuits",
+   "slug": "stem-ginger-biscuits",
+   "category": "biscuits",
+   "product_type": "pantry-item",
+   "variants": [
+    {
+     "id": "58",
+     "name": "Box",
+     "sku": "PAN-GIN-1",
+     "price": "4.75"
+    }
+   ]
+  },
+  {
+   "id": "21",
+   "name": "Sugar sticks",
+   "slug": "sugar-sticks",
+   "category": "pantry",
+   "product_type": "pantry-item",
+   "variants": [
+    {
+     "id": "59",
+     "name": "Pack of 20",
+     "sku": "PAN-SUG-20",
+     "price": "1.99"
+    }
+   ]
+  },
+  {
+   "id": "22",
+   "name": "Cast-iron teapot \"Tetsubin\"",
+   "slug": "cast-iron-teapot-tetsubin",
+   "category": "pots",
+   "product_type": "teaware",
+   "variants": [
+    {
+     "id": "60",
+     "name": "0.6 l",
+     "sku": "WARE-TET-06",
+     "price": "64.00"
+    },
+    {
+     "id": "61",
+     "name": "0.9 l",
+     "sku": "WARE-TET-09",
+     "price": "79.00"
+    },
+    {
+     "id": "62",
+     "name": "1.2 l",
+     "sku": "WARE-TET-12",
+     "price": "98.00"
+    }
+   ]
+  },
+  {
+   "id": "23",
+   "name": "Glass teapot with infuser",
+   "slug": "glass-teapot-with-infuser",
+   "category": "pots",
+   "product_type": "teaware",
+   "variants": [
+    {
+     "id": "63",
+     "name": "1 l",
+     "sku": "WARE-GLS-10",
+     "price": "34.00"
+    }
+   ]
+  },
+  {
+   "id": "24",
+   "name": "Stoneware cups",
+   "slug": "stoneware-cups",
+   "category": "cups",
+   "product_type": "teaware",
+   "variants": [
+    {
+     "id": "64",
+     "name": "Set of 2",
+     "sku": "WARE-CUP-2",
+     "price": "22.00"
+    },
+    {
+     "id": "65",
+     "name": "Set of 4",
+     "sku": "WARE-CUP-4",
+     "price": "40.00"
+    },
+    {
+     "id": "66",
+     "name": "Set of 6",
+     "sku": "WARE-CUP-6",
+     "price": "57.00"
+    },
+    {
+     "id": "67",
+     "name": "Single, seconds",
+     "sku": null,
+     "price": "6.00"
+    },
+    {
+     "id": "68",
+     "name": "Set of 12",
+     "sku": "WARE-CUP-12",
+     "price": "108.00"
+    }
+   ]
+  },
+  {
+   "id": "25",
+   "name": "Double-walled glass mug",
+   "slug": "double-walled-glass-mug",
+   "category": "cups",
+   "product_type": "teaware",
+   "variants": [
+    {
+     "id": "69",
+     "name": "350 ml",
+     "sku": "WARE-MUG-350",
+     "price": "14.00"
+    }
+   ]
+  },
+  {
+   "id": "26",
+   "name": "Pour-over dripper",
+   "slug": "pour-over-dripper",
+   "category": "brewing",
+   "product_type": "equipment",
+   "variants": [
+    {
+     "id": "70",
+     "name": "Ceramic",
+     "sku": "BREW-DRP-CER",
+     "price": "24.00"
+    }
+   ]
+  },
+  {
+   "id": "27",
+   "name": "Variable-temperature kettle",
+   "slug": "variable-temperature-kettle",
+   "category": "brewing",
+   "product_type": "equipment",
+   "variants": [
+    {
+     "id": "71",
+     "name": "1 l",
+     "sku": "BREW-KET-10",
+     "price": "129.00"
+    }
+   ]
+  },
+  {
+   "id": "28",
+   "name": "Lever espresso machine \"La Paziente\"",
+   "slug": "lever-espresso-machine-la-paziente",
+   "category": "brewing",
+   "product_type": "equipment",
+   "variants": [
+    {
+     "id": "72",
+     "name": "Chrome",
+     "sku": "BREW-LEV-CHR",
+     "price": "2300.00"
+    }
+   ]
+  },
+  {
+   "id": "29",
+   "name": "Gift card",
+   "slug": "gift-card",
+   "category": "gift-cards",
+   "product_type": "gift-card",
+   "variants": [
+    {
+     "id": "73",
+     "name": "$25",
+     "sku": "GIFT-25",
+     "price": "25.00"
+    },
+    {
+     "id": "74",
+     "name": "$50",
+     "sku": "GIFT-50",
+     "price": "50.00"
+    },
+    {
+     "id": "75",
+     "name": "$100",
+     "sku": "GIFT-100",
+     "price": "100.00"
+    },
+    {
+     "id": "76",
+     "name": "$150",
+     "sku": "GIFT-150",
+     "price": "150.00"
+    },
+    {
+     "id": "77",
+     "name": "$200",
+     "sku": "GIFT-200",
+     "price": "200.00"
+    },
+    {
+     "id": "78",
+     "name": "$250",
+     "sku": "GIFT-250",
+     "price": "250.00"
+    },
+    {
+     "id": "79",
+     "name": "$300",
+     "sku": "GIFT-300",
+     "price": "300.00"
+    },
+    {
+     "id": "80",
+     "name": "$400",
+     "sku": "GIFT-400",
+     "price": "400.00"
+    },
+    {
+     "id": "81",
+     "name": "$500",
+     "sku": "GIFT-500",
+     "price": "500.00"
+    },
+    {
+     "id": "82",
+     "name": "$750",
+     "sku": "GIFT-750",
+     "price": "750.00"
+    },
+    {
+     "id": "83",
+     "name": "$1,000",
+     "sku": "GIFT-1000",
+     "price": "1000.00"
+    }
+   ]
+  }
+ ]
+}

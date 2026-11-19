@@ -1,0 +1,15 @@
+# What the tax app reads from Core when a checkout or an order needs taxes. Core sends exactly these fields.
+subscription CalculateTaxes {
+  event {
+    ... on CalculateTaxes {
+      taxBase {
+        pricesEnteredWithTax
+        currency
+        shippingPrice { amount }
+        address { postalCode countryArea country { code } }
+        lines { quantity chargeTaxes productSku totalPrice { amount } }
+        sourceObject { __typename ... on Checkout { id } ... on Order { id } }
+      }
+    }
+  }
+}

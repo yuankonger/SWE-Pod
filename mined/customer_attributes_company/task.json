@@ -1,0 +1,65 @@
+{
+  "id": "customer_attributes_company",
+  "title": "Customer attributes across Saleor's API and its dashboard (August 2026)",
+  "owners": {
+    "core": {
+      "task": "saleor_customer_attributes"
+    },
+    "dashboard": {
+      "task": "dashboard_customer_types"
+    }
+  },
+  "contracts": [
+    {
+      "provider": "core",
+      "consumer": "dashboard",
+      "schema": "saleor/graphql/schema.graphql",
+      "copies": [
+        "schema-main.graphql",
+        "schema-staging.graphql"
+      ],
+      "regenerate": "pnpm run generate",
+      "migrate": "python manage.py migrate",
+      "print_schema": "python manage.py get_graphql_schema",
+      "serve": "python manage.py runserver 0.0.0.0:8000",
+      "url": "http://127.0.0.1:8000/graphql/",
+      "live_url": "http://core:8000/graphql/"
+    }
+  ],
+  "env": {
+    "core": {
+      "ALLOWED_HOSTS": "*"
+    }
+  },
+  "overview": "The company runs the Saleor commerce platform as two systems, each a repository of its own:\n- `core` (Python, Django): the commerce API, in GraphQL. It has the only database.\n- `dashboard` (TypeScript, React): the application staff use. It keeps no data: every screen calls core's API. It holds copies of core's GraphQL schema and generates its typed query code from them, so the copies must match the API core really serves.\nEach system runs in a container of its own. The containers can reach each other by system name: the API a core container serves on port 8000 is at `http://core:8000/graphql/` from the dashboard's container.",
+  "notes": {
+    "core": "- To serve the API to the other containers of this work: `python manage.py migrate` (two minutes), then `nohup python manage.py runserver 0.0.0.0:8000 > /tmp/server.log 2>&1 &`. It takes about half a minute to answer, at `http://core:8000/graphql/`. `python manage.py populatedb --createsuperuser` adds sample data and a staff user (`admin@example.com` / `admin`).\n",
+    "dashboard": "- The containers of this work can reach each other by name: once somebody serves core's API from the container of a `core` checkout they may push from, it is at `http://core:8000/graphql/`.\n"
+  },
+  "feature": "We would like one feature built. It may need changes in more than one repository.",
+  "deployed": {
+    "core": {
+      "start": "python manage.py runserver 0.0.0.0:8000 --noreload",
+      "prepare": "python manage.py migrate",
+      "first": "python manage.py populatedb --createsuperuser",
+      "where": "the API, at `http://core:8000/graphql/`, with sample data and a staff user (`admin@example.com` / `admin`). A deploy runs its database migrations."
+    },
+    "dashboard": {
+      "start": "pnpm run dev",
+      "env": {
+        "API_URL": "http://core:8000/graphql/",
+        "__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS": "dashboard"
+      },
+      "where": "the staff application, served by its development server at `http://dashboard:9000/`, calling the API above."
+    }
+  },
+  "description": "Staff can record structured details about customers, such as a tax ID, an account manager or a contract tier, as attributes. Until now attributes could be given to products and pages only.\n\n**Customer types.** Customers are grouped into customer types, the way products are grouped into product types. A customer type has a name and the set of attributes its customers share. Exactly one type is the default, and a customer created without a type, by whatever route, gets it. Staff who hold the permission for it can create, rename and delete types, make a type the default, and assign, reorder and unassign a type's attributes, with a limit on how many in one request. The default type cannot be deleted, even if it only becomes the default while the deletion is under way. Apps are told of changes to customer types through webhook events.\n\n**Attributes on customers.** Creating or updating a customer, one at a time or in bulk, can set the customer's type and values for that type's attributes. When a bulk update fails on attributes, its errors say which. The list of customers can be filtered by type and by attribute values, as products and pages can. Values that belong to one customer alone are deleted with that customer. Values of customer attributes cannot be translated. Managing customer attributes takes the customer-type permission, not the product or page one, and a request that touches attributes of several kinds needs the permission for each.\n\n**In the staff application.**\n\n1. Configuration has a new **Customers** section with **Customer types** and **Customer attributes**. Types can be created, renamed, given a default, and have attributes assigned, reordered or unassigned, the same way product and model types work.\n2. On a customer's profile staff can pick the type and fill in its attributes (each under its name, with a control for its value, saved with the rest of the page), and jump to the type's settings from the attributes card. The type also appears as a badge in the profile header, linking to that type's tab on the customer list. The customer list has a tab per type, as models do.\n3. The customer's page is reorganised around this: the header carries status, type and member-since; the main column shows order figures per channel, recent orders, and attributes; contact details, addresses, external reference and gift cards sit in the sidebar. A recent order's whole row is clickable.\n4. Customer types are in the Customers sidebar. Open **Customers** to jump to **All**, or to a type such as **B2B** or **Default**. **Customer Types** at the bottom opens the type settings. If there is only one type, the menu stays **All** plus settings. Types pinned on the customer list appear first, and only a handful are listed so the menu stays short.\n5. Customers can be filtered by attributes: on the customer list, open **Conditions** and choose **Attribute**. Filter menus show more choices and load more on scroll.",
+  "business": {
+    "script": "business_customer_tier.cjs",
+    "roles": {
+      "core": "core",
+      "dashboard": "dashboard"
+    }
+  },
+  "done": "It is done when it is on `main` of both repositories and works there: the API starts on a fresh database, and staff can do in the staff application what the feature is for. The tests each repository has today should still pass. Each repository's `INTERFACE.md` lists the names the project's own tests for this feature use; keep to them."
+}

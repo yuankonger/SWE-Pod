@@ -1,5 +1,5 @@
 # seedco-toolchain: one image with all four service toolchains, dependencies cached.
-# Build:  docker build -t seedco-toolchain:0.1 docker/
+# Build:  docker build -t seedco-toolchain:0.4 docker/
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 RUN apt-get update \
@@ -15,19 +15,46 @@ RUN set -eu; arch=$(dpkg --print-architecture); case "$arch" in arm64) n=arm64;;
 # The harness talks to the model through the official Anthropic Python SDK
 RUN pip3 install --no-cache-dir --break-system-packages anthropic
 
-# Java libraries (no build tool: javac + jars on the classpath)
+# Java libraries (no build tool: javac + jars on the classpath). H2 is Orders' embedded database.
 ARG JACKSON=2.17.2
 ARG JUNIT=1.10.3
+ARG H2=2.2.224
 RUN mkdir -p /opt/jars && cd /opt/jars \
     && for a in jackson-core jackson-databind jackson-annotations; do \
          curl -fsSLO https://repo1.maven.org/maven2/com/fasterxml/jackson/core/$a/$JACKSON/$a-$JACKSON.jar; done \
-    && curl -fsSLO https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/$JUNIT/junit-platform-console-standalone-$JUNIT.jar
+    && curl -fsSLO https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/$JUNIT/junit-platform-console-standalone-$JUNIT.jar \
+    && curl -fsSLO https://repo1.maven.org/maven2/com/h2database/h2/$H2/h2-$H2.jar
 
-# Warm the NuGet cache with the test packages Billing.Tests uses (same versions as its csproj)
+# Warm the NuGet cache with the packages Billing and Billing.Tests use (same versions as their csproj files)
 RUN mkdir /tmp/warm && cd /tmp/warm && dotnet new xunit -o t --no-restore >/dev/null \
     && cd t && dotnet add package Microsoft.NET.Test.Sdk -v 17.11.1 --no-restore >/dev/null \
     && dotnet add package xunit -v 2.9.2 --no-restore >/dev/null \
     && dotnet add package xunit.runner.visualstudio -v 2.8.2 --no-restore >/dev/null \
+    && dotnet add package Microsoft.Data.Sqlite -v 8.0.10 --no-restore >/dev/null \
     && dotnet restore >/dev/null && cd / && rm -rf /tmp/warm
 
+# Core's GraphQL engine (the same one Saleor's graphene sits on)
+RUN pip3 install --no-cache-dir --break-system-packages "graphql-core>=3.2,<3.3"
+
+# Ruby for the support desk (standard library, WEBrick, SQLite, minitest)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ruby ruby-webrick ruby-sqlite3 ruby-minitest \
+    && rm -rf /var/lib/apt/lists/*
+
+# Prometheus and promtool: the real binaries, for scraping the services and evaluating alert rules
+ARG PROMETHEUS=3.16.0
+RUN set -eu; arch=$(dpkg --print-architecture); \
+    curl -fsSL "https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS/prometheus-$PROMETHEUS.linux-$arch.tar.gz" \
+      | tar -xz -C /usr/local/bin --strip-components=1 --wildcards '*/prometheus' '*/promtool'; \
+    prometheus --version | head -1
+
 WORKDIR /work
+
+# The sqlite3 command, for looking into a service's database from a shell
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# The containers agents and the verifier use have no network. NuGet's vulnerability lookup cannot work there
+# and would only put a warning at the top of every .NET build and test run.
+ENV NuGetAudit=false

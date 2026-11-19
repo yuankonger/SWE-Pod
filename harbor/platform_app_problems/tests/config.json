@@ -1,0 +1,35 @@
+{
+  "git": "http://verifier:verifier-c41f09be73@git:8080",
+  "ci": "http://ci:8080",
+  "repositories": [
+    "core",
+    "dashboard",
+    "apps"
+  ],
+  "provider_admin": "provider-admin-6c1e0b93",
+  "publishable_key": "pk_test_seedco51a7c0e2b9d4",
+  "restricted_key": "rk_test_seedco8e03f6a1c7b2",
+  "endpoint": "we_seedco",
+  "versions": {
+    "core": "http://core.internal:9000/version",
+    "payments": "http://stripe.internal:9000/version",
+    "emails": "http://smtp.internal:9000/version",
+    "dashboard": "http://dashboard.internal:9001/version"
+  },
+  "held_by": {
+    "payments": "apps",
+    "emails": "apps"
+  },
+  "apps": {
+    "payments": "saleor.app.payment.stripe",
+    "emails": "saleor.app.smtp"
+  },
+  "mail": "http://mailpit:8025",
+  "backoffice": {
+    "url": "http://dashboard.internal:9000/",
+    "script": "/tests/backoffice.cjs"
+  },
+  "traffic": "http://traffic:8090",
+  "traffic_token": "traffic-read-7d31c9",
+  "duplicates": false
+}

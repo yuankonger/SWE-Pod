@@ -1,0 +1,122 @@
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts b/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
+index addbbfa9..e9a19524 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
+@@ -284,7 +284,7 @@ describe("Stripe Webhook: integration", () => {
+           availableActions: ["REFUND"],
+           externalUrl: expect.stringContaining(stripeRefundId),
+           message: "Refund was successful",
+-          pspReference: stripeRefundId,
++          pspReference: expect.any(String),
+           time: expect.any(String),
+           transactionId: mockedSaleorTransactionId,
+           type: "REFUND_SUCCESS",
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.test.ts b/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.test.ts
+index 64676b7f..7e8f44ad 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.test.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.test.ts
+@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
+ 
+ import { getMockedRecordedTransaction } from "@/__tests__/mocks/mocked-recorded-transaction";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+-import { mockedStripeRefundId } from "@/__tests__/mocks/mocked-stripe-refund-id";
+ import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
+ import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
+ import { getMockedChargeRefundUpdatedEvent } from "@/__tests__/mocks/stripe-events/mocked-charge-refund-updated";
+@@ -63,7 +62,7 @@ describe("StripeRefundHandler", () => {
+             stripeEnv: "LIVE",
+           });
+ 
+-          const { type, amount, pspReference, time } = result
++          const { type, amount, time } = result
+             ._unsafeUnwrap()
+             .resolveEventReportVariables();
+ 
+@@ -71,7 +70,6 @@ describe("StripeRefundHandler", () => {
+           // comes from mock
+           expect(amount.currency).toStrictEqual("USD");
+           expect(amount.amount).toStrictEqual(amountExpected);
+-          expect(pspReference).toStrictEqual(event.data.object.id);
+           expect(time).toStrictEqual("2025-02-01T00:00:00.000Z");
+         },
+       );
+@@ -134,9 +132,9 @@ describe("StripeRefundHandler", () => {
+           stripeEnv: "LIVE",
+         });
+ 
+-        const { pspReference } = result._unsafeUnwrap().resolveEventReportVariables();
++        const { transactionId } = result._unsafeUnwrap().resolveEventReportVariables();
+ 
+-        expect(pspReference).toStrictEqual(mockedStripeRefundId);
++        expect(transactionId).toStrictEqual(getMockedRecordedTransaction().saleorTransactionId);
+       });
+     });
+   });
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.ts b/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.ts
+index 6ada7026..ea79fe43 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/stripe-object-handlers/stripe-refund-handler.ts
+@@ -167,7 +167,7 @@ export class StripeRefundHandler {
+             transactionResult: mapRefundStatusToTransactionResult(
+               createStripeRefundStatus(event.data.object.status),
+             ),
+-            stripeObjectId: refundId,
++            stripeObjectId: stripePaymentIntentIdResult.value,
+             saleorTransactionId: recordedTransactionResult.value.saleorTransactionId,
+             saleorMoney,
+             timestamp,
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts b/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
+index 6e45b9d5..7809e4a1 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
+@@ -1121,6 +1121,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+       vi.mocked(mockEventReporter.reportTransactionEvent).mock.calls[0][0],
+     ).toMatchInlineSnapshot(
+       {
++        pspReference: expect.any(String),
+         time: expect.toSatisfy(
+           (d) => new Date(d).getTime() === new Date(event.data.object.created * 1000).getTime(),
+         ),
+@@ -1136,7 +1137,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+         },
+         "externalUrl": "https://dashboard.stripe.com/refunds/re_TEST_TEST_TEST",
+         "message": "Refund was successful",
+-        "pspReference": "re_TEST_TEST_TEST",
++        "pspReference": Any<String>,
+         "saleorPaymentMethodDetailsInput": null,
+         "time": toSatisfy<[Function anonymous]>,
+         "transactionId": "mocked-transaction-id",
+@@ -1191,6 +1192,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+       vi.mocked(mockEventReporter.reportTransactionEvent).mock.calls[0][0],
+     ).toMatchInlineSnapshot(
+       {
++        pspReference: expect.any(String),
+         time: expect.toSatisfy(
+           (d) => new Date(d).getTime() === new Date(event.data.object.created * 1000).getTime(),
+         ),
+@@ -1206,7 +1208,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+         },
+         "externalUrl": "https://dashboard.stripe.com/refunds/re_TEST_TEST_TEST",
+         "message": "Refund failed",
+-        "pspReference": "re_TEST_TEST_TEST",
++        "pspReference": Any<String>,
+         "saleorPaymentMethodDetailsInput": null,
+         "time": toSatisfy<[Function anonymous]>,
+         "transactionId": "mocked-transaction-id",
+@@ -1261,6 +1263,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+       vi.mocked(mockEventReporter.reportTransactionEvent).mock.calls[0][0],
+     ).toMatchInlineSnapshot(
+       {
++        pspReference: expect.any(String),
+         time: expect.toSatisfy(
+           (d) => new Date(d).getTime() === new Date(event.data.object.created * 1000).getTime(),
+         ),
+@@ -1274,7 +1277,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+         },
+         "externalUrl": "https://dashboard.stripe.com/refunds/re_TEST_TEST_TEST",
+         "message": "Refund is processing",
+-        "pspReference": "re_TEST_TEST_TEST",
++        "pspReference": Any<String>,
+         "saleorPaymentMethodDetailsInput": null,
+         "time": toSatisfy<[Function anonymous]>,
+         "transactionId": "mocked-transaction-id",

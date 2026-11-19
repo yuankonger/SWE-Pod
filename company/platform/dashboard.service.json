@@ -1,0 +1,7 @@
+{
+  "url": "http://dashboard.internal:9000/",
+  "script": "/tests/backoffice.cjs",
+  "start": "pnpm --dir /work/dashboard run dev",
+  "environment": {"API_URL": "http://core.internal:8000/graphql/", "__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS": "dashboard.internal"},
+  "log_port": 9001
+}

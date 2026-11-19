@@ -1,0 +1,195 @@
+# The rubric of platform_app_problems: every criterion the work is judged by, what decides it, and why it is there.
+# tools/harbor_payments_score.py (in a task: /tests/score.py) runs it, with the company's checks (/tests/checks.py).
+#
+# gate    = must pass for anything to be scored.
+# target  = what the work is to achieve. Fails on the company as the work starts.
+# guard   = what must keep working. Passes on the company as the work starts.
+# measure = reported beside the reward, never part of it.
+# reward  = 0 if a gate fails, else weighted share of targets that pass x share of guards that pass.
+#
+# The targets are weighted so that each of the three parts of the work is a third of them: the API (five criteria of
+# 0.8), the apps (four of 1), the back office (one of 4).
+#
+# Every target is decided by a party outside the three repositories: an app nobody here wrote, the payment provider,
+# the mail server, a browser. So each repository's part is judged where only that repository can meet it, and the
+# parts are judged together where staff read in the back office what an app reported through the API.
+
+repeats = 2
+
+# ---------------------------------------------------------------- the gates
+
+[[criterion]]
+id = "live-shop-runs-main"
+kind = "gate"
+type = "deploy"
+note = """What is judged is the running company, so first it is settled what is running: `main` of each repository,
+what CI last deployed and what each system says of itself are the same commits, the deploy is over and every
+system is up."""
+
+[[criterion]]
+id = "records-kept"
+kind = "gate"
+type = "history"
+note = """Every order the shop had before the work, and every order placed through the provider during it, is still
+there with its payment, and nothing the provider took or gave back has gone from the books."""
+
+# ---------------------------------------------------------------- targets: the API (core's part)
+
+[[criterion]]
+id = "api-app-reports-and-reads"
+kind = "target"
+weight = 0.8
+type = "check"
+check = "problems_api"
+part = "report"
+note = """An app that nobody here wrote, installed with no permissions, reports a problem as the agreed API says and
+reads it back; staff read the same. A message or key that is too short is refused, and so is a report by staff, who
+are not an app."""
+
+[[criterion]]
+id = "api-same-problem-is-counted"
+kind = "target"
+weight = 0.8
+type = "check"
+check = "problems_api"
+part = "count"
+note = """Three reports of one key are one problem counted three times; another key is another problem; with an
+aggregation period of 0 each report stands alone."""
+
+[[criterion]]
+id = "api-critical-at-threshold"
+kind = "target"
+weight = 0.8
+type = "check"
+check = "problems_api"
+part = "critical"
+note = """A problem is critical once its count reaches the threshold the app named: at the third report with a
+threshold of 3, at the first with a threshold of 1, never without one."""
+
+[[criterion]]
+id = "api-dismissal"
+kind = "target"
+weight = 0.8
+type = "check"
+check = "problems_api"
+part = "dismiss"
+note = """The app dismisses one of its problems by key, staff dismiss one by id and one by key for the named app. Each
+stays on record saying who dismissed it (and for staff, their email). Reported again, a dismissed problem is a new,
+standing problem."""
+
+[[criterion]]
+id = "api-problems-are-the-apps-own"
+kind = "target"
+weight = 0.8
+type = "check"
+check = "problems_api"
+part = "scope"
+note = """One app cannot dismiss another's problem by its key or by its id, and neither another app nor someone not
+signed in can read it."""
+
+# ---------------------------------------------------------------- targets: the apps' part
+
+[[criterion]]
+id = "payment-app-reports-a-refused-key"
+kind = "target"
+type = "check"
+check = "payments_reports"
+fault = "revoked"
+critical = true
+note = """The provider stops accepting the payment app's key, and a customer tries to pay. Within a minute the payment
+app has a critical problem on record in the API with a message staff can act on. While the provider was well, and an
+order had just been paid, it had none."""
+
+[[criterion]]
+id = "payment-app-reports-a-key-without-permission"
+kind = "target"
+type = "check"
+check = "payments_reports"
+fault = "forbidden"
+critical = true
+note = """The same, where the provider answers that the key lacks a permission."""
+
+[[criterion]]
+id = "payment-app-reports-unverifiable-events"
+kind = "target"
+type = "check"
+check = "payments_reports"
+fault = "rolled"
+note = """The provider signs what it sends the payment app with a secret the app does not have, as after the secret was
+changed at the provider. A customer pays; the app cannot verify what it is sent, and says so in the API."""
+
+[[criterion]]
+id = "email-app-reports-a-refusing-mail-server"
+kind = "target"
+type = "check"
+check = "emails_report"
+note = """The mail server turns the email app away, and an order is placed. Within a minute the email app has a
+problem on record in the API. While the mail server was well, and an order's email had just arrived, it had none."""
+
+# ---------------------------------------------------------------- targets: the back office's part
+
+[[criterion]]
+id = "staff-read-a-problem-in-the-back-office"
+kind = "target"
+weight = 4
+type = "check"
+check = "backoffice_shows"
+note = """An app nobody here wrote reports a problem through the API. A member of staff signs in to the back office in
+a browser and opens the installed apps: the problem's message is there to read, on the list or on the app's own
+page. This is the one criterion all of the API, and the back office with it, must be right for."""
+
+# ---------------------------------------------------------------- guards: what works today
+
+[[criterion]]
+id = "full-charge"
+kind = "guard"
+type = "scenario"
+charge = "all"
+note = """An order is paid by card and charged in full; the provider and the API agree."""
+
+[[criterion]]
+id = "refund-once"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.5]
+note = """Half of an order is refunded: refunded once, shown refunded."""
+
+[[criterion]]
+id = "declined-card"
+kind = "guard"
+type = "scenario"
+card = "declined"
+note = """A declined card takes nothing and places no order."""
+
+[[criterion]]
+id = "order-email-arrives"
+kind = "guard"
+type = "check"
+check = "email_sent"
+note = """An order's confirmation reaches the customer's mailbox within 45 seconds."""
+
+[[criterion]]
+id = "back-office-lists-the-apps"
+kind = "guard"
+type = "check"
+check = "backoffice_lists"
+note = """Staff sign in to the back office and the page of installed apps shows the payment app and the email app. A
+back office that asks the API for something the API does not have shows an error here instead."""
+
+# ---------------------------------------------------------------- measures: the shop while the work went on
+
+[[criterion]]
+id = "traffic-books-agree"
+kind = "measure"
+type = "records"
+measure = "ledger_agreement"
+note = """For the shop's own orders, what the API reports as charged and refunded is what the provider's ledger says."""
+
+[[criterion]]
+id = "traffic-keeps-working"
+kind = "measure"
+type = "records"
+measure = "traffic_success"
+note = """The shop's own orders did not fail. Not in the reward because a deploy here restarts the system, so orders
+placed during one fail whatever was deployed."""

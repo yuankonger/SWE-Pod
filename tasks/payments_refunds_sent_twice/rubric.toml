@@ -1,0 +1,164 @@
+# The rubric of payments_refunds_sent_twice: every criterion the work is judged by, what decides it, and why it is there.
+# tools/harbor_payments_score.py (in a task: /tests/score.py) runs it. Format and reward: see that file's header.
+#
+# gate    = must pass for anything to be scored.
+# target  = what the work is to put right. Fails on the company as the work starts.
+# guard   = what must keep working. Passes on the company as the work starts.
+# measure = reported beside the reward, never part of it.
+# reward  = 0 if a gate fails, else share of targets that pass x share of guards that pass.
+#
+# The provider does to a scenario's payment nothing it does by chance: only what the criterion names, for certain.
+
+repeats = 3
+
+# ---------------------------------------------------------------- the gates
+
+[[criterion]]
+id = "live-shop-runs-main"
+kind = "gate"
+type = "deploy"
+note = """What is judged is the running company, so first it is settled what is running: `main` of each repository,
+what CI last deployed and what each system says of itself are the same commits, the deploy is over and every
+system is up. Otherwise the orders below would be placed on something nobody can name."""
+
+[[criterion]]
+id = "records-kept"
+kind = "gate"
+type = "history"
+note = """Every order the shop had before the work, and every order placed through the provider during it, is read
+again. An order's figures may have been put right. But the order and its payment are still there, and nothing the
+provider took or gave back has gone from the books: charged + refunded + pending is at least what it took,
+refunded + pending at least what it returned. Orders that never went through the provider are as they were. Passes
+on the company as the work starts; fails where records were deleted or zeroed to make the figures agree. A gate: a
+repair that loses records earns nothing, whatever else it puts right."""
+
+# ---------------------------------------------------------------- targets: the problem
+
+[[criterion]]
+id = "slow-refund-made-once"
+kind = "target"
+type = "scenario"
+charge = "all"
+refunds = [0.25]
+slow = [1]
+note = """An order is charged in full and a quarter is refunded; the provider makes the refund at once and answers
+late. The customer gets that quarter back once, and the back office shows it refunded, with no refund shown as
+failed and nothing pending. As the work starts the refund is shown as failed. With the API's second delivery of the
+request reaching the payment app and nothing to tell it from the first, the customer is refunded twice."""
+
+[[criterion]]
+id = "slow-refund-then-the-same-amount-again"
+kind = "target"
+type = "scenario"
+charge = "all"
+refunds = [0.25, 0.25]
+slow = [1, 0]
+note = """The same, and then staff refund the same amount a second time on purpose. The provider has made two
+refunds, a half in all, and the back office shows a half refunded. A fix that takes any second refund of the same
+amount for a repeat of the first passes the criterion above and fails this one."""
+
+[[criterion]]
+id = "slow-refund-confirmed-late"
+kind = "target"
+type = "scenario"
+charge = "all"
+refunds = [0.25]
+slow = [1]
+late = 20
+note = """The provider makes the refund at once, answers late, and sends its own confirmation of the refund later
+still, 20 seconds after making it. Refunded once, never shown as failed, nothing pending in the end. A fix that
+decides whether an unanswered refund went through by looking for the provider's confirmation at that moment gets
+this one wrong."""
+
+[[criterion]]
+id = "locked-payment-becomes-an-order"
+kind = "target"
+type = "scenario"
+charge = "all"
+lock = 3
+note = """A customer confirms their card, and for three seconds after that the provider will not let the payment
+be read. The order is placed all the same and charged in full. As the work starts the shop takes the payment for
+failed, places no order, and the provider goes on holding the customer's money."""
+
+# ---------------------------------------------------------------- guards: what works today
+
+[[criterion]]
+id = "full-charge"
+kind = "guard"
+type = "scenario"
+charge = "all"
+note = """The whole authorisation is charged and the API reports it charged."""
+
+[[criterion]]
+id = "declined-card"
+kind = "guard"
+type = "scenario"
+card = "declined"
+note = """A declined card takes nothing and places no order."""
+
+[[criterion]]
+id = "refund-once"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.5]
+note = """Half of an order is refunded and the provider answers at once: refunded once, shown refunded."""
+
+[[criterion]]
+id = "two-refunds-of-the-same-amount"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.3, 0.3]
+note = """An order is refunded twice for the same amount, the provider answering at once both times. Both refunds
+are made. Whatever stops a repeated request from being carried out twice must not stop this."""
+
+[[criterion]]
+id = "refused-refund-shown-as-failed"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.5]
+refuse = [1]
+note = """The provider refuses a refund outright. Nothing goes back to the customer, and the back office shows the
+refund as failed, with nothing refunded and nothing left pending. A fix that stops showing failed refunds at all,
+or leaves every unanswered refund pending, fails this."""
+
+[[criterion]]
+id = "slow-refusal-shown-as-failed"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.5]
+slow = [1]
+refuse = [1]
+note = """The provider takes a long time over a refund and then refuses it. Nothing goes back to the customer and,
+within a minute, the back office shows the refund as failed with nothing pending. A fix that leaves a refund the
+payment app did not answer in time waiting for a confirmation fails this: no confirmation ever comes."""
+
+# ---------------------------------------------------------------- measures: the shop while the work went on
+
+[[criterion]]
+id = "traffic-refunded-as-asked"
+kind = "measure"
+type = "records"
+measure = "refunded_as_asked"
+note = """Of the shop's own orders that staff refunded: the provider returned what staff asked for and no more.
+Staff who see a refund shown as failed ask for it once more, as staff do."""
+
+[[criterion]]
+id = "traffic-books-agree"
+kind = "measure"
+type = "records"
+measure = "ledger_agreement"
+note = """For the shop's own orders, what the API reports as charged and refunded is what the provider's ledger says,
+and no refund is left pending."""
+
+[[criterion]]
+id = "traffic-keeps-working"
+kind = "measure"
+type = "records"
+measure = "traffic_success"
+note = """The shop's own orders did not fail. Not in the reward because a deploy here restarts the system, so orders
+placed during one fail whatever was deployed. What the faults cost while the work went on (money returned beyond
+what was asked, orders lost with the customer's money held) is in score.json under measures.harm."""

@@ -1,0 +1,144 @@
+# The company with one container per owner. Each container holds only that owner's directory, read-only, and
+# reaches the others by name over the `seedco` network, exactly as the services reach each other on localhost
+# under platform/stack.py. Every port is also published on this machine for tests and for browsing the shop.
+#
+#   docker compose -f docker/compose.yaml up -d        # shop: http://localhost:7001  dashboard: http://localhost:7002
+#   docker compose -f docker/compose.yaml down -v
+name: seedco
+
+x-owner: &owner
+  image: seedco-toolchain:0.4
+  command: ["./run", "serve"]
+  networks: [seedco]
+  restart: "no"
+
+x-urls: &urls
+  BIND: 0.0.0.0
+  SEEDCO_DATA_DIR: /data
+  CORE_URL: http://core:7000/graphql/
+  STOREFRONT_URL: http://storefront:7001
+  DASHBOARD_URL: http://dashboard:7002
+  PAYMENTS_URL: http://payments:7003
+  TAXES_URL: http://taxes:7004
+  NOTIFICATIONS_URL: http://notifications:7005
+  SUBSCRIPTIONS_URL: http://subscriptions:7006
+  SUPPORT_URL: http://support:7007
+
+services:
+  core:
+    <<: *owner
+    working_dir: /work/services/core
+    volumes:
+      - ../services/core:/work/services/core:ro
+      - core-data:/data
+    ports: ["127.0.0.1:7000:7000"]
+    environment:
+      <<: *urls
+      PORT: 7000
+      APP_URL: http://core:7000
+      PUBLIC_URL: http://core:7000
+      SEEDCO_APP_MANIFESTS: http://payments:7003/api/manifest,http://taxes:7004/api/manifest,http://notifications:7005/api/manifest,http://subscriptions:7006/api/manifest,http://support:7007/api/manifest
+  storefront:
+    <<: *owner
+    working_dir: /work/services/storefront
+    volumes:
+      - ../services/storefront:/work/services/storefront:ro
+      - storefront-data:/data
+    ports: ["127.0.0.1:7001:7001"]
+    environment:
+      <<: *urls
+      PORT: 7001
+      APP_URL: http://storefront:7001
+  dashboard:
+    <<: *owner
+    working_dir: /work/services/dashboard
+    volumes:
+      - ../services/dashboard:/work/services/dashboard:ro
+      - dashboard-data:/data
+    ports: ["127.0.0.1:7002:7002"]
+    environment:
+      <<: *urls
+      PORT: 7002
+      APP_URL: http://dashboard:7002
+  payments:
+    <<: *owner
+    working_dir: /work/services/payments
+    volumes:
+      - ../services/payments:/work/services/payments:ro
+      - payments-data:/data
+    ports: ["127.0.0.1:7003:7003"]
+    environment:
+      <<: *urls
+      PORT: 7003
+      APP_URL: http://payments:7003
+  taxes:
+    <<: *owner
+    working_dir: /work/services/taxes
+    volumes:
+      - ../services/taxes:/work/services/taxes:ro
+      - taxes-data:/data
+    ports: ["127.0.0.1:7004:7004"]
+    environment:
+      <<: *urls
+      PORT: 7004
+      APP_URL: http://taxes:7004
+  notifications:
+    <<: *owner
+    working_dir: /work/services/notifications
+    volumes:
+      - ../services/notifications:/work/services/notifications:ro
+      - notifications-data:/data
+    ports: ["127.0.0.1:7005:7005"]
+    environment:
+      <<: *urls
+      PORT: 7005
+      APP_URL: http://notifications:7005
+  subscriptions:
+    <<: *owner
+    working_dir: /work/services/subscriptions
+    volumes:
+      - ../services/subscriptions:/work/services/subscriptions:ro
+      - subscriptions-data:/data
+    ports: ["127.0.0.1:7006:7006"]
+    environment:
+      <<: *urls
+      PORT: 7006
+      APP_URL: http://subscriptions:7006
+  support:
+    <<: *owner
+    working_dir: /work/services/support
+    volumes:
+      - ../services/support:/work/services/support:ro
+      - support-data:/data
+    ports: ["127.0.0.1:7007:7007"]
+    environment:
+      <<: *urls
+      PORT: 7007
+      APP_URL: http://support:7007
+  prometheus:
+    image: seedco-toolchain:0.4
+    networks: [seedco]
+    # The on-call owner's configuration is copied beside the scrape targets for this layout, then Prometheus starts.
+    command:
+      - sh
+      - -c
+      - >
+        mkdir -p /prometheus && cp -r /ops/. /prometheus/ && cp /targets.json /prometheus/targets.json && cd /prometheus &&
+        exec prometheus --config.file=prometheus.yml --storage.tsdb.path=/tmp/tsdb --log.level=warn --web.listen-address=0.0.0.0:7009
+    volumes:
+      - ../services/ops/prometheus:/ops:ro
+      - ./prometheus-targets.json:/targets.json:ro
+    ports: ["127.0.0.1:7009:7009"]
+
+networks:
+  seedco: {}
+
+volumes:
+  core-data: {}
+  storefront-data: {}
+  dashboard-data: {}
+  payments-data: {}
+  taxes-data: {}
+  notifications-data: {}
+  subscriptions-data: {}
+  support-data: {}

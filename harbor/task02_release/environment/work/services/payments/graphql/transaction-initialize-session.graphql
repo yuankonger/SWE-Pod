@@ -1,0 +1,13 @@
+# What the payments app reads from Core when a customer pays. Core sends exactly these fields.
+subscription TransactionInitializeSession {
+  event {
+    ... on TransactionInitializeSession {
+      action { amount currency actionType }
+      data
+      merchantReference
+      idempotencyKey
+      transaction { id }
+      sourceObject { __typename ... on Checkout { id } ... on Order { id number } }
+    }
+  }
+}

@@ -1,0 +1,2501 @@
+diff --git a/.changeset/olive-moles-deliver.md b/.changeset/olive-moles-deliver.md
+new file mode 100644
+index 00000000..eb7838e2
+--- /dev/null
++++ b/.changeset/olive-moles-deliver.md
+@@ -0,0 +1,5 @@
++---
++"saleor-app-payment-stripe": minor
++---
++
++Added AppProblems support - now Stripe will report common issues (like invalid secrets) directly to Saleor and Dashboard will display them for the user
+diff --git a/apps/stripe/package.json b/apps/stripe/package.json
+index 7784ef3f..cebce372 100644
+--- a/apps/stripe/package.json
++++ b/apps/stripe/package.json
+@@ -44,6 +44,7 @@
+     "@opentelemetry/sdk-logs": "catalog:",
+     "@opentelemetry/sdk-trace-node": "catalog:",
+     "@opentelemetry/semantic-conventions": "catalog:",
++    "@saleor/app-problems": "workspace:*",
+     "@saleor/app-sdk": "link:../../node_modules/@saleor/app-sdk",
+     "@saleor/apps-logger": "workspace:*",
+     "@saleor/apps-otel": "workspace:*",
+diff --git a/apps/stripe/src/__tests__/mocks/mock-stripe-problem-reporter.ts b/apps/stripe/src/__tests__/mocks/mock-stripe-problem-reporter.ts
+new file mode 100644
+index 00000000..169acf2b
+--- /dev/null
++++ b/apps/stripe/src/__tests__/mocks/mock-stripe-problem-reporter.ts
+@@ -0,0 +1,3 @@
++import { StripeProblemReporter } from "@/modules/app-problems/stripe-problem-reporter";
++
++export const mockStripeProblemReporter = new StripeProblemReporter({} as never);
+diff --git a/apps/stripe/src/__tests__/setup.units.ts b/apps/stripe/src/__tests__/setup.units.ts
+index 8ba96dac..d272cc60 100644
+--- a/apps/stripe/src/__tests__/setup.units.ts
++++ b/apps/stripe/src/__tests__/setup.units.ts
+@@ -4,6 +4,11 @@ import { beforeEach, vi } from "vitest";
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import { mockedStripeConfig } from "@/__tests__/mocks/mock-stripe-config";
+ 
++vi.mock("next/server", async (importOriginal) => ({
++  ...(await importOriginal<typeof import("next/server")>()),
++  after: (fn: () => void) => fn(),
++}));
++
+ process.env.TZ = "UTC";
+ 
+ vi.stubEnv("SECRET_KEY", "test_secret_key");
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/route.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/route.ts
+index 023ade36..a9363e33 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/route.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/route.ts
+@@ -14,6 +14,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { setObservabilitySourceObjectId } from "@/lib/observability-source-object-id";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ 
+@@ -57,10 +58,13 @@ const handler = transactionCancelationRequestedWebhookDefinition.createHandler(
+ 
+       setObservabilitySaleorApiUrl(saleorApiUrlResult.value, ctx.payload.version);
+ 
++      const problemReporter = createStripeProblemReporter(ctx.authData);
++
+       const result = await useCase.execute({
+         appId: ctx.authData.appId,
+         saleorApiUrl: saleorApiUrlResult.value,
+         event: ctx.payload,
++        problemReporter,
+       });
+ 
+       return result.match(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case-problems.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case-problems.test.ts
+new file mode 100644
+index 00000000..9f0ad653
+--- /dev/null
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case-problems.test.ts
+@@ -0,0 +1,137 @@
++import { err } from "neverthrow";
++import Stripe from "stripe";
++import { describe, expect, it, vi } from "vitest";
++
++import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
++import { mockedConfigurationId, mockedSaleorAppId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
++import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
++import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
++import { getMockedTransactionCancelationRequestedEvent } from "@/__tests__/mocks/saleor-events/transaction-cancelation-request-event";
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
++
++import { TransactionCancelationRequestedUseCase } from "./use-case";
++
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++describe("TransactionCancelationRequestedUseCase - problem reporting", () => {
++  const stripePaymentIntentsApiFactory = {
++    create: () => mockedStripePaymentIntentsApi,
++  } satisfies IStripePaymentIntentsApiFactory;
++
++  it("Reports authentication problem when Stripe returns StripeAuthenticationError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "cancelPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAuthenticationError({
++            type: "authentication_error",
++            message: "Invalid API key",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionCancelationRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAuthenticationError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports permission problem when Stripe returns StripePermissionError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "cancelPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripePermissionError({
++            type: "api_error",
++            message: "Insufficient permissions",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionCancelationRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripePermissionError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Calls reportApiProblem with non-reportable error when Stripe returns other error", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "cancelPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAPIError({
++            type: "api_error",
++            message: "Something went wrong",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionCancelationRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAPIError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++});
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
+index 5f892b9b..e34f289e 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
+@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import { mockedSaleorAppId, mockedSaleorTransactionId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+ import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
+@@ -22,6 +23,26 @@ import {
+ import { TransactionCancelationRequestedUseCase } from "./use-case";
+ import { TransactionCancelationRequestedUseCaseResponses } from "./use-case-response";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("TransactionCancelationRequestedUseCase", () => {
+   const stripePaymentIntentsApiFactory = {
+     create: () => mockedStripePaymentIntentsApi,
+@@ -48,6 +69,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -74,6 +96,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -100,6 +123,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     const err = responsePayload._unsafeUnwrapErr();
+@@ -126,6 +150,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionCancelationRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(response._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -144,6 +169,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingTransactionError: Transaction not found in event]`,
+@@ -171,6 +197,7 @@ describe("TransactionCancelationRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingChannelIdError: Channel ID not found in event Checkout or Order]`,
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
+index 7b7fc364..dba61e0f 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
+@@ -1,5 +1,6 @@
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { err, ok, type Result } from "neverthrow";
++import { after } from "next/server";
+ 
+ import {
+   AppIsNotConfiguredResponse,
+@@ -12,6 +13,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/resolve-saleor-money-from-stripe-payment-intent";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import {
+@@ -54,6 +56,7 @@ export class TransactionCancelationRequestedUseCase {
+     appId: string;
+     saleorApiUrl: SaleorApiUrl;
+     event: TransactionCancelationRequestedEventFragment;
++    problemReporter: StripeProblemReporter;
+   }): Promise<UseCaseExecuteResult> {
+     const { appId, saleorApiUrl, event } = args;
+ 
+@@ -117,6 +120,13 @@ export class TransactionCancelationRequestedUseCase {
+     if (cancelPaymentIntentResult.isErr()) {
+       const error = mapStripeErrorToApiError(cancelPaymentIntentResult.error);
+ 
++      const config = {
++        id: stripeConfigForThisChannel.value.id,
++        name: stripeConfigForThisChannel.value.name,
++      };
++
++      after(() => args.problemReporter.reportApiProblem(error, config));
++
+       this.logger.warn("Failed to cancel payment intent", {
+         error,
+       });
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/route.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/route.ts
+index 17e3576e..61f5505d 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/route.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/route.ts
+@@ -14,6 +14,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { setObservabilitySourceObjectId } from "@/lib/observability-source-object-id";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ 
+@@ -62,10 +63,13 @@ const handler = transactionChargeRequestedWebhookDefinition.createHandler(
+ 
+       setObservabilitySaleorApiUrl(saleorApiUrlResult.value, ctx.payload.version);
+ 
++      const problemReporter = createStripeProblemReporter(ctx.authData);
++
+       const result = await useCase.execute({
+         appId: ctx.authData.appId,
+         saleorApiUrl: saleorApiUrlResult.value,
+         event: ctx.payload,
++        problemReporter,
+       });
+ 
+       return result.match(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case-problems.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case-problems.test.ts
+new file mode 100644
+index 00000000..dfa548e5
+--- /dev/null
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case-problems.test.ts
+@@ -0,0 +1,137 @@
++import { err } from "neverthrow";
++import Stripe from "stripe";
++import { describe, expect, it, vi } from "vitest";
++
++import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
++import { mockedConfigurationId, mockedSaleorAppId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
++import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
++import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
++import { getMockedTransactionChargeRequestedEvent } from "@/__tests__/mocks/saleor-events/transaction-charge-requested-event";
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
++
++import { TransactionChargeRequestedUseCase } from "./use-case";
++
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++describe("TransactionChargeRequestedUseCase - problem reporting", () => {
++  const stripePaymentIntentsApiFactory = {
++    create: () => mockedStripePaymentIntentsApi,
++  } satisfies IStripePaymentIntentsApiFactory;
++
++  it("Reports authentication problem when Stripe returns StripeAuthenticationError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "capturePaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAuthenticationError({
++            type: "authentication_error",
++            message: "Invalid API key",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionChargeRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAuthenticationError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports permission problem when Stripe returns StripePermissionError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "capturePaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripePermissionError({
++            type: "api_error",
++            message: "Insufficient permissions",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionChargeRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripePermissionError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Calls reportApiProblem with non-reportable error when Stripe returns other error", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "capturePaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAPIError({
++            type: "api_error",
++            message: "Something went wrong",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionChargeRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAPIError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++});
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
+index 57ea90b1..4731142c 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
+@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import { mockedSaleorAppId, mockedSaleorTransactionId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+ import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
+@@ -20,6 +21,26 @@ import { ChargeSuccessResult } from "@/modules/transaction-result/success-result
+ import { TransactionChargeRequestedUseCase } from "./use-case";
+ import { TransactionChargeRequestedUseCaseResponses } from "./use-case-response";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("TransactionChargeRequestedUseCase", () => {
+   const stripePaymentIntentsApiFactory = {
+     create: () => mockedStripePaymentIntentsApi,
+@@ -46,6 +67,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -73,6 +95,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -99,6 +122,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     const err = responsePayload._unsafeUnwrapErr();
+@@ -125,6 +149,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionChargeRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(response._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -143,6 +168,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingTransactionError: Transaction not found in event]`,
+@@ -170,6 +196,7 @@ describe("TransactionChargeRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingChannelIdError: Channel ID not found in event Checkout or Order]`,
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+index a2900e08..76204ad1 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+@@ -1,5 +1,6 @@
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { err, ok, type Result } from "neverthrow";
++import { after } from "next/server";
+ 
+ import {
+   AppIsNotConfiguredResponse,
+@@ -12,6 +13,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/resolve-saleor-money-from-stripe-payment-intent";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import {
+@@ -51,6 +53,7 @@ export class TransactionChargeRequestedUseCase {
+     appId: string;
+     saleorApiUrl: SaleorApiUrl;
+     event: TransactionChargeRequestedEventFragment;
++    problemReporter: StripeProblemReporter;
+   }): Promise<UseCaseExecuteResult> {
+     const { appId, saleorApiUrl, event } = args;
+ 
+@@ -114,6 +117,13 @@ export class TransactionChargeRequestedUseCase {
+     if (capturePaymentIntentResult.isErr()) {
+       const error = mapStripeErrorToApiError(capturePaymentIntentResult.error);
+ 
++      const config = {
++        id: stripeConfigForThisChannel.value.id,
++        name: stripeConfigForThisChannel.value.name,
++      };
++
++      after(() => args.problemReporter.reportApiProblem(error, config));
++
+       this.logger.warn("Failed to capture payment intent", {
+         error,
+       });
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/route.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/route.ts
+index 3bd0026a..aaad129e 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/route.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/route.ts
+@@ -14,6 +14,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { setObservabilitySourceObjectId } from "@/lib/observability-source-object-id";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ import { transactionRecorder } from "@/modules/transactions-recording/repositories/transaction-recorder-impl";
+@@ -68,11 +69,14 @@ const handler = transactionInitializeSessionWebhookDefinition.createHandler(
+         return response.getResponse();
+       }
+ 
++      const problemReporter = createStripeProblemReporter(ctx.authData);
++
+       const result = await useCase.execute({
+         appId: ctx.authData.appId,
+         saleorApiUrl: saleorApiUrlResult.value,
+         event: ctx.payload,
+         saleorSchemaVersion: ctx.schemaVersion,
++        problemReporter,
+       });
+ 
+       return result.match(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case-problems.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case-problems.test.ts
+new file mode 100644
+index 00000000..2031d7f1
+--- /dev/null
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case-problems.test.ts
+@@ -0,0 +1,207 @@
++import { err } from "neverthrow";
++import Stripe from "stripe";
++import { describe, expect, it, vi } from "vitest";
++
++import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
++import {
++  mockedConfigurationId,
++  mockedSaleorAppId,
++  mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++} from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
++import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
++import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
++import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
++import { getMockedTransactionInitializeSessionEvent } from "@/__tests__/mocks/saleor-events/transaction-initialize-session-event";
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
++
++import { TransactionInitializeSessionUseCase } from "./use-case";
++
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++describe("TransactionInitializeSessionUseCase - problem reporting", () => {
++  const stripePaymentIntentsApiFactory = {
++    create: () => mockedStripePaymentIntentsApi,
++  } satisfies IStripePaymentIntentsApiFactory;
++
++  it("Reports authentication problem when Stripe returns StripeAuthenticationError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "createPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAuthenticationError({
++            type: "authentication_error",
++            message: "Invalid API key",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionInitializeSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: new MockedTransactionRecorder(),
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionInitializeSessionEvent(),
++      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAuthenticationError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports permission problem when Stripe returns StripePermissionError", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "createPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripePermissionError({
++            type: "api_error",
++            message: "Insufficient permissions",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionInitializeSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: new MockedTransactionRecorder(),
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionInitializeSessionEvent(),
++      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripePermissionError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Calls reportApiProblem with non-reportable error when Stripe returns other error", async () => {
++    vi.spyOn(mockedStripePaymentIntentsApi, "createPaymentIntent").mockImplementationOnce(
++      async () =>
++        err(
++          new Stripe.errors.StripeAPIError({
++            type: "api_error",
++            message: "Something went wrong",
++          }),
++        ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionInitializeSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: new MockedTransactionRecorder(),
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionInitializeSessionEvent(),
++      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAPIError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports invalid payment method problem when event data contains unsupported payment method", async () => {
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportInvalidPaymentMethod");
++
++    const eventWithUnsupportedPaymentMethod = {
++      ...getMockedTransactionInitializeSessionEvent(),
++      data: {
++        paymentIntent: {
++          paymentMethod: "not-supported-payment-method",
++        },
++      },
++    };
++
++    const uc = new TransactionInitializeSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: new MockedTransactionRecorder(),
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: eventWithUnsupportedPaymentMethod,
++      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith("channel-slug");
++  });
++
++  it("Does not report invalid payment method problem when event data parsing fails for other reasons", async () => {
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportInvalidPaymentMethod");
++
++    const eventWithAdditionalField = {
++      ...getMockedTransactionInitializeSessionEvent(),
++      data: {
++        paymentIntent: {
++          paymentMethod: "card",
++          additionalField: "value",
++        },
++      },
++    };
++
++    const uc = new TransactionInitializeSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: new MockedTransactionRecorder(),
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: eventWithAdditionalField,
++      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).not.toHaveBeenCalled();
++  });
++});
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.test.ts
+index bcc055e4..088a169b 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.test.ts
+@@ -7,6 +7,7 @@ import {
+   mockedSaleorAppId,
+   mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
+ } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+ import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
+ import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
+@@ -32,6 +33,26 @@ import { TransactionRecorderError } from "@/modules/transactions-recording/repos
+ import { TransactionInitializeSessionUseCase } from "./use-case";
+ import { TransactionInitializeSessionUseCaseResponses } from "./use-case-response";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("TransactionInitializeSessionUseCase", () => {
+   const stripePaymentIntentsApiFactory = {
+     create: () => mockedStripePaymentIntentsApi,
+@@ -74,6 +95,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(spy).toHaveBeenCalledWith({
+@@ -140,6 +162,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(responsePayload._unsafeUnwrap()).toBeInstanceOf(expectedSuccessResponse);
+@@ -163,6 +186,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionInitializeSessionEvent(),
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     const err = responsePayload._unsafeUnwrapErr();
+@@ -203,6 +227,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(responsePayload._unsafeUnwrap()).toBeInstanceOf(expectedFailureResponse);
+@@ -244,6 +269,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: eventWithNotSupportedPaymentMethod,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       const failure = responsePayload._unsafeUnwrap() as InstanceType<
+@@ -293,6 +319,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: eventWithAdditionalFieldinData,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(responsePayload._unsafeUnwrap()).toBeInstanceOf(expectedFailureResponse);
+@@ -321,6 +348,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(MalformedRequestResponse);
+@@ -349,6 +377,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -382,6 +411,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -411,6 +441,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -445,6 +476,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -478,6 +510,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -518,6 +551,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
+       saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -560,6 +594,7 @@ describe("TransactionInitializeSessionUseCase", () => {
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
+         saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(transactionRecorder.recordTransaction).toHaveBeenCalledWith(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
+index ffbff153..16096d1f 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
+@@ -2,6 +2,7 @@ import { type SaleorSchemaVersion } from "@saleor/app-sdk/types";
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { captureException } from "@sentry/nextjs";
+ import { err, fromThrowable, ok, Result } from "neverthrow";
++import { after } from "next/server";
+ import type Stripe from "stripe";
+ 
+ import {
+@@ -15,6 +16,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { type ResolvedTransactionFlow } from "@/modules/resolved-transaction-flow";
+ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/resolve-saleor-money-from-stripe-payment-intent";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+@@ -58,6 +60,7 @@ import { type TransactionRecorderRepo } from "@/modules/transactions-recording/r
+ import {
+   parseTransactionInitializeSessionEventData,
+   type TransactionInitializeSessionEventData,
++  UnsupportedPaymentMethodError,
+ } from "./event-data-parser";
+ import { resolvePaymentMethodFromEventData } from "./payment-method-resolver";
+ import {
+@@ -171,6 +174,7 @@ export class TransactionInitializeSessionUseCase {
+     saleorApiUrl: SaleorApiUrl;
+     event: TransactionInitializeSessionEventFragment;
+     saleorSchemaVersion: SaleorSchemaVersion;
++    problemReporter: StripeProblemReporter;
+   }): Promise<UseCaseExecuteResult> {
+     const { appId, saleorApiUrl, event, saleorSchemaVersion } = args;
+ 
+@@ -181,6 +185,12 @@ export class TransactionInitializeSessionUseCase {
+     if (eventDataResult.isErr()) {
+       this.logger.warn("Failed to parse event data", { error: eventDataResult.error });
+ 
++      if (eventDataResult.error instanceof UnsupportedPaymentMethodError) {
++        after(() => {
++          args.problemReporter.reportInvalidPaymentMethod(event.sourceObject.channel.slug);
++        });
++      }
++
+       return ok(
+         new TransactionInitializeSessionUseCaseResponses.Failure({
+           transactionResult: this.resolveErrorTransactionResult(saleorTransactionFlow),
+@@ -269,6 +279,13 @@ export class TransactionInitializeSessionUseCase {
+     if (createPaymentIntentResult.isErr()) {
+       const mappedError = mapStripeErrorToApiError(createPaymentIntentResult.error);
+ 
++      const config = {
++        id: stripeConfigForThisChannel.value.id,
++        name: stripeConfigForThisChannel.value.name,
++      };
++
++      after(() => args.problemReporter.reportApiProblem(mappedError, config));
++
+       this.logger.warn("Failed to create payment intent", { error: mappedError });
+ 
+       return ok(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/route.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/route.ts
+index 196c32f1..b5464aa4 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/route.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/route.ts
+@@ -14,6 +14,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { setObservabilitySourceObjectId } from "@/lib/observability-source-object-id";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ import { transactionRecorder } from "@/modules/transactions-recording/repositories/transaction-recorder-impl";
+@@ -56,10 +57,13 @@ const handler = transactionProcessSessionWebhookDefinition.createHandler(
+ 
+       setObservabilitySaleorApiUrl(saleorApiUrlResult.value, ctx.payload.version);
+ 
++      const problemReporter = createStripeProblemReporter(ctx.authData);
++
+       const result = await useCase.execute({
+         appId: ctx.authData.appId,
+         saleorApiUrl: saleorApiUrlResult.value,
+         event: ctx.payload,
++        problemReporter,
+       });
+ 
+       return result.match(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case-problems.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case-problems.test.ts
+new file mode 100644
+index 00000000..7f8b3ef3
+--- /dev/null
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case-problems.test.ts
+@@ -0,0 +1,152 @@
++import { err } from "neverthrow";
++import Stripe from "stripe";
++import { describe, expect, it, vi } from "vitest";
++
++import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
++import { mockedConfigurationId, mockedSaleorAppId } from "@/__tests__/mocks/constants";
++import { mockAuthData } from "@/__tests__/mocks/mock-auth-data";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
++import { getMockedRecordedTransaction } from "@/__tests__/mocks/mocked-recorded-transaction";
++import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
++import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
++import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
++import { getMockedTransactionProcessSessionEvent } from "@/__tests__/mocks/saleor-events/transaction-process-session-event";
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
++
++import { TransactionProcessSessionUseCase } from "./use-case";
++
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++describe("TransactionProcessSessionUseCase - problem reporting", () => {
++  const stripePaymentIntentsApiFactory = {
++    create: () => mockedStripePaymentIntentsApi,
++  } satisfies IStripePaymentIntentsApiFactory;
++
++  it("Reports authentication problem when Stripe returns StripeAuthenticationError", async () => {
++    const mockedTransactionRecorder = new MockedTransactionRecorder();
++
++    mockedTransactionRecorder.recordTransaction(mockAuthData, getMockedRecordedTransaction());
++
++    vi.spyOn(mockedStripePaymentIntentsApi, "getPaymentIntent").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripeAuthenticationError({
++          type: "authentication_error",
++          message: "Invalid API key",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionProcessSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: mockedTransactionRecorder,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionProcessSessionEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAuthenticationError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports permission problem when Stripe returns StripePermissionError", async () => {
++    const mockedTransactionRecorder = new MockedTransactionRecorder();
++
++    mockedTransactionRecorder.recordTransaction(mockAuthData, getMockedRecordedTransaction());
++
++    vi.spyOn(mockedStripePaymentIntentsApi, "getPaymentIntent").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripePermissionError({
++          type: "api_error",
++          message: "Insufficient permissions",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionProcessSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: mockedTransactionRecorder,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionProcessSessionEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripePermissionError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Calls reportApiProblem with non-reportable error when Stripe returns other error", async () => {
++    const mockedTransactionRecorder = new MockedTransactionRecorder();
++
++    mockedTransactionRecorder.recordTransaction(mockAuthData, getMockedRecordedTransaction());
++
++    vi.spyOn(mockedStripePaymentIntentsApi, "getPaymentIntent").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripeAPIError({
++          type: "api_error",
++          message: "Something went wrong",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionProcessSessionUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripePaymentIntentsApiFactory,
++      transactionRecorder: mockedTransactionRecorder,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionProcessSessionEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAPIError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++});
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.test.ts
+index 263eeae9..d281e92d 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.test.ts
+@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import { mockedSaleorAppId } from "@/__tests__/mocks/constants";
+ import { mockAuthData } from "@/__tests__/mocks/mock-auth-data";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { getMockedRecordedTransaction } from "@/__tests__/mocks/mocked-recorded-transaction";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+@@ -23,6 +24,26 @@ import { type IStripePaymentIntentsApiFactory } from "@/modules/stripe/types";
+ import { TransactionProcessSessionUseCase } from "./use-case";
+ import { TransactionProcessSessionUseCaseResponses } from "./use-case-response";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("TransactionProcessSessionUseCase", () => {
+   const stripePaymentIntentsApiFactory = {
+     create: () => mockedStripePaymentIntentsApi,
+@@ -112,6 +133,7 @@ describe("TransactionProcessSessionUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -144,6 +166,7 @@ describe("TransactionProcessSessionUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionProcessSessionEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     const err = responsePayload._unsafeUnwrapErr();
+@@ -183,6 +206,7 @@ describe("TransactionProcessSessionUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       });
+ 
+       expect(responsePayload._unsafeUnwrap()).toBeInstanceOf(
+@@ -215,6 +239,7 @@ describe("TransactionProcessSessionUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -247,6 +272,7 @@ describe("TransactionProcessSessionUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(`
+       [ZodError: [
+@@ -287,6 +313,7 @@ describe("TransactionProcessSessionUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrapErr()).toBeInstanceOf(MalformedRequestResponse);
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.ts
+index 5bfdaf63..04f62b1d 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-process-session/use-case.ts
+@@ -1,6 +1,7 @@
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { captureException } from "@sentry/nextjs";
+ import { err, ok, type Result } from "neverthrow";
++import { after } from "next/server";
+ 
+ import {
+   AppIsNotConfiguredResponse,
+@@ -13,6 +14,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { type ResolvedTransactionFlow } from "@/modules/resolved-transaction-flow";
+ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/resolve-saleor-money-from-stripe-payment-intent";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+@@ -67,6 +69,7 @@ export class TransactionProcessSessionUseCase {
+     appId: string;
+     saleorApiUrl: SaleorApiUrl;
+     event: TransactionProcessSessionEventFragment;
++    problemReporter: StripeProblemReporter;
+   }): Promise<UseCaseExecuteResult> {
+     const { appId, saleorApiUrl, event } = args;
+ 
+@@ -145,6 +148,13 @@ export class TransactionProcessSessionUseCase {
+     if (getPaymentIntentResult.isErr()) {
+       const error = mapStripeErrorToApiError(getPaymentIntentResult.error);
+ 
++      const config = {
++        id: stripeConfigForThisChannel.value.id,
++        name: stripeConfigForThisChannel.value.name,
++      };
++
++      after(() => args.problemReporter.reportApiProblem(error, config));
++
+       this.logger.warn("Failed to get payment intent", {
+         error,
+       });
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/route.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/route.ts
+index 462641f9..d0b2a032 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/route.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/route.ts
+@@ -14,6 +14,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { setObservabilitySourceObjectId } from "@/lib/observability-source-object-id";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripeRefundsApiFactory } from "@/modules/stripe/stripe-refunds-api-factory";
+ 
+@@ -62,10 +63,13 @@ const handler = transactionRefundRequestedWebhookDefinition.createHandler(
+ 
+       setObservabilitySaleorApiUrl(saleorApiUrlResult.value, ctx.payload.version);
+ 
++      const problemReporter = createStripeProblemReporter(ctx.authData);
++
+       const result = await useCase.execute({
+         appId: ctx.authData.appId,
+         saleorApiUrl: saleorApiUrlResult.value,
+         event: ctx.payload,
++        problemReporter,
+       });
+ 
+       return result.match(
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case-problems.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case-problems.test.ts
+new file mode 100644
+index 00000000..e0d29da0
+--- /dev/null
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case-problems.test.ts
+@@ -0,0 +1,134 @@
++import { err } from "neverthrow";
++import Stripe from "stripe";
++import { describe, expect, it, vi } from "vitest";
++
++import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
++import { mockedConfigurationId, mockedSaleorAppId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
++import { mockedStripeRefundsApi } from "@/__tests__/mocks/mocked-stripe-refunds-api";
++import { mockedSaleorApiUrl } from "@/__tests__/mocks/saleor-api-url";
++import { getMockedTransactionRefundRequestedEvent } from "@/__tests__/mocks/saleor-events/transaction-refund-request-event";
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++import { type IStripeRefundsApiFactory } from "@/modules/stripe/types";
++
++import { TransactionRefundRequestedUseCase } from "./use-case";
++
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++describe("TransactionRefundRequestedUseCase - problem reporting", () => {
++  const stripeRefundsApiFactory = {
++    create: () => mockedStripeRefundsApi,
++  } satisfies IStripeRefundsApiFactory;
++
++  it("Reports authentication problem when Stripe returns StripeAuthenticationError", async () => {
++    vi.spyOn(mockedStripeRefundsApi, "createRefund").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripeAuthenticationError({
++          type: "authentication_error",
++          message: "Invalid API key",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionRefundRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripeRefundsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAuthenticationError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Reports permission problem when Stripe returns StripePermissionError", async () => {
++    vi.spyOn(mockedStripeRefundsApi, "createRefund").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripePermissionError({
++          type: "api_error",
++          message: "Insufficient permissions",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionRefundRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripeRefundsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripePermissionError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++
++  it("Calls reportApiProblem with non-reportable error when Stripe returns other error", async () => {
++    vi.spyOn(mockedStripeRefundsApi, "createRefund").mockImplementationOnce(async () =>
++      err(
++        new Stripe.errors.StripeAPIError({
++          type: "api_error",
++          message: "Something went wrong",
++        }),
++      ),
++    );
++
++    const reportSpy = vi.spyOn(mockStripeProblemReporter, "reportApiProblem");
++
++    const uc = new TransactionRefundRequestedUseCase({
++      appConfigRepo: mockedAppConfigRepo,
++      stripeRefundsApiFactory,
++    });
++
++    await uc.execute({
++      saleorApiUrl: mockedSaleorApiUrl,
++      appId: mockedSaleorAppId,
++      event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
++    });
++
++    expect(reportSpy).toHaveBeenCalledWith(expect.any(StripeAPIError), {
++      id: mockedConfigurationId,
++      name: "config-name",
++    });
++  });
++});
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
+index fe4735da..b8b2e87c 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
+@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import { mockedSaleorAppId, mockedSaleorTransactionId } from "@/__tests__/mocks/constants";
++import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripeRefundId } from "@/__tests__/mocks/mocked-stripe-refund-id";
+ import { mockedStripeRefundsApi } from "@/__tests__/mocks/mocked-stripe-refunds-api";
+@@ -21,6 +22,26 @@ import { type IStripeRefundsApiFactory } from "@/modules/stripe/types";
+ import { TransactionRefundRequestedUseCase } from "./use-case";
+ import { TransactionRefundRequestedUseCaseResponses } from "./use-case-response";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("TransactionRefundRequestedUseCase", () => {
+   const stripeRefundsApiFactory = {
+     create: () => mockedStripeRefundsApi,
+@@ -45,6 +66,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -78,6 +100,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(result._unsafeUnwrap()).toBeInstanceOf(
+@@ -111,6 +134,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     const err = responsePayload._unsafeUnwrapErr();
+@@ -137,6 +161,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: saleorEvent,
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(response._unsafeUnwrapErr()).toBeInstanceOf(MalformedRequestResponse);
+@@ -158,6 +183,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+       saleorApiUrl: mockedSaleorApiUrl,
+       appId: mockedSaleorAppId,
+       event: getMockedTransactionRefundRequestedEvent(),
++      problemReporter: mockStripeProblemReporter,
+     });
+ 
+     expect(response._unsafeUnwrapErr()).toBeInstanceOf(BrokenAppResponse);
+@@ -176,6 +202,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingTransactionError: Transaction not found in event]`,
+@@ -203,6 +230,7 @@ describe("TransactionRefundRequestedUseCase", () => {
+         saleorApiUrl: mockedSaleorApiUrl,
+         appId: mockedSaleorAppId,
+         event: saleorEvent,
++        problemReporter: mockStripeProblemReporter,
+       }),
+     ).rejects.toThrowErrorMatchingInlineSnapshot(
+       `[MissingChannelIdError: Channel ID not found in event Checkout or Order]`,
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
+index b776e70f..b31ce01c 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
+@@ -1,5 +1,6 @@
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { err, ok, type Result } from "neverthrow";
++import { after } from "next/server";
+ 
+ import {
+   AppIsNotConfiguredResponse,
+@@ -12,6 +13,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { SaleorMoney } from "@/modules/saleor/saleor-money";
+ import { createSaleorTransactionId } from "@/modules/saleor/saleor-transaction-id";
+@@ -53,6 +55,7 @@ export class TransactionRefundRequestedUseCase {
+     appId: string;
+     saleorApiUrl: SaleorApiUrl;
+     event: TransactionRefundRequestedEventFragment;
++    problemReporter: StripeProblemReporter;
+   }): Promise<UseCaseExecuteResult> {
+     const { appId, saleorApiUrl, event } = args;
+ 
+@@ -145,6 +148,13 @@ export class TransactionRefundRequestedUseCase {
+     if (createRefundResult.isErr()) {
+       const error = mapStripeErrorToApiError(createRefundResult.error);
+ 
++      const config = {
++        id: stripeConfigForThisChannel.value.id,
++        name: stripeConfigForThisChannel.value.name,
++      };
++
++      after(() => args.problemReporter.reportApiProblem(error, config));
++
+       this.logger.warn("Failed to create refund", {
+         error,
+       });
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/route.ts b/apps/stripe/src/app/api/webhooks/stripe/route.ts
+index af70483b..1cd10fd6 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/route.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/route.ts
+@@ -13,6 +13,7 @@ import { loggerContext, withLoggerContext } from "@/lib/logger-context";
+ import { setObservabilitySaleorApiUrl } from "@/lib/observability-saleor-api-url";
+ import { saleorApp } from "@/lib/saleor-app";
+ import { appConfigRepoImpl } from "@/modules/app-config/repositories/app-config-repo-impl";
++import { createStripeProblemReporter } from "@/modules/app-problems";
+ import { TransactionEventReporter } from "@/modules/saleor/transaction-event-reporter";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ import { StripeWebhookManager } from "@/modules/stripe/stripe-webhook-manager";
+@@ -38,6 +39,7 @@ const useCase = new StripeWebhookUseCase({
+       graphqlClient: createInstrumentedGraphqlClient(authData),
+     });
+   },
++  problemReporterFactory: (authData) => createStripeProblemReporter(authData),
+   webhookManager: new StripeWebhookManager(),
+   stripePaymentIntentsApiFactory: new StripePaymentIntentsApiFactory(),
+ });
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/use-case-error.test.ts b/apps/stripe/src/app/api/webhooks/stripe/use-case-error.test.ts
+index 4322842f..ac0ab626 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/use-case-error.test.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/use-case-error.test.ts
+@@ -15,6 +15,7 @@ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-p
+ import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
+ import { getMockedPaymentIntentSucceededEvent } from "@/__tests__/mocks/stripe-events/mocked-payment-intent-succeeded";
+ import { BaseError } from "@/lib/errors";
++import { StripeProblemReporter } from "@/modules/app-problems";
+ import { createResolvedTransactionFlow } from "@/modules/resolved-transaction-flow";
+ import { createSaleorTransactionFlow } from "@/modules/saleor/saleor-transaction-flow";
+ import {
+@@ -33,6 +34,26 @@ import { RecordedTransaction } from "@/modules/transactions-recording/domain/rec
+ import { StripeWebhookUseCase } from "./use-case";
+ import { WebhookParams } from "./webhook-params";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("StripeWebhookUseCase - Error cases", () => {
+   const rawEventBody = JSON.stringify({ id: 1 });
+ 
+@@ -72,6 +93,7 @@ describe("StripeWebhookUseCase - Error cases", () => {
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/use-case-legacy-event.test.ts b/apps/stripe/src/app/api/webhooks/stripe/use-case-legacy-event.test.ts
+index b916db3a..8639f7ce 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/use-case-legacy-event.test.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/use-case-legacy-event.test.ts
+@@ -9,6 +9,7 @@ import { mockedStripeConfig } from "@/__tests__/mocks/mock-stripe-config";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+ import { MockedTransactionRecorder } from "@/__tests__/mocks/mocked-transaction-recorder";
+ import { BaseError } from "@/lib/errors";
++import { StripeProblemReporter } from "@/modules/app-problems";
+ import { type ITransactionEventReporter } from "@/modules/saleor/transaction-event-reporter";
+ import { StripeWebhookManager } from "@/modules/stripe/stripe-webhook-manager";
+ import {
+@@ -19,6 +20,26 @@ import {
+ import { StripeWebhookUseCase } from "./use-case";
+ import { WebhookParams } from "./webhook-params";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ describe("StripeWebhookUseCase - Legacy event cases", () => {
+   const rawEventBody = JSON.stringify({ id: 1 });
+ 
+@@ -65,6 +86,7 @@ describe("StripeWebhookUseCase - Legacy event cases", () => {
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager,
+       stripePaymentIntentsApiFactory,
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts b/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
+index f8ff4cf3..e0fc4d04 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/use-case-success.test.ts
+@@ -24,6 +24,7 @@ import { getMockedPaymentIntentPaymentFailedEvent } from "@/__tests__/mocks/stri
+ import { getMockedPaymentIntentProcessingEvent } from "@/__tests__/mocks/stripe-events/mocked-payment-intent-processing";
+ import { getMockedPaymentIntentRequiresActionEvent } from "@/__tests__/mocks/stripe-events/mocked-payment-intent-requires-action";
+ import { getMockedPaymentIntentSucceededEvent } from "@/__tests__/mocks/stripe-events/mocked-payment-intent-succeeded";
++import { StripeProblemReporter } from "@/modules/app-problems";
+ import { createResolvedTransactionFlow } from "@/modules/resolved-transaction-flow";
+ import { createSaleorTransactionFlow } from "@/modules/saleor/saleor-transaction-flow";
+ import {
+@@ -41,6 +42,26 @@ import { RecordedTransaction } from "@/modules/transactions-recording/domain/rec
+ import { StripeWebhookUseCase } from "./use-case";
+ import { WebhookParams } from "./webhook-params";
+ 
++vi.mock("@saleor/app-problems", () => ({
++  AppProblemsReporter: class {
++    reportProblem() {
++      return Promise.resolve({ isErr: () => false });
++    }
++    clearProblems() {
++      return Promise.resolve({ isErr: () => false });
++    }
++  },
++}));
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
+ const mockApl = {
+   get: vi.fn(),
+   set: vi.fn(),
+@@ -78,6 +99,7 @@ describe("StripeWebhookUseCase - handling payment_intent.success event", () => {
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -262,6 +284,7 @@ describe("StripeWebhookUseCase - handling payment_intent.amount_capturable_updat
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -362,6 +385,7 @@ describe("StripeWebhookUseCase - handling payment_intent.payment_failed event",
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -524,6 +548,7 @@ describe("StripeWebhookUseCase - handling payment_intent.processing event", () =
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -690,6 +715,7 @@ describe("StripeWebhookUseCase - handling payment_intent.requires_action event",
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -868,6 +894,7 @@ describe("StripeWebhookUseCase - handling payment_intent.canceled event", () =>
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -1021,6 +1048,7 @@ describe("StripeWebhookUseCase - handling charge.refund.updated event", () => {
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+@@ -1246,6 +1274,7 @@ describe("StripeWebhookUseCase - handling events without metadata created by Sal
+       transactionEventReporterFactory() {
+         return mockEventReporter;
+       },
++      problemReporterFactory: () => new StripeProblemReporter({} as never),
+       transactionRecorder: mockTransactionRecorder,
+       webhookManager: new StripeWebhookManager(),
+       stripePaymentIntentsApiFactory,
+diff --git a/apps/stripe/src/app/api/webhooks/stripe/use-case.ts b/apps/stripe/src/app/api/webhooks/stripe/use-case.ts
+index f4394458..a3b35e6e 100644
+--- a/apps/stripe/src/app/api/webhooks/stripe/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/stripe/use-case.ts
+@@ -2,6 +2,7 @@ import { type APL, type AuthData } from "@saleor/app-sdk/APL";
+ import { ObservabilityAttributes } from "@saleor/apps-otel/src/observability-attributes";
+ import { captureException } from "@sentry/nextjs";
+ import { err, ok, type Result } from "neverthrow";
++import { after } from "next/server";
+ import type Stripe from "stripe";
+ 
+ import { appContextContainer } from "@/lib/app-context";
+@@ -9,6 +10,7 @@ import { BaseError } from "@/lib/errors";
+ import { createLogger } from "@/lib/logger";
+ import { loggerContext } from "@/lib/logger-context";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { type StripeProblemReporter } from "@/modules/app-problems";
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import {
+   type ITransactionEventReporter,
+@@ -48,6 +50,7 @@ type R = Promise<
+ 
+ type StripeVerifyEventFactory = (stripeClient: StripeClient) => IStripeEventVerify;
+ type SaleorTransactionEventReporterFactory = (authData: AuthData) => ITransactionEventReporter;
++type ProblemReporterFactory = (authData: AuthData) => StripeProblemReporter;
+ 
+ const ObjectMetadataMissingError = BaseError.subclass("ObjectMetadataMissingError");
+ 
+@@ -58,6 +61,7 @@ export class StripeWebhookUseCase {
+   private logger = createLogger("StripeWebhookUseCase");
+   private transactionRecorder: TransactionRecorderRepo;
+   private transactionEventReporterFactory: SaleorTransactionEventReporterFactory;
++  private problemReporterFactory: ProblemReporterFactory;
+   private webhookManager: StripeWebhookManager;
+   private stripePaymentIntentsApiFactory: IStripePaymentIntentsApiFactory;
+ 
+@@ -67,6 +71,7 @@ export class StripeWebhookUseCase {
+     apl: APL;
+     transactionRecorder: TransactionRecorderRepo;
+     transactionEventReporterFactory: SaleorTransactionEventReporterFactory;
++    problemReporterFactory: ProblemReporterFactory;
+     webhookManager: StripeWebhookManager;
+     stripePaymentIntentsApiFactory: IStripePaymentIntentsApiFactory;
+   }) {
+@@ -75,6 +80,7 @@ export class StripeWebhookUseCase {
+     this.apl = deps.apl;
+     this.transactionRecorder = deps.transactionRecorder;
+     this.transactionEventReporterFactory = deps.transactionEventReporterFactory;
++    this.problemReporterFactory = deps.problemReporterFactory;
+     this.webhookManager = deps.webhookManager;
+     this.stripePaymentIntentsApiFactory = deps.stripePaymentIntentsApiFactory;
+   }
+@@ -309,6 +315,7 @@ export class StripeWebhookUseCase {
+     }
+ 
+     const transactionEventReporter = this.transactionEventReporterFactory(authData);
++    const problemReporter = this.problemReporterFactory(authData);
+ 
+     const config = await this.appConfigRepo.getStripeConfig({
+       configId: webhookParams.configurationId,
+@@ -331,6 +338,8 @@ export class StripeWebhookUseCase {
+     if (!config.value) {
+       this.logger.error("Config for given webhook is missing");
+ 
++      after(() => problemReporter.reportConfigMissing(webhookParams.configurationId));
++
+       return err(new StripeWebhookAppIsNotConfiguredResponse());
+     }
+ 
+@@ -354,6 +363,12 @@ export class StripeWebhookUseCase {
+         error: event.error,
+       });
+ 
++      const configName = config.value.name;
++
++      after(() =>
++        problemReporter.reportWebhookSecretMismatch(webhookParams.configurationId, configName),
++      );
++
+       return err(new StripeWebhookMalformedRequestResponse());
+     }
+ 
+diff --git a/apps/stripe/src/modules/app-config/trpc-handlers/remove-stripe-config-trpc-handler.ts b/apps/stripe/src/modules/app-config/trpc-handlers/remove-stripe-config-trpc-handler.ts
+index 13e2d3db..f4934fce 100644
+--- a/apps/stripe/src/modules/app-config/trpc-handlers/remove-stripe-config-trpc-handler.ts
++++ b/apps/stripe/src/modules/app-config/trpc-handlers/remove-stripe-config-trpc-handler.ts
+@@ -1,10 +1,13 @@
+ import { captureException } from "@sentry/nextjs";
+ import { TRPCError } from "@trpc/server";
+ import { Result } from "neverthrow";
++import { after } from "next/server";
+ import { z } from "zod";
+ 
+ import { BaseError } from "@/lib/errors";
++import { createInstrumentedGraphqlClient } from "@/lib/graphql-client";
+ import { type AppConfigRepo } from "@/modules/app-config/repositories/app-config-repo";
++import { StripeProblemReporter } from "@/modules/app-problems/stripe-problem-reporter";
+ import { createSaleorApiUrl, type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { StripeWebhookManager } from "@/modules/stripe/stripe-webhook-manager";
+ import { protectedClientProcedure } from "@/modules/trpc/protected-client-procedure";
+@@ -153,6 +156,15 @@ export class RemoveStripeConfigTrpcHandler {
+             message: "Failed to remove Stripe configuration. Please try again.",
+           });
+         }
++
++        const reporter = new StripeProblemReporter(
++          createInstrumentedGraphqlClient({
++            saleorApiUrl: ctx.saleorApiUrl,
++            token: ctx.appToken,
++          }),
++        );
++
++        after(() => reporter.clearProblemsForConfig(input.configId));
+       });
+   }
+ }
+diff --git a/apps/stripe/src/modules/app-problems/create-stripe-problem-reporter.ts b/apps/stripe/src/modules/app-problems/create-stripe-problem-reporter.ts
+new file mode 100644
+index 00000000..097906f4
+--- /dev/null
++++ b/apps/stripe/src/modules/app-problems/create-stripe-problem-reporter.ts
+@@ -0,0 +1,11 @@
++import { type AuthData } from "@saleor/app-sdk/APL";
++
++import { createInstrumentedGraphqlClient } from "@/lib/graphql-client";
++
++import { StripeProblemReporter } from "./stripe-problem-reporter";
++
++export function createStripeProblemReporter(authData: AuthData): StripeProblemReporter {
++  const client = createInstrumentedGraphqlClient(authData);
++
++  return new StripeProblemReporter(client);
++}
+diff --git a/apps/stripe/src/modules/app-problems/index.ts b/apps/stripe/src/modules/app-problems/index.ts
+new file mode 100644
+index 00000000..5088dcc0
+--- /dev/null
++++ b/apps/stripe/src/modules/app-problems/index.ts
+@@ -0,0 +1,2 @@
++export { createStripeProblemReporter } from "./create-stripe-problem-reporter";
++export { PROBLEM_KEYS, StripeProblemReporter } from "./stripe-problem-reporter";
+diff --git a/apps/stripe/src/modules/app-problems/stripe-problem-reporter.test.ts b/apps/stripe/src/modules/app-problems/stripe-problem-reporter.test.ts
+new file mode 100644
+index 00000000..88b6a9d7
+--- /dev/null
++++ b/apps/stripe/src/modules/app-problems/stripe-problem-reporter.test.ts
+@@ -0,0 +1,224 @@
++import { AppProblemsReporter } from "@saleor/app-problems";
++import { err, ok } from "neverthrow";
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++import {
++  StripeAPIError,
++  StripeAuthenticationError,
++  StripeCardError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++
++import { PROBLEM_KEYS, StripeProblemReporter } from "./stripe-problem-reporter";
++
++vi.mock("@saleor/app-problems", () => {
++  return {
++    AppProblemsReporter: vi.fn(),
++  };
++});
++
++vi.mock("@/lib/logger", () => ({
++  createLogger: () => ({
++    error: vi.fn(),
++    warn: vi.fn(),
++    info: vi.fn(),
++    debug: vi.fn(),
++  }),
++}));
++
++const mockReportProblem = vi.fn();
++const mockClearProblems = vi.fn();
++
++describe("StripeProblemReporter", () => {
++  const mockClient = {} as never;
++
++  beforeEach(() => {
++    vi.clearAllMocks();
++    mockReportProblem.mockReset();
++    mockClearProblems.mockReset();
++    vi.mocked(AppProblemsReporter).mockImplementation(
++      () =>
++        ({
++          reportProblem: mockReportProblem,
++          clearProblems: mockClearProblems,
++        }) as unknown as AppProblemsReporter,
++    );
++  });
++
++  describe("reportAuthFailure", () => {
++    it("calls reportProblem with correct key and message", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await reporter.reportAuthFailure("config-123", "My Config");
++
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-auth-failure:config-123",
++        criticalThreshold: 1,
++        message: expect.stringContaining("invalid or expired"),
++      });
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-auth-failure:config-123",
++        criticalThreshold: 1,
++        message: expect.stringContaining('"My Config"'),
++      });
++    });
++
++    it("does not throw when reportProblem fails", async () => {
++      mockReportProblem.mockResolvedValue(err(new Error("network error")));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await expect(reporter.reportAuthFailure("config-123", "My Config")).resolves.toBeUndefined();
++    });
++  });
++
++  describe("reportPermissionError", () => {
++    it("calls reportProblem with correct key and message", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await reporter.reportPermissionError("config-456", "Prod Config");
++
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-permission-error:config-456",
++        criticalThreshold: 1,
++        message: expect.stringContaining("lacks required permissions"),
++      });
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-permission-error:config-456",
++        criticalThreshold: 1,
++        message: expect.stringContaining('"Prod Config"'),
++      });
++    });
++  });
++
++  describe("reportWebhookSecretMismatch", () => {
++    it("calls reportProblem with correct key and message", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await reporter.reportWebhookSecretMismatch("config-789", "Test Config");
++
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-webhook-secret-mismatch:config-789",
++        criticalThreshold: 1,
++        message: expect.stringContaining("Webhook signature verification failed"),
++      });
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-webhook-secret-mismatch:config-789",
++        criticalThreshold: 1,
++        message: expect.stringContaining('"Test Config"'),
++      });
++    });
++  });
++
++  describe("reportConfigMissing", () => {
++    it("calls reportProblem with correct key and message", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await reporter.reportConfigMissing("config-000");
++
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-config-missing:config-000",
++        criticalThreshold: 1,
++        message: expect.stringContaining("no matching configuration was found"),
++      });
++      expect(mockReportProblem).toHaveBeenCalledWith({
++        key: "stripe-config-missing:config-000",
++        criticalThreshold: 1,
++        message: expect.stringContaining('"config-000"'),
++      });
++    });
++  });
++
++  describe("clearProblemsForConfig", () => {
++    it("clears all 4 problem keys for the given configId", async () => {
++      mockClearProblems.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await reporter.clearProblemsForConfig("config-abc");
++
++      expect(mockClearProblems).toHaveBeenCalledWith([
++        "stripe-auth-failure:config-abc",
++        "stripe-permission-error:config-abc",
++        "stripe-webhook-secret-mismatch:config-abc",
++        "stripe-config-missing:config-abc",
++      ]);
++    });
++
++    it("does not throw when clearProblems fails", async () => {
++      mockClearProblems.mockResolvedValue(err(new Error("network error")));
++      const reporter = new StripeProblemReporter(mockClient);
++
++      await expect(reporter.clearProblemsForConfig("config-abc")).resolves.toBeUndefined();
++    });
++  });
++
++  describe("reportApiProblem", () => {
++    it("calls reportAuthFailure for StripeAuthenticationError", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++      const spy = vi.spyOn(reporter, "reportAuthFailure");
++
++      await reporter.reportApiProblem(new StripeAuthenticationError("auth failed"), {
++        id: "config-1",
++        name: "My Config",
++      });
++
++      expect(spy).toHaveBeenCalledWith("config-1", "My Config");
++    });
++
++    it("calls reportPermissionError for StripePermissionError", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++      const spy = vi.spyOn(reporter, "reportPermissionError");
++
++      await reporter.reportApiProblem(new StripePermissionError("permission denied"), {
++        id: "config-2",
++        name: "Prod Config",
++      });
++
++      expect(spy).toHaveBeenCalledWith("config-2", "Prod Config");
++    });
++
++    it("does not report for StripeCardError", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++      const authSpy = vi.spyOn(reporter, "reportAuthFailure");
++      const permSpy = vi.spyOn(reporter, "reportPermissionError");
++
++      await reporter.reportApiProblem(new StripeCardError("card declined"), {
++        id: "config-3",
++        name: "Config",
++      });
++
++      expect(authSpy).not.toHaveBeenCalled();
++      expect(permSpy).not.toHaveBeenCalled();
++    });
++
++    it("does not report for other error types", async () => {
++      mockReportProblem.mockResolvedValue(ok(undefined));
++      const reporter = new StripeProblemReporter(mockClient);
++      const authSpy = vi.spyOn(reporter, "reportAuthFailure");
++      const permSpy = vi.spyOn(reporter, "reportPermissionError");
++
++      await reporter.reportApiProblem(new StripeAPIError("api error"), {
++        id: "config-4",
++        name: "Config",
++      });
++
++      expect(authSpy).not.toHaveBeenCalled();
++      expect(permSpy).not.toHaveBeenCalled();
++    });
++  });
++});
++
++describe("PROBLEM_KEYS", () => {
++  it("generates correct key patterns", () => {
++    expect(PROBLEM_KEYS.authFailure("id1")).toBe("stripe-auth-failure:id1");
++    expect(PROBLEM_KEYS.permissionError("id1")).toBe("stripe-permission-error:id1");
++    expect(PROBLEM_KEYS.webhookSecretMismatch("id1")).toBe("stripe-webhook-secret-mismatch:id1");
++    expect(PROBLEM_KEYS.configMissing("id1")).toBe("stripe-config-missing:id1");
++  });
++});
+diff --git a/apps/stripe/src/modules/app-problems/stripe-problem-reporter.ts b/apps/stripe/src/modules/app-problems/stripe-problem-reporter.ts
+new file mode 100644
+index 00000000..da87a42c
+--- /dev/null
++++ b/apps/stripe/src/modules/app-problems/stripe-problem-reporter.ts
+@@ -0,0 +1,111 @@
++import { AppProblemsReporter } from "@saleor/app-problems";
++import { type Client } from "urql";
++
++import { createLogger } from "@/lib/logger";
++import {
++  type StripeApiError,
++  StripeAuthenticationError,
++  StripePermissionError,
++} from "@/modules/stripe/stripe-api-error";
++
++const logger = createLogger("StripeProblemReporter");
++
++export const PROBLEM_KEYS = {
++  authFailure: (configId: string) => `stripe-auth-failure:${configId}`,
++  permissionError: (configId: string) => `stripe-permission-error:${configId}`,
++  webhookSecretMismatch: (configId: string) => `stripe-webhook-secret-mismatch:${configId}`,
++  configMissing: (configId: string) => `stripe-config-missing:${configId}`,
++  invalidPaymentMethod: (channelSlug: string) => `stripe-invalid-payment-method:${channelSlug}`,
++} as const;
++
++export class StripeProblemReporter {
++  private reporter: AppProblemsReporter;
++
++  constructor(client: Client) {
++    this.reporter = new AppProblemsReporter(client);
++  }
++
++  async reportAuthFailure(configId: string, configName: string): Promise<void> {
++    const result = await this.reporter.reportProblem({
++      key: PROBLEM_KEYS.authFailure(configId),
++      criticalThreshold: 1,
++      message: `Stripe restricted key for configuration "${configName}" is invalid or expired. Payments for channels using this configuration will fail. Please update the restricted key.`,
++    });
++
++    if (result.isErr()) {
++      logger.error("Failed to report auth failure problem", { error: result.error });
++    }
++  }
++
++  async reportPermissionError(configId: string, configName: string): Promise<void> {
++    const result = await this.reporter.reportProblem({
++      key: PROBLEM_KEYS.permissionError(configId),
++      criticalThreshold: 1,
++      message: `Stripe restricted key for configuration "${configName}" lacks required permissions. Payments for channels using this configuration will fail. Please verify the key has the necessary Stripe permissions.`,
++    });
++
++    if (result.isErr()) {
++      logger.error("Failed to report permission error problem", { error: result.error });
++    }
++  }
++
++  async reportWebhookSecretMismatch(configId: string, configName: string): Promise<void> {
++    const result = await this.reporter.reportProblem({
++      key: PROBLEM_KEYS.webhookSecretMismatch(configId),
++      criticalThreshold: 1,
++      message: `Webhook signature verification failed for configuration "${configName}". Payment status updates from Stripe are not being processed. The webhook secret may have been rotated in Stripe. Please recreate the configuration.`,
++    });
++
++    if (result.isErr()) {
++      logger.error("Failed to report webhook secret mismatch problem", { error: result.error });
++    }
++  }
++
++  async reportConfigMissing(configId: string): Promise<void> {
++    const result = await this.reporter.reportProblem({
++      key: PROBLEM_KEYS.configMissing(configId),
++      criticalThreshold: 1,
++      message: `Stripe is sending webhook events for configuration "${configId}" but no matching configuration was found. The configuration may have been deleted while the Stripe webhook endpoint is still active. Please remove the orphaned webhook in your Stripe Dashboard.`,
++    });
++
++    if (result.isErr()) {
++      logger.error("Failed to report config missing problem", { error: result.error });
++    }
++  }
++
++  async reportInvalidPaymentMethod(channelSlug: string) {
++    const result = await this.reporter.reportProblem({
++      key: PROBLEM_KEYS.invalidPaymentMethod(channelSlug),
++      message: `Storefront is using Payment Method that is not supported. Verify app docs and disable not supported payment methods in Stripe. Channel: ${channelSlug}`,
++    });
++
++    if (result.isErr()) {
++      logger.error("Failed to report config missing problem", { error: result.error });
++    }
++  }
++
++  async clearProblemsForConfig(configId: string): Promise<void> {
++    const keys = [
++      PROBLEM_KEYS.authFailure(configId),
++      PROBLEM_KEYS.permissionError(configId),
++      PROBLEM_KEYS.webhookSecretMismatch(configId),
++      PROBLEM_KEYS.configMissing(configId),
++    ];
++    const result = await this.reporter.clearProblems(keys);
++
++    if (result.isErr()) {
++      logger.error("Failed to clear problems for config", { error: result.error, configId });
++    }
++  }
++
++  async reportApiProblem(
++    error: StripeApiError,
++    config: { id: string; name: string },
++  ): Promise<void> {
++    if (error instanceof StripeAuthenticationError) {
++      await this.reportAuthFailure(config.id, config.name);
++    } else if (error instanceof StripePermissionError) {
++      await this.reportPermissionError(config.id, config.name);
++    }
++  }
++}
+diff --git a/packages/app-problems/src/app-problems-reporter.ts b/packages/app-problems/src/app-problems-reporter.ts
+index 451e87c5..9f600f48 100644
+--- a/packages/app-problems/src/app-problems-reporter.ts
++++ b/packages/app-problems/src/app-problems-reporter.ts
+@@ -16,7 +16,11 @@ export const AppProblemsReporterError = BaseError.subclass("AppProblemsReporterE
+ });
+ 
+ export class AppProblemsReporter {
+-  constructor(private client: Client) {}
++  private client: Client;
++
++  constructor(client: Client) {
++    this.client = client;
++  }
+ 
+   /**
+    * https://github.com/saleor/saleor/releases/tag/3.22.36
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 87abb356..b4edf42d 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -319,7 +319,7 @@ importers:
+         version: 1.77.3
+       '@sentry/nextjs':
+         specifier: 'catalog:'
+-        version: 9.8.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.82.1)
++        version: 9.8.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.82.1)
+       '@t3-oss/env-nextjs':
+         specifier: 'catalog:'
+         version: 0.11.1(typescript@5.8.2)(zod@3.21.4)
+@@ -328,7 +328,7 @@ importers:
+         version: 10.45.3(@trpc/server@10.45.3)
+       '@trpc/next':
+         specifier: 'catalog:'
+-        version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/react-query@10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/server@10.45.3)(next@15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
++        version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/react-query@10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/server@10.45.3)(next@15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+       '@trpc/react-query':
+         specifier: 'catalog:'
+         version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+@@ -373,7 +373,7 @@ importers:
+         version: 6.2.1
+       next:
+         specifier: 'catalog:'
+-        version: 15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
++        version: 15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+       react:
+         specifier: 'catalog:'
+         version: 18.2.0
+@@ -560,7 +560,7 @@ importers:
+         version: 1.77.3
+       '@sentry/nextjs':
+         specifier: 'catalog:'
+-        version: 9.8.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.82.1)
++        version: 9.8.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.82.1)
+       '@t3-oss/env-nextjs':
+         specifier: 'catalog:'
+         version: 0.11.1(typescript@5.8.2)(zod@3.21.4)
+@@ -572,7 +572,7 @@ importers:
+         version: 10.45.3(@trpc/server@10.45.3)
+       '@trpc/next':
+         specifier: 'catalog:'
+-        version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/react-query@10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/server@10.45.3)(next@15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
++        version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/react-query@10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/server@10.45.3)(next@15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+       '@trpc/react-query':
+         specifier: 'catalog:'
+         version: 10.45.3(@tanstack/react-query@4.29.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@trpc/client@10.45.3(@trpc/server@10.45.3))(@trpc/server@10.45.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+@@ -605,7 +605,7 @@ importers:
+         version: 20.0.3
+       next:
+         specifier: 'catalog:'
+-        version: 15.2.8(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
++        version: 15.2.8(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+       p-ratelimit:
+         specifier: 1.0.1
+         version: 1.0.1
+@@ -2017,6 +2017,9 @@ importers:
+       '@opentelemetry/semantic-conventions':
+         specifier: 'catalog:'
+         version: 1.30.0
++      '@saleor/app-problems':
++        specifier: workspace:*
++        version: link:../../packages/app-problems
+       '@saleor/app-sdk':
+         specifier: link:../../node_modules/@saleor/app-sdk
+         version: link:../../node_modules/@saleor/app-sdk

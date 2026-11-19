@@ -1,0 +1,44 @@
+{
+  "title": "Apps report their problems to the shop, and staff see them in the back office",
+  "company": "platform",
+  "repositories": {
+    "core": {
+      "what": "the shop's API (Saleor)",
+      "source": "saleor/saleor at b4cc3b3f2 (BSD-3-Clause)"
+    },
+    "dashboard": {
+      "what": "the staff back office (Saleor Dashboard)",
+      "source": "saleor/saleor-dashboard at 7ea285835 (BSD-3-Clause)"
+    },
+    "apps": {
+      "what": "the apps installed in the API: the payment app (`apps/stripe`) and the email app (`apps/smtp`) of the saleor/apps monorepo, with its shared packages",
+      "source": "saleor/apps at c1cbffb4 (BSD-3-Clause)"
+    }
+  },
+  "incident": "Last month the payment provider's key was replaced and nobody told the payment app. Checkout failed for most of a day before anyone noticed: the only trace was in the app's own log. The same thing happened earlier with the mail server's password, and order emails silently stopped. Staff live in the back office, and that is where they need to see such things.\n\nWe want apps to be able to report their problems to the shop, and staff to see them in the back office, where the installed apps are listed. It has to work for every app, our partners' included, so it goes through the API. The API below was agreed with the partners and they are building against it, so please build it as written.\n\n```graphql\ntype App {\n  # The app's problems, newest first. For the app itself and for staff who may manage apps.\n  problems: [AppProblem!]\n}\n\ntype AppProblem {\n  id: ID!\n  key: String!\n  message: String!\n  count: Int!              # how many times it was reported\n  isCritical: Boolean!\n  createdAt: DateTime!\n  updatedAt: DateTime!\n  dismissed: AppProblemDismissed   # null while the problem stands\n}\n\ntype AppProblemDismissed {\n  by: AppProblemDismissedByEnum!   # APP or USER\n  userEmail: String                # the staff member, when by is USER\n}\n\ninput AppProblemCreateInput {\n  message: String!            # 3 characters or more\n  key: String!                # 3 to 128 characters; names the kind of problem\n  criticalThreshold: PositiveInt\n  aggregationPeriod: Minute = 60\n}\n\n# Only one of the three.\ninput AppProblemDismissInput {\n  byApp: AppProblemDismissByAppInput                       # an app, its own problems\n  byStaffWithIds: AppProblemDismissByStaffWithIdsInput\n  byStaffWithKeys: AppProblemDismissByStaffWithKeysInput\n}\ninput AppProblemDismissByAppInput { ids: [ID!], keys: [String!] }   # one or the other\ninput AppProblemDismissByStaffWithIdsInput { ids: [ID!]! }\ninput AppProblemDismissByStaffWithKeysInput { keys: [String!]!, app: ID! }\n\ntype Mutation {\n  # For an app only: adds a problem to the app that calls it.\n  appProblemCreate(input: AppProblemCreateInput!): AppProblemCreate   # { appProblem, errors { field message code } }\n  # For an app, or staff who may manage apps.\n  appProblemDismiss(input: AppProblemDismissInput!): AppProblemDismiss   # { errors { field message code } }\n}\n```\n\n- An app that reports a key it already has a standing problem for, updated within `aggregationPeriod` minutes, does not get a second problem: that problem's count goes up by one and it takes the new message. With a period of 0 every report is a new problem.\n- A problem is critical once its count has reached the `criticalThreshold` of the report; without one it is not critical.\n- A dismissed problem stays on record, marked dismissed. If it is reported again it is a new problem.\n- An app sees and dismisses only its own problems.\n\nOur own two apps should use it. The payment app reports when the provider refuses its key (the key is invalid, or lacks a permission it needs) and when it cannot verify what the provider sends it (the webhook secret was changed); the email app reports when the mail server refuses it. A refused key is critical from the first time. The message is what staff will read, so it should say what is wrong and what to do. An app that is working must not report anything.",
+  "done": "We will call it done when the live shop does it: an app can report and dismiss problems through the API as agreed, staff can read an app's problems in the back office where the installed apps are listed, and our payment and email apps report when the provider or the mail server turns them away. The shop is open while you work: orders are being placed, paid, refunded and confirmed by email, staff are using the back office, and all of that has to keep working.",
+  "provider": {
+    "deliver_after": 1
+  },
+  "traffic": [
+    "--every",
+    "30",
+    "--refund",
+    "0.3",
+    "--decline",
+    "0.1",
+    "--settle",
+    "20"
+  ],
+  "timeout_sec": 10800,
+  "solution": {
+    "core": "core.patch",
+    "dashboard": "dashboard.patch",
+    "apps": [
+      "apps-package.patch",
+      "apps-stripe.patch",
+      "smtp.patch"
+    ]
+  },
+  "solution_source": "core: saleor/saleor 917690526 (#18724). dashboard: saleor/saleor-dashboard fca0cbf41 (#6283). apps: saleor/apps as of f0d36e14 (#2251, with what came before it since the pin: the schema copies of #2241 and two small changes) and 9c3453dd (#2255); the email app's part (smtp.patch) is ours, upstream has none."
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CalculateTaxes response",
+  "description": "What a tax app answers to CHECKOUT_CALCULATE_TAXES and ORDER_CALCULATE_TAXES. Amounts are decimals in major units. A tax rate is a percentage: 8.75 means 8.75%. `lines` has one entry per line of the taxBase, in the same order; an answer with a different number of lines is refused.",
+  "type": "object",
+  "required": ["shipping_tax_rate", "shipping_price_gross_amount", "shipping_price_net_amount", "lines"],
+  "properties": {
+    "shipping_tax_rate": {"type": "number", "minimum": 0},
+    "shipping_price_gross_amount": {"type": "number", "minimum": 0},
+    "shipping_price_net_amount": {"type": "number", "minimum": 0},
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tax_rate", "total_gross_amount", "total_net_amount"],
+        "properties": {
+          "tax_rate": {"type": "number", "minimum": 0},
+          "total_gross_amount": {"type": "number", "minimum": 0},
+          "total_net_amount": {"type": "number", "minimum": 0}
+        }
+      }
+    }
+  }
+}

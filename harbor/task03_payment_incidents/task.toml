@@ -1,0 +1,28 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/task03-payment-incidents"
+description = "Three reports after release 2026.11: refunds paid too often, a subscriber billed three times, renewals held up"
+keywords = ["swe-pod", "multi-service", "diagnosis"]
+
+[metadata]
+category = "software-engineering"
+change_type = "Incidents diagnosed from symptoms: two fault chains across three owners, with nothing telling where they are"
+owners_touched = 3
+criteria = 17
+seed = "Saleor's Stripe app: duplicate refunds when Core redelivers a refund request, fixed by forwarding Core's idempotency key, and a provider record orphaned by a failed store write (saleor/apps #2208). WooCommerce Subscriptions' plan-switch incident of April 2026 and Kill Bill's payment-then-state ordering bugs: a renewal that fails after the charge and before the subscription is saved."
+
+[verifier]
+# The verifier starts nine services and Prometheus in the agent's container and drives them over HTTP.
+timeout_sec = 1800.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 2400.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+workdir = "/work"

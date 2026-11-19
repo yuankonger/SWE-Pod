@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Subscriptions (C#). Same task names in every service: ./run test | ./run serve | ./run query "<sql>"
+set -euo pipefail
+cd "$(dirname "$0")"
+OUT=${SEEDCO_BUILD_DIR:-/tmp/seedco-build/subscriptions}
+export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
+case "${1:-}" in
+  test)
+    dotnet test tests/Subscriptions.Tests.csproj --nologo -v q --artifacts-path "$OUT"
+    ;;
+  serve)
+    dotnet build src/Subscriptions.csproj --nologo -v q -c Release --artifacts-path "$OUT" >&2
+    exec dotnet "$OUT/bin/Subscriptions/release/Subscriptions.dll"
+    ;;
+  query)
+    # Read-only SQL against this owner's database: the history under data/, or the database in SEEDCO_DATA_DIR.
+    exec python3 - "${SEEDCO_DATA_DIR:-data}/subscriptions.db" "${2:-}" <<'PY'
+import json, sqlite3, sys
+db = sqlite3.connect("file:{}?mode=ro".format(sys.argv[1]), uri=True)
+cursor = db.execute(sys.argv[2])
+columns = [c[0] for c in cursor.description or []]
+rows = cursor.fetchmany(201)
+for row in rows[:200]:
+    print(json.dumps(dict(zip(columns, row)), default=str))
+print("[more rows: only the first 200 are shown]" if len(rows) > 200 else "({} rows)".format(len(rows)))
+PY
+    ;;
+  *) echo "usage: ./run test|serve|query <sql>" >&2; exit 2 ;;
+esac

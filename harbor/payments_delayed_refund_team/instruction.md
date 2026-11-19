@@ -1,0 +1,7 @@
+Finance has escalated a problem with refunds.
+
+When staff refund an order, the payment provider returns the money to the customer's card and then tells the shop that it has: its confirmation arrives a few seconds after the refund is asked for, and, as payment providers do, it sometimes sends the same confirmation more than once. The back office's figures for refunds do not agree with what the provider returned. Some orders show more refunded than the customer was given back; an order refunded a second time does not show the second refund; and refunds stay shown as pending after the provider has paid them.
+
+Please find out why and fix it on the live shop. Orders are being placed, charged and refunded while you work, and that has to keep working.
+
+We will call it fixed when new orders on the live shop show it: for every order, the back office reports as refunded exactly what the payment provider's own records say went back to the card, whether the order was refunded once or several times and however many times a confirmation arrives, and no refund is still shown as pending once the provider has confirmed it. Charges and declined cards should behave as they do today. The orders placed while you were working will be looked at the same way. If you put older orders right, the shop's records have to survive it: no order or payment may be lost, and nothing the provider took or gave back may disappear from the books.

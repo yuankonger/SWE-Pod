@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Monitoring configuration. ./run test checks the Prometheus configuration and runs the alert rule tests.
+set -euo pipefail
+cd "$(dirname "$0")"
+case "${1:-}" in
+  test)
+    work=$(mktemp -d)
+    cp -r prometheus/. "$work/" && echo '[]' > "$work/targets.json"
+    (cd "$work" && promtool check config prometheus.yml && promtool test rules rules/alerts_test.yml)
+    ;;
+  *) echo "usage: ./run test" >&2; exit 2 ;;
+esac

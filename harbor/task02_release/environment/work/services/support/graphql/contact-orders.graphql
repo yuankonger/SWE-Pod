@@ -1,0 +1,18 @@
+# The orders of the customer an agent is talking to, shown beside the conversation. Needs MANAGE_ORDERS.
+query ContactOrders($email: String!) {
+  orders(first: 20, filter: { customer: $email }) {
+    edges {
+      node {
+        id
+        number
+        created
+        status
+        chargeStatus
+        userEmail
+        total { gross { amount currency } }
+        totalRefunded { amount }
+        lines { productName quantity }
+      }
+    }
+  }
+}

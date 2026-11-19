@@ -1,0 +1,93 @@
+# The rubric for the six other tickets of release 2026.12. The regression criteria and OPS-7's are task 1's
+# (../../task01_order_confirmation/hidden/rubric.toml) and are used with these. Checks are in release_checks.py.
+
+[[criterion]]
+id = "shop31-search"
+ticket = "SHOP-31"
+kind = "feature"
+type = "test"
+test = "test_storefront_core__the_shop_can_be_searched"
+note = """The shop page has a search field named `q`; `?q=crème` shows the products Core's search returns for it
+(accents included) and no others; a search that matches nothing offers nothing to put in the cart."""
+
+[[criterion]]
+id = "sup12-conversations-by-email"
+ticket = "SUP-12"
+kind = "feature"
+type = "test"
+test = "test_support_api__an_agent_lists_one_customers_conversations"
+note = """`?email=` returns only that customer's conversations, combines with `status`, and returns an empty list
+for an address nobody wrote from. Checked against the five conversations in the company's history."""
+
+[[criterion]]
+id = "pay21-paging"
+ticket = "PAY-21"
+kind = "feature"
+type = "test"
+test = "test_payments_api__lists_are_paged_and_an_intent_is_read_by_id"
+note = """The decision record, point by point: 20 records by default with `has_more`; `limit` from 1 to 100;
+`starting_after` continues after a record; walking the pages reaches all 47 intents in the history exactly
+once; one intent is read by id (404 if unknown); bad values are a 400; refunds are paged the same way."""
+
+[[criterion]]
+id = "sub18-card-from-paged-list"
+ticket = "SUB-18"
+kind = "feature"
+type = "test"
+test = "test_payments_subscriptions__a_new_subscription_records_its_card_from_a_paged_list"
+note = """The coupled pair. Once the list is paged, a new payment is no longer on its first page, so a Subscriptions
+app that still scans the list loses the card. This passes only when PAY-21 and SUB-18 are both done. PAY-21
+without SUB-18 also fails the regression criterion `subscription-records-card`."""
+
+[[criterion]]
+id = "ops9-alert-fires"
+ticket = "OPS-9"
+kind = "feature"
+type = "test"
+test = "test_ops_subscriptions__a_failed_renewal_raises_the_alert"
+weight = 2
+note = """The real Prometheus, scraping the real Subscriptions app, has an alert `RenewalsFailing` with severity
+`ticket`: it is quiet while no renewal has failed and fires after one does. This holds only if the rule uses the
+metric name and labels the Subscriptions app really exports, which only that app's code states."""
+
+[[criterion]]
+id = "ops9-rule-test"
+ticket = "OPS-9"
+kind = "feature"
+type = "command"
+run = "cd services/ops/prometheus && grep -q RenewalsFailing rules/alerts_test.yml && promtool test rules rules/alerts_test.yml"
+note = """The ticket asks for a rule test: the owner's rule tests mention the new alert and pass under promtool.
+A command, not a check method, because promtool is the judge of a rule test."""
+
+[[criterion]]
+id = "ops9-runbook-exists"
+ticket = "OPS-9"
+kind = "feature"
+type = "command"
+run = "grep -rlq RenewalsFailing services/ops/runbooks"
+note = """The ticket asks for a runbook: some file under the runbooks names the alert."""
+
+[[criterion]]
+id = "ops9-runbook-is-usable"
+ticket = "OPS-9"
+kind = "feature"
+type = "judge"
+files = ["services/ops/runbooks/*.md"]
+prompt = """One of these runbooks should be for the alert `RenewalsFailing`, which fires when a subscription renewal's
+charge has failed. Pass if that runbook would let an on-call engineer who has never seen the Subscriptions app
+act on the alert: it says what the alert means, how to tell one customer's declined card from a wider payment
+problem, and what to do or check in each case. Fail if there is no such runbook, or if it only restates the
+alert's name."""
+note = """Whether the runbook is any use to the person paged. No script can decide that, so a model reads it. Only
+run with --judge; without it this criterion is left out of the reward."""
+
+[[criterion]]
+id = "mob8-release-1.1.0"
+ticket = "MOB-8"
+kind = "feature"
+type = "test"
+test = "test_mobile_core__release_1_1_0_names_variants_and_1_0_0_still_buys"
+weight = 2
+note = """Release 1.1.0 exists as a built release, is listed as supported, really buys (Core holds the order it
+shows), and names the variant in the product list, the cart and the order. Release 1.0.0 still shows the old
+names: it was not edited to match."""

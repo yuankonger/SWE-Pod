@@ -1,0 +1,49 @@
+{
+ "id": "40bb5b310323bb62",
+ "files": {
+  "instruction.md": "2253643320ebadd372108d0ca85b17f45c96a4754e156f46c8049286323cef43",
+  "task.toml": "d7e410769af7f79195be653873ca91e01e862205fbde2935e4554676c918d462",
+  "environment/Dockerfile": "64bbaf3456a1c651d6544b6a20d419b009c51106c8f2f28753fa4e493e11a70e",
+  "environment/docker-compose.yaml": "932172fb49f76d1aa61bb481d17b544fb2c726e25d7613977e70f42aeb193905",
+  "environment/faults/core.patch": "b7137da66324514908d08d505ea12701eee0b19b1cf0b5cf4682149fd0ba8352",
+  "environment/faults/payments.patch": "1ae2c967162776f07965a8825a559e1c8ff29fd4049c57c54baf1fe9eff14255",
+  "environment/notes/core.md": "d3a026f5231c7124ecc00be32b47c1835fcda7b1510b58aa5b1f1b378bce5d6c",
+  "environment/notes/payments.md": "9e23848a816b980037c327db1386030dc7e8047610f0941ebf69257e93cd8683",
+  "environment/sidecars/chat.py": "aed21a3ae2c1f1ddaf20fd662871485c27df876688f506bea45d14c96e789973",
+  "environment/sidecars/ci.py": "676016bef4c4fa122c0606ef37c56ddd048c2258d7a44ca2aa284024358e196a",
+  "environment/sidecars/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
+  "environment/sidecars/gitserver_app.py": "473d069eebfbc0cd13ad205bf5e571b97d17d6e304d15798175549d8e8aa902c",
+  "environment/sidecars/gitserver_start.py": "668d9bad33186d00998277fa65c971dbd82ee49ea8b4b19be4b430f5c190a756",
+  "environment/sidecars/provider_start.sh": "d06f8705444abef78245dbe4ad03b58252e3b81f6951537f97af3ab9365f922f",
+  "environment/sidecars/seat.sh": "e2a5ab676fd22556f28c9aceed0f369f343cad99aa9f02ebeb2f55c53eead462",
+  "environment/sidecars/service.py": "1380724ec78e6b3cf17080526b9eae761b5b0527352bbaf12f8150aabdbdad21",
+  "environment/sidecars/setup.py": "f5df544cbcdf8561e9719aa4fb9bffeae3c208b4d0e876db2882e50a4de1c4f4",
+  "environment/sidecars/stripe_mock.py": "811c16cd3814dc089c0cc3c1346d930cda8d44564696ead7f4df6a30e9b2fb31",
+  "environment/sidecars/team_mcp.py": "442a42cc48257af1d5adeeb1037d75ba1393ca19e4be94e72eef5d853ddf2068",
+  "environment/sidecars/traffic.py": "1a07a36b45618628fff978bd715716a3e63ea95290a2ac69ee8056f9e74d09a9",
+  "seats/lead.md": "4d8753680cbc5ef9f0660c750ece37057f5051236bdbf1fa8c6d2ee15a04fa0f",
+  "seats/solo.md": "1ef340a6e104879073f0e0e01525419f81b3efabda7e7528170b36d20dfd8427",
+  "seats/team/core.md": "73a694efc1bfe58dd095a510176e03b8d0083f853eee67a24d0a6576e4ae1586",
+  "seats/team/payments.md": "563d58b5666075e07b6c27aa9b624a4365862474a8cb28da16ce6e63cb894634",
+  "seats/team_no_messaging/core.md": "1db43b2aaddb4628d782ecb771e2e2f6be760f2cfd915148cd537fdab51b2a7e",
+  "seats/team_no_messaging/payments.md": "920042b0def742558d7b7bba1d0de26209bdb5a670d34c7f4d5dee79d8233793",
+  "solution/core.patch": "3a49f32d0ec909617fe85256f93fdad0d8baf9debcf6fc6cfde372aa57a5ac63",
+  "solution/payments.patch": "1d13b3333799694d23391c61b51426cde88c1ed32f780a6137a76a670bfe4921",
+  "solution/solve.sh": "19dbce4948644e50e90e6354550db90595b9691129728a23ca87476f72e74898",
+  "tests/config.json": "f95d9b2d524521add4b3d4c081666d176213361b054e46737598c870dc28de51",
+  "tests/flows.py": "1a07a36b45618628fff978bd715716a3e63ea95290a2ac69ee8056f9e74d09a9",
+  "tests/rubric.py": "d5a5ca23a0bd2c07b19b1f6d9e4ae510c9f207c83b689c04fe1a46548c69921a",
+  "tests/rubric.toml": "eba0297e4c3b49eec58e34632959dab70e32f4b59cfab21619cce7ed3aa30309",
+  "tests/score.py": "c9406ce6dc95bda101f077f86e079857ed2e1c9daf21e92914b47ee678767262",
+  "tests/test.sh": "8cf00fcc052d37bb88f456ac75e90fc5e7bf5810cfbcfa4162984374343a29f0"
+ },
+ "runners": {
+  "tools/harbor_team.py": "c380f66e29eb4fd8af8f828c4e40766127ac16221fb560a91687ac9e0915bea1",
+  "tools/harbor_harness.sh": "a522d7967eaa7d6fbbcb9b9879c205bd94004435877b14f5ca9f387c1dfcb6c0"
+ },
+ "images": {
+  "seedco-payments-stripe:1": "sha256:0a966da00760eb7959de143130a6643ebba9cb4ca9c6ba6232f5ff96c0874de3",
+  "seedco-payments-core:1": "sha256:63d7a49b306efc6bdf51a567fa8878e0423996963f354fd21cfb2ef69850f311"
+ },
+ "frozen_at": "2026-11-16T06:30:54Z"
+}

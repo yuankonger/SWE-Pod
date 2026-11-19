@@ -1,0 +1,92 @@
+# The rubric for OPS-7 (staff confirm orders before they are fulfilled) and for what the company must keep doing.
+# kernel/rubric.py runs it. Format and reward: see that file's header.
+#
+# feature    = what the change adds. Fails on the company as it was. Checks are in ops7_checks.py (hidden).
+# regression = what must keep working. Passes on the company as it was. Checks and their criteria are in
+#              ../regression (agents see them).
+# reward     = share of feature criteria passed x share of regression criteria passed.
+
+# ---------------------------------------------------------------- OPS-7: what the change adds
+
+[[criterion]]
+id = "ops7-order-is-held"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_api__a_shop_order_starts_unconfirmed_and_paid"
+note = """The rule itself (decision record, point 1): an order placed in a shop is UNCONFIRMED, already paid in
+full, and marked as coming from a checkout."""
+
+[[criterion]]
+id = "ops7-confirm-once"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_api__staff_confirm_an_order_once"
+note = """Core has `orderConfirm`: only staff may call it, it moves the order to UNFULFILLED, and a second call is
+refused with INVALID and changes nothing."""
+
+[[criterion]]
+id = "ops7-no-fulfil-before-confirm"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_api__an_unconfirmed_order_cannot_be_fulfilled_but_can_be_cancelled"
+note = """What "held" means for staff: fulfilling an unconfirmed order is refused with CANNOT_FULFILL, it works
+after confirmation, and an unconfirmed order can still be cancelled."""
+
+[[criterion]]
+id = "ops7-email-at-confirmation"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_notifications__the_confirmation_email_waits_for_confirmation"
+note = """Core and the email app agree on the new event: the "Order confirmed" email is not sent while the order is
+held, is sent once when staff confirm, and is not sent again by a refused second confirmation."""
+
+[[criterion]]
+id = "ops7-tax-at-confirmation"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_taxes__the_tax_document_is_committed_at_confirmation"
+note = """Core and the tax app agree on the new event: no committed tax document exists while the order is held,
+and one with the right tax and total exists after confirmation. A document the tax app keeps in some other
+status before then is its own business."""
+
+[[criterion]]
+id = "ops7-no-tax-if-never-confirmed"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_taxes__an_order_cancelled_before_confirmation_is_never_reported"
+note = """An order cancelled while it is still held is never reported for tax. This is the reason the business
+wanted the change."""
+
+[[criterion]]
+id = "ops7-dashboard-button"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_dashboard_core__staff_confirm_from_the_order_page"
+note = """Staff can do it from the dashboard: a held order's page offers "Confirm order" and not fulfilment;
+pressing it confirms the order in Core; afterwards the page offers fulfilment and not confirmation. The page is
+read as HTML, so how it is laid out does not matter."""
+
+[[criterion]]
+id = "ops7-web-shop-shows-received"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_storefront__a_held_order_shows_as_received_in_the_web_shop"
+note = """The customer of a held order sees "Order received" in the web shop. The shop already knows the status
+Saleor uses for this, so this holds only if Core uses that status and not one of its own."""
+
+[[criterion]]
+id = "ops7-mobile-shows-received"
+ticket = "OPS-7"
+kind = "feature"
+type = "test"
+test = "test_core_mobile__a_held_order_shows_as_received_in_every_supported_build"
+note = """The same for every supported build of the mobile app, including the released one that cannot be
+changed: it buys, and shows the held order as "Order received"."""

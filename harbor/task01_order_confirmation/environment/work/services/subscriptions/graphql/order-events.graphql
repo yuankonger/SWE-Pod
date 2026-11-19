@@ -1,0 +1,18 @@
+# What the subscriptions app reads from Core when an order is fully paid or cancelled.
+subscription OrderEvents {
+  event {
+    __typename
+    issuedAt
+    ... on OrderFullyPaid {
+      order {
+        id
+        userEmail
+        metadata { key value }
+        shippingAddress { firstName lastName streetAddress1 city postalCode countryArea country { code } }
+        lines { productSku quantity }
+        transactions { pspReference }
+      }
+    }
+    ... on OrderCancelled { order { id } }
+  }
+}

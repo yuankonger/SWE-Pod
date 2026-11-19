@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Storefront (TypeScript on Node.js). Same task names in every service: ./run test | ./run serve
+set -euo pipefail
+cd "$(dirname "$0")"
+export NODE_NO_WARNINGS=1
+case "${1:-}" in
+  test) node --test "test/**/*.test.ts" ;;
+  serve) exec node src/server.ts ;;
+  *) echo "usage: ./run test|serve" >&2; exit 2 ;;
+esac

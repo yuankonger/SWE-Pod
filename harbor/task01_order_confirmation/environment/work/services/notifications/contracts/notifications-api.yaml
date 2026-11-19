@@ -1,0 +1,49 @@
+# Notifications API. Owner: Notifications. The outbox stands in for the mail provider.
+# Order emails are triggered by Core's webhooks (see the manifest, GET /api/manifest); other services ask for
+# a message with POST /api/notify.
+openapi: 3.0.3
+info: {title: Notifications API, version: 3.0.0}
+paths:
+  /api/notify:
+    post:
+      summary: Send one message. The same notification_id is sent once, however often it is asked for.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/Notify'}}}
+      responses:
+        '200': {description: '{"sent": true}, or {"sent": false} for a repeat'}
+        '400': {description: Unknown notify_event, or the payload lacks a field the message needs}
+  /outbox:
+    get:
+      summary: Every email sent, oldest first.
+      parameters: [{name: email, in: query, schema: {type: string}, description: Only emails to this address.}]
+  /dropped:
+    get:
+      summary: Order events that could not be turned into an email, oldest first, each with the reason.
+components:
+  schemas:
+    Notify:
+      type: object
+      required: [notify_event, payload]
+      properties:
+        notify_event:
+          type: string
+          enum: [SUBSCRIPTION_PLAN_CHANGED, SUBSCRIPTION_DOWNGRADE_SCHEDULED, SUBSCRIPTION_CANCEL_SCHEDULED, SUBSCRIPTION_TERMINATED, SUBSCRIPTION_PAYMENT_FAILED]
+        payload:
+          type: object
+          required: [notification_id, recipient_email]
+          properties:
+            notification_id: {type: string}
+            recipient_email: {type: string}
+            plan_name: {type: string, description: Needed by every message.}
+            pending_plan_name: {type: string, description: Needed by SUBSCRIPTION_DOWNGRADE_SCHEDULED.}
+            period_end: {type: string, description: Needed by the two SCHEDULED messages. Shown as given.}
+            amount: {type: object, properties: {amount: {type: number}, currency: {type: string}}, description: Needed by SUBSCRIPTION_PAYMENT_FAILED. What the customer was asked to pay.}
+            reason: {type: string, description: Needed by SUBSCRIPTION_PAYMENT_FAILED.}
+    Email:
+      type: object
+      properties:
+        kind: {type: string, description: 'order_confirmation, receipt, shipping, cancellation, refund, ops_alert, or a notify_event in lower case'}
+        to: {type: string}
+        subject: {type: string}
+        body: {type: string}

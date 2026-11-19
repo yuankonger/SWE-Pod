@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Transaction webhook response",
+  "description": "What a payment app answers to TRANSACTION_INITIALIZE_SESSION and TRANSACTION_REFUND_REQUESTED. `amount` is a decimal in major units, as a number or a numeric string; left out, Core takes the amount it asked for. `pspReference` is required for CHARGE_SUCCESS. An answer Core cannot use is recorded as a failure.",
+  "type": "object",
+  "required": ["result"],
+  "properties": {
+    "pspReference": {"type": "string"},
+    "result": {"enum": ["CHARGE_SUCCESS", "CHARGE_FAILURE", "CHARGE_REQUEST", "CHARGE_ACTION_REQUIRED", "REFUND_SUCCESS", "REFUND_FAILURE"]},
+    "amount": {"type": ["number", "string"]},
+    "message": {"type": "string", "description": "Shown to staff on the transaction; at most 512 characters are kept."},
+    "data": {"description": "Returned to the caller of transactionInitialize as `data`."}
+  }
+}

@@ -1,0 +1,23 @@
+# What the email app reads from Core for each order event. Core sends exactly these fields.
+fragment OrderDetails on Order {
+  id
+  number
+  userEmail
+  displayGrossPrices
+  lines { productName variantName quantity totalPrice { net { amount } gross { amount } } }
+  subtotal { net { amount } gross { amount } }
+  shippingPrice { gross { amount } }
+  total { gross { amount currency } tax { amount } }
+  totalRefunded { amount }
+}
+
+subscription OrderEvents {
+  event {
+    __typename
+    ... on OrderConfirmed { order { ...OrderDetails } }
+    ... on OrderFullyPaid { order { ...OrderDetails } }
+    ... on OrderFulfilled { order { ...OrderDetails } }
+    ... on OrderCancelled { order { ...OrderDetails } }
+    ... on OrderRefunded { order { ...OrderDetails } }
+  }
+}

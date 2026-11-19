@@ -1,6 +1,30 @@
 # Multi-agent RL environment: vendor review and build pla
 
-Nov 11, 2026 · @Lilin
+Nov 11, 2026 · @Lilin · last revised 14 Nov 2026
+
+**How to read this document.** It was written in order and the design changed on the way. What is current:
+the Goal, the Design principles, the Phase 3 acceptance tests, "What the research changes", the Change-type taxonomy,
+"Reshape: SeedCo mirrors Saleor", Build status and Open questions. What is history, kept for the reasoning:
+the MVP scope table, "Reference repos surveyed" and "Seed company draft" (four composite services, an event
+broker, ten tasks) describe the company before the reshape. No part of that company exists any more.
+
+## Goal
+
+Stated by Lilin on 14 Nov 2026. Everything below serves this; where a later section disagrees, this section is current.
+
+- **What we are building.** An RL environment that pushes frontier models to the next level at working as several agents, built to be sold to frontier labs.
+- **First domain.** Software.
+- **Design.** Several real GitHub repositories are combined to simulate one real company, so that the code, the tests and the features are real-world. Tasks are features that cross repositories.
+- **Hypothesis.** One agent can be good on one repository. Several agents may be better on features that cross repositories.
+
+What the goal asks of the environment:
+
+- **The hypothesis must be testable.** Every task is run with one agent and with several, under the same conditions, and the comparison is reported: score, cost and time.
+- **Tasks must be hard for frontier models.** A task that current models already finish gives nothing to train toward.
+- **It must be usable for training.** That needs many tasks, a cost per episode a lab can afford, and a reward that is hard to game.
+- **It must be sellable.** Every repository's licence allows the use, results reproduce, and a model cannot score by recalling the public solution.
+
+Where the hypothesis stands (14 Nov 2026): on the one cross-repository feature built so far (customer attributes across Saleor and its dashboard), one agent and several score about the same when the budget does not bind: 0.80 solo, 0.78 for a team without messaging, 0.83 for a lead with subagents, 0.84 for a team with messaging. Under a tight $20 budget the divided setups scored higher (0.69 and 0.70 against 0.58). Each figure is one run, so neither result is established.
 
 ## Summary
 
@@ -71,14 +95,14 @@ These are the requirements every domain and task must meet. They are my proposal
 1. **Interdependence by construction.** Each agent holds information or permissions the others need, so no static split of the work solves the task. Most of the reward depends on cross-agent agreement.
 2. **Short episodes.** A small shared token budget per episode and small contexts. Difficulty scales with the coordination structure, not with volume of work.
 3. **Decomposed reward.** Individual correctness, team outcome and coordination cost are reported separately, with per-agent credit.
-4. **Counterfactual baselines.** Every task has a solo-with-equal-budget condition and a scripted-partner condition, so a team's gain can be attributed.
+4. **Counterfactual baselines.** Every task has a solo-with-equal-budget condition and a scripted-partner condition, so a team's result can be attributed. 
 5. **A partner population.** Training mixes self-play, earlier checkpoints and scripted partners with known faults, so the policy does not overfit to its own conventions.
 6. **Procedural generation at volume.** Unlimited seeds across structures and difficulty, with no fixed train and evaluation split.
 7. **Many thin domains.** Coordination skill that transfers needs varied surface tasks. One deep domain invites learning the domain.
 8. **The production harness.** The same loop, caching and context handling the models run with elsewhere, so the environment does not measure harness quirks.
-9. **Deterministic, replayable scoring.** No model judges anything in the reward path; an event log reproduces the score.
+9. **Deterministic, replayable scoring.** No model judges anything in the reward path; an event log reproduces the score. (Amended 12 Nov 2026: a rubric may hold judge criteria for what no script can decide, such as whether a runbook is usable. They run only on request, are reported apart, and are left out of the reward otherwise, so the default reward stays deterministic.)
 
-10) **Human evaluation against drift.** Reviewers regularly inspect sampled episodes to confirm that rising reward reflects real coordination and not an exploit of the scorer or generator.
+10. **Human evaluation against drift.** Reviewers regularly inspect sampled episodes to confirm that rising reward reflects real coordination and not an exploit of the scorer or generator.
 
 ## Roadmap
 
@@ -151,7 +175,7 @@ Seed sources below are kinds of material to look for in Phase 2; none has been r
 - Real material is abundant and public.
 - It is the domain where a frontier lab is most likely to deploy agent teams.
 
-The risk is that it overlaps with existing single-agent coding training, so tasks must be built so that a solo agent with equal budget does clearly worse.
+The risk is that it overlaps with existing single-agent coding training, so tasks must be built so that the team cannot pass without exchanging what each owner privately holds. (Amended 13 Nov 2026; this line first asked for a solo agent to do clearly worse. See principle 4.)
 
 ## Phase 2: real-world seeds for the first domain
 
@@ -209,13 +233,15 @@ A task is a generator, not a fixed instance: it takes a seed and produces a worl
 | Test | Pass condition |
 | --- | --- |
 | Solvable | The scripted oracle team reaches full score within the episode budget |
-| Needs a team | A solo agent with the team's combined budget scores clearly lower than the oracle team |
-| Needs coordination | The no-communication scripted team scores clearly lower than the oracle team |
+| Solo reference | A solo agent that holds every directory, with the team's budget, can pass. It sets the ceiling the team is measured against |
+| Needs coordination | The team without messaging scores clearly lower than the team with it, and cannot pass |
 | No shortcut | Degenerate policies (do nothing, escalate everything, approve everything) score near zero |
 | Deterministic | The same seed and actions replay to the same score |
 | Cheap | One episode stays inside the token and wall-time budget |
 | Has headroom | A current model team scores between the degenerate floor and the oracle, not at either end |
 | Varied | Different seeds produce different correct action sequences, not renamed copies |
+
+(Amended 13 Nov 2026: "Solo reference" replaces "Needs a team", which required the solo agent to score clearly lower than the team. The two could not both hold; the MVP section and the research section already used the solo agent as the ceiling, and this table now agrees with them. If the kernel later gains a simulated clock and a deadline, a time-limited "needs a team" test can come back: see Open questions.)
 
 Thresholds for "clearly lower" and the budgets are open questions below. The first design round should produce 3 to 5 tasks in one domain, each in a different structure.
 
@@ -251,6 +277,8 @@ The limit on an episode is one token budget shared by the whole team, not a cap 
 
 The budget's size is not set yet. It should come from measuring what a competent team needs on task 1, with headroom.
 
+(Amended 13 Nov 2026: the kernel's budget is in dollars, not tokens. Each call is priced from its input, output, cache-write and cache-read tokens, so a long cached conversation is charged what it costs. Tokens are still recorded beside the cost. Read "token budget" in this document as that dollar budget.)
+
 ### What counts as useful
 
 - **Every task passes two admission checks.** The team without messaging cannot pass it, and the single agent with all four repos can.
@@ -271,7 +299,7 @@ If the team without messaging can pass a task, the needed fact was visible or gu
 
 No public repository matches the seed company's four languages and four services, so the model is a composite of three permissively licensed demos, with two billing platforms for domain rules. About 30 repositories were checked. Repository facts are as read from the GitHub API and shallow clones on 11 November 2026; nothing was built or run, and line counts are approximate.
 
-The full research report, with all sources, is saved locally at `/Users/yuankong/Downloads/multi-agent/reports/Seed company reference repo survey.md`.
+The full research report, with all sources, is in this repository at `research_notes/Seed company reference repo survey.md`.
 
 | System | Licence | Size and languages | How contracts are defined | Run weight | Status | What to take |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -360,6 +388,8 @@ The taxonomy has 24 types: 18 with a real example, 3 resting on research or docu
 
 ## Seed company draft
 
+(Superseded 13 Nov 2026 by "Reshape: SeedCo mirrors Saleor". Kept as history.)
+
 The seed company (working name SeedCo) is a subscription retailer with four services, each owned by one agent. A subscription business is chosen so that billing has real rules (renewals, proration, tax, refunds) instead of being a thin payment call.
 
 &#91;embedded content: seed company · 4 services, 3 call paths, 3 event paths\]
@@ -432,7 +462,7 @@ The language split adds a realistic asymmetry: the Java and C# services fail lou
 
 ### First ten changes
 
-Each task is now re-themed from a real change. The list replaces the earlier draft written from reasoning.
+Each task is now re-themed from a real change. The list replaces the earlier draft written from reasoning. (Superseded: none of these ten was built as written. The three tasks that exist are listed under Build status.)
 
 | # | Change | Real seed | Structure | Why one owner cannot finish alone |
 | --- | --- | --- | --- | --- |
@@ -456,56 +486,130 @@ Tasks 4, 6 and 10 start from a symptom, not a specification: no agent is told wh
 - [ ] Write the service skeletons and schemas, then task 1 end to end as the template for the rest.
 - [ ] Run the three baseline conditions on task 1 before writing the other nine.
 
+## Reshape: SeedCo mirrors Saleor (13 November 2026)
+
+The seed company was rebuilt so that every system mirrors a real one. The four composite services and the event
+broker are gone. The sections above this one describe the earlier design and are kept as history; where they
+disagree with this section, this section is current.
+
+**Why.** Real-world fidelity matters more than the composite's tidiness. A company whose boundaries, names and
+contracts come from one real platform lets each task point at the real change it is built from.
+
+**What it mirrors.** Saleor (commerce platform, Python core, BSD-3-Clause) and the apps a merchant runs around
+it. The repositories were cloned and read on 13 November 2026; names and contracts were taken from the source,
+and no code was directly copied without modification.
+
+| Owner | Language | Mirrors | What was taken |
+| --- | --- | --- | --- |
+| Core | Python | saleor/saleor | GraphQL type, field, enum and mutation names; the Transactions API; apps installed from manifests; webhook payloads defined by the app's subscription query; the tax and transaction answer formats; webhook header names |
+| Storefront | TypeScript | saleor/storefront (FSL-1.1: structure only) | Server-rendered shop over the GraphQL API; the cart as a checkout id in a cookie |
+| Dashboard | TypeScript | saleor/saleor-dashboard | Orders, order page with fulfil, cancel and refund, apps page |
+| Mobile | TypeScript | saleor/example-react-native-typescript (archived, unlicensed: structure only) | The app talks to Core directly. Released builds are frozen, which is ours, to make old clients a contract |
+| Payments | C# | saleor/apps `apps/stripe` | Transaction webhooks; decimal major units converted to the provider's integer minor units by currency |
+| Taxes | Java | saleor/apps `apps/avatax` | `CalculateTaxes` payload and answer; `pricesEnteredWithTax`; tax documents |
+| Notifications | Python | saleor/apps `apps/smtp` | One email per order event; the app's own query defines what templates can read |
+| Subscriptions | C# | Not in Saleor | Added as an app on Core, the way a merchant would; billing rules from Kill Bill and Lago as before |
+| Support | Ruby | chatwoot/chatwoot (MIT outside `enterprise/`) | Public inbox and account API paths and shapes; an orders panel like its Shopify integration |
+| Ops | Prometheus rules | Prometheus (run as the real binary); Saleor's telemetry names | Scrape config, alert rules, rule unit tests, runbooks |
+
+**Languages.** Saleor's own apps are TypeScript. The payments, taxes and subscriptions apps are in C# and Java
+on purpose, to keep the loud-typed and silent-untyped asymmetry the earlier design wanted. An integrator's app is
+only HTTP to Core, so this is realistic, but it is a deviation from the reference.
+
+**What changed in the contracts.**
+
+- There is no event broker. Core calls apps over HTTP: synchronously for taxes and payments, and through stored
+  deliveries with retries for order events.
+- The interesting contract is the app's subscription query. Core sends exactly the fields an app asked for, and
+  refuses at installation a query its schema does not allow.
+- Implicit contracts the mirror brings with it: tax rates are percentages on the wire and fractions in the API;
+  money is a decimal in major units in Core and an integer in minor units at the provider; deliveries carry no id
+  and can repeat; the status is `CANCELED` while the event is `ORDER_CANCELLED`; cancelling does not refund.
+- Released mobile builds are replayed against Core by the end-to-end and hidden tests. This gives mixed-version
+  tasks without a harness that runs two versions of a service.
+
+**Task 1 was replaced.** The money-representation task did not carry over: Saleor's money is already defined.
+The new task 1 is "staff confirm orders before they are fulfilled", built from Saleor's
+`automaticallyConfirmAllNewOrders` setting, `orderConfirm` mutation and `ORDER_CONFIRMED` event. Its team is Core,
+Dashboard, Notifications and Taxes. The other nine tasks in the table above were not re-themed. Tasks 2 and 3
+were built for the reshaped company instead (a release of seven tickets, and three incidents diagnosed from
+symptoms); see Build status.
+
+**Known limits of the mirror.**
+
+- A model that knows Saleor can guess names such as `orderConfirm`. Whether the team without messaging can
+  pass task 1 is therefore open until the model baselines run; if it can, the private facts need to be things
+  Saleor does not define.
+- Webhook signatures (Saleor signs payloads with JWS) are not implemented.
+- The on-call and support owners have code and configuration to own, but no tools yet to read live metrics,
+  logs or conversations during an episode. Until they do, their private knowledge is still in files.
+- The Storefront has no customer accounts; a customer's orders are remembered in a cookie.
+
 ## Build status
 
-The seed company, the kernel, a stand-in harness and task 1 are built and verified with scripted agents; no model run has happened yet, because this machine has no API credentials. The code is at `/Users/yuankong/Downloads/multi-agent/seedco`.
+The reshaped company, the kernel, a stand-in harness and three tasks are built and verified with scripted agents. Three solo model runs have finished (see Model runs so far). No team, lead or no-messaging condition has been run with a model, so nothing yet shows that any task needs coordination.
 
 | Piece | State | Verified by |
 | --- | --- | --- |
-| Toolchain image (Node 24, Java 17, .NET 8, Python 3.11) | Built, 2.2 GB | Each service's tests run inside it |
-| Four services with contracts, pinned copies and owner notes | Built | 16 unit tests; 3 end-to-end tests through all four services |
-| Event broker and stack runner | Built | The end-to-end tests |
-| Kernel: round-robin turns, shared token budget, messaging, event log | Built | 6 kernel tests with scripted agents |
-| Stand-in harness: one Claude call per turn through the Anthropic SDK | Written, not run | Request parameters checked against the SDK only |
-| Scorer: hidden checks per boundary, plus each service's own tests | Built | See task 1 results |
-| Task 1: money becomes a Money object in minor units | Built, with a reference solution | See below |
+| Toolchain image 0.4 (Node 24, Java 17, .NET 8, Python 3.11, Ruby 3.1, H2, SQLite, GraphQL, Prometheus) | Built | Each owner's tests run inside it |
+| Ten owners (nine services and the monitoring configuration) with contracts, pinned copies and owner notes | Built | 71 unit tests and the alert rule tests; 9 end-to-end tests, including one across a restart, one replaying the released mobile build and one with the real Prometheus paging on a killed service |
+| Stack runner (starts every service and Prometheus) | Built | The end-to-end tests |
+| Kernel: round-robin turns, messaging, event log; the team comes from the task; one shared budget in dollars; a reward of correctness first and unspent budget second | Built | 17 kernel tests with scripted agents |
+| Lead condition: one agent that may start others, give each a set of directories and instructions, and work with them by message; an agent can hold several directories | Built | 2 of the kernel tests; 1 container test (an agent the lead starts sees only its directories) |
+| Task 2: a release of seven tickets across all ten owners (task 1's change, a coupled pair, four independent tickets) | Built, with a derived reference solution | 26 criteria: 18 feature (one judged, not run), 8 regression. Reference team of ten, solo and lead: reward 1.0 (25 of 25 run). Untouched: 0. Every ticket but OPS-7: 0.53. Only OPS-7: 0.47. Every ticket but SUB-18: 0.83 (progress 0.95 x regression 0.88) |
+| One container per owner: the running company (compose file) and agent isolation (`--isolation containers`: no network, only the agent's own files, scoring in its own container) | Built | 3 host-run tests of the compose layout; 2 of agent isolation; the reference team scores 17 of 17 in this mode, and an agent's regression run works in it |
+| Harbor export: every task as a Harbor task directory (one container, one agent with the whole company) | Built | Harbor 0.25.0's oracle agent scores 1.0 on both tasks and its no-op agent scores 0.0 |
+| Data: a catalogue in the shape of Saleor's sample data (29 products, 83 variants) and a seeded history per task (task 1: 45 orders, 10 subscriptions, 132 emails, tax documents, support conversations) that each owner can query in its own database and that scoring starts from | Built | 2 catalogue tests in Core; 1 kernel test of the query tool; 2 of the regression criteria are about customers in the seeded history |
+| Stand-in harness: one model call per turn, through an OpenAI-format gateway (the default) or the Anthropic SDK; one ATIF trajectory per agent | Built; the gateway client has run | The three solo runs below. Which client each used is not recorded in its result, and the Anthropic SDK client may still be unrun |
+| Task 3: three incident reports a week after a release, symptoms only: refunds paid too often (Core and Payments), a subscriber billed three times and renewals held up (Subscriptions). Each owner has its database and its production log of that week | Built by `tools/derive_incidents.py`, with a derived reference solution | 17 criteria: 9 feature, 8 regression (task 1's suite). One solo model run below; the reference team's result is not recorded in this document |
+| Verifier: a rubric per task (`hidden/rubric.toml`). Each criterion has a ticket, a kind (feature or regression), a type (check method, shell command, or a model judging named files) and a note. Reward = share of feature criteria passed x share of regression criteria passed. Ports are cleared with SIGKILL before the company is started | Built | 3 kernel tests (reward arithmetic, judge plumbing with a stand-in judge, port clearing); `tools/check_the_checks.py` on 10 variations of task 2's solution. No judge criterion has been run against a real model |
+| Regression suite agents can see: `tasks/<id>/regression/`, copied into every workspace and readable and runnable by every agent; the verifier runs its own copy | Built | 1 kernel test (agents can read it, cannot reach verifier files through it); the suite passes on the untouched company and on the reference solution |
+| Task 1: staff confirm orders before they are fulfilled | Built, with a derived reference solution | See below |
 
 ### Task 1 acceptance results
 
 | Test | Result |
 | --- | --- |
-| Solvable: scripted reference team, through the harness | 10 of 10 hidden checks, team and solo |
-| No shortcut: untouched company | 0 of 10 |
-| Partial: only Billing migrated | 2 of 10 |
-| Needs coordination: model team without messaging | Not run yet |
-| Needs a team, headroom: model runs | Not run yet |
-| Cheap: measured token and wall time per episode | Not run yet |
+| Solvable: scripted reference team, through the harness | Reward 1.0: 17 of 17 criteria (9 feature, 8 regression), team, solo and lead |
+| No shortcut: untouched company | Reward 0: every regression criterion passes, every feature criterion fails |
+| Partial: only Core changed | Reward 0.67: 6 of 9 feature criteria; the failures are the email, the tax document and the dashboard button |
+| Needs coordination: model team with and without messaging | Not run yet |
+| Solo reference, headroom: model runs | Not run yet on task 1 |
+| Cheap: measured cost and wall time per episode | Not run yet on task 1; solo runs on tasks 2 and 3 cost $0.21 to $1.56 and took 1 to 5 minutes |
+
+### Model runs so far
+
+All three are the solo condition with a $20 budget, read from `runs/*/result.json` on 13 Nov 2026.
+
+| Task | Model | Isolation | Criteria | Reward | Cost | Tokens | Calls | Wall time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2 | Sonnet 5.5 | process | 25 of 25 (judge criterion not run) | 1.92 | $1.56 | 4.35M | 38 | 5 min |
+| 3 | Sonnet 5.5 | process | 11 of 13 | 0.50 | $0.21 | 0.25M | 10 | 1 min |
+| 3 | Opus 5.5 | containers | 16 of 16 | 1.93 | $1.31 | 1.82M | 35 | 5 min |
+
+- **The solo agent finishes tasks 2 and 3 for under a tenth of the budget.** The reward above 1 is the unspent share of the budget, added only when everything passes.
+- **The two task 3 runs were scored against earlier versions of its rubric** (13 and 16 criteria; it has 17 now), so they are not comparable with each other or with a run today.
+- **The two Sonnet runs used process isolation,** where tests the agent writes run on the host and could read the hidden checks. Treat them as indicative.
+- **A Harbor run of task 2 with Claude Code on Sonnet 5.5 was started and cancelled;** it has no result.
+
+### Verifier changes of 12 Nov 2026
+
+Asked for by Lilin. The last two points are not from that request and are marked.
+
+- **Agents see the regression tests, not the verifier.** What must keep working is a suite in the workspace that every agent can read and run. What the work adds stays hidden. The verifier runs both, the regression suite from its own copy.
+- **The reward measures progress.** Share of feature criteria passed, times share of regression criteria passed. A release with only OPS-7 missing earns 0.53, where the old share-of-checks score mixed features and regressions and gave an untouched company nothing only because every check was gated on the new rule.
+- **Ports are cleared first.** The verifier kills whatever listens on its ten ports before starting the company. Verified with a stale company left on those ports: nine listeners killed, reward unchanged.
+- **The verifier is a rubric.** One readable list per task; each criterion is a check method, a shell command or a prompt for a model, with a note. Task 2 has two command criteria (the rule test under promtool, the runbook's existence) and one judge criterion (is the runbook usable).
+- **My choices, open to change:** the two shares are multiplied, so a regression costs a share of everything earned and is not a gate; weights are per criterion (OPS-7 is 9 of task 2's 19 feature weight); judge criteria are off by default and left out of the reward when off; in the kernel the regression suite is read-only to agents, and in Harbor it is ordinary files.
+- **Found on the way:** Core's order filter by customer matches substrings, as Saleor's search does. A check that listed `phone-…@example.com` also got `held-phone-…@example.com`. The checks now compare the address exactly.
 
 ### Measured speed
 
-- Each service's own tests: 0 to 2 seconds warm.
-- Whole company start plus the end-to-end tests: about 12 seconds cold, 2 seconds warm.
-- These are well inside the 30-second and 2-minute targets.
-
-### How task 1 changed from the draft
-
-The draft said "money moves to integer cents". A team could plausibly guess that without talking, so the built task uses a Money object, `{"currency": "USD", "minor": 2499}`, with field names unchanged. The shape is written only in Billing's decision record, which the other three owners cannot see. This follows Online Boutique's real Money type migration.
+- Each owner's own tests: under 2 seconds warm.
+- Whole company start plus the end-to-end tests: about 25 to 30 seconds, including Prometheus.
 
 ### Deviations to know about
 
 - **Server-side model fallback is off** in the harness. A silent switch of model would corrupt a baseline, so a refusal ends the episode as invalid.
-- **The budget counts every token read or written,** cached or not. Cache reads are cheaper in money, so this is a design choice to revisit once real usage is measured.
-- **The Node base image could not be pulled from Docker Hub** on this machine, so the image downloads Node from nodejs.org instead.
-
-## Open questions
-
-- [ ] **First domain.** Software changes across services is proposed. Is there a deployment target that argues for a different one?
-- [ ] **Episode budget.** What token and wall-time cost per episode can training afford? This sets the shared team token budget and drives every task design.
-- [ ] **Training setup.** Which algorithm and reward form will be used (shared team reward, per-agent credit, or both)? The reward terms should be shaped to fit.
-- [ ] **What counts as improvement.** Which result would convince you coordination improved: reward terms on fresh seeds, human review, gains in a second domain, or all three?
-- [ ] **Thresholds.** How much lower must solo and no-communication scores be for a task to pass ("clearly lower")?
-- [ ] **Human evaluation.** Who reviews, how often, how many episodes per round, and against what rubric?
-- [ ] **Vendor relationship.** Ask for the specs, tests and a licence, or close out the delivery?
-- [ ] **Conduct training.** Should oversight and refusing illegitimate authority be rewarded behaviours in this environment?
-- [ ] **Team and ownership.** Who builds the kernel, who owns domain research, and who signs off each gate?
-- [ ] **Existing work.** Are there internal environments or harness components this should build on?
+- **The budget is in dollars.** Each call is priced from its input, output, cache-write and cache-read tokens at the prices published on 3 November 2026. An earlier version counted every token equally, cached or not.
+- **Process isolation is the default and is not safe for model runs.** Tests an agent writes run on the host and can read other owners' files, the hidden checks and the reference solution. It also uses fixed ports, so two episodes cannot run on one host at once. Model baselines should use `--isolation containers`.- **Payments tasks: the sidecars' code is readable from a seat (noted 15 Nov 2026, to fix once the task meets the difficulty bar).** The seat is built from the same image as the sidecars (`COPY sidecars /opt/seedco` in `tools/export_harbor_payments.py`), so `/opt/seedco` at a seat holds the traffic generator, the provider stand-in, the setup script and the git server. An agent that reads them learns how the traffic is shaped and which duplicated confirmations the provider sends. The Opus 5.5 solo run of `payments_delayed_refund` did not look there. The fix is a seat image of its own, without that directory.
