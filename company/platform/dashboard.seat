@@ -1,0 +1,7 @@
+# The back office's dependencies are a real directory inside its checkout: its development server only reads files
+# under the checkout's parent. Its browser (Playwright's chromium) is here for whoever checks it as staff see it.
+RUN rm -f /work/dashboard/node_modules
+COPY --from=dashboard /srv/deps/node_modules /work/dashboard/node_modules
+COPY --from=dashboard /ms-playwright /ms-playwright
+ENV NODE_PATH=/work/dashboard/node_modules PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN cd /work/dashboard && rm -f node_modules/.modules.yaml.lock && npx playwright install-deps chromium && rm -rf /var/lib/apt/lists/*

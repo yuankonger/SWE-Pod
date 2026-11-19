@@ -4,3 +4,7 @@ bin/
 obj/
 .DS_Store
 runs/
+.env
+
+# local clones of the public repositories the companies are built from
+/.cache/

@@ -1,0 +1,33 @@
+# Payments API. Owner: Payments. The webhooks Core calls are in the manifest (GET /api/manifest); this file is
+# the provider's records, for reconciliation and for apps that need to know how an order was paid.
+openapi: 3.0.3
+info: {title: Payments API, version: 1.0.0}
+paths:
+  /api/payment-intents:
+    get:
+      summary: Every payment the provider holds, oldest first.
+      responses:
+        '200': {description: Payment intents, content: {application/json: {schema: {type: object, properties: {payment_intents: {type: array, items: {$ref: '#/components/schemas/PaymentIntent'}}}}}}}
+  /api/refunds:
+    get:
+      summary: Every refund the provider holds, oldest first.
+      responses:
+        '200': {description: Refunds, content: {application/json: {schema: {type: object, properties: {refunds: {type: array, items: {$ref: '#/components/schemas/Refund'}}}}}}}
+components:
+  schemas:
+    PaymentIntent:
+      type: object
+      properties:
+        id: {type: string, description: 'The `pspReference` of the transaction in Core.'}
+        amount: {type: integer, description: The amount in the currency's smallest unit.}
+        currency: {type: string, description: Lower case.}
+        status: {type: string, enum: [succeeded, requires_payment_method]}
+        payment_method: {type: string}
+        failure_code: {type: string, nullable: true}
+        merchant_reference: {type: string, description: The id of the checkout or order in Core.}
+        idempotency_key: {type: string}
+        amount_refunded: {type: integer}
+        created_at: {type: string, format: date-time}
+    Refund:
+      type: object
+      properties: {id: {type: string}, payment_intent: {type: string}, amount: {type: integer}, created_at: {type: string, format: date-time}}

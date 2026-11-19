@@ -1,0 +1,50 @@
+{
+ "id": "ede4d60e46e164f0",
+ "files": {
+  "instruction.md": "91faed6b28472847c0fec39a98e1c291db25d607ba1fe7f87965b5ef1905da51",
+  "task.toml": "796370dd69a479f5d831953f05fdaad7f37c0f9d8dab395a6a6d235d1c26ff32",
+  "environment/Dockerfile": "0dc7ab1d73936d8573d49fe3daab526479c6012b787ac18d812aca8567aa2846",
+  "environment/docker-compose.yaml": "c7f74fb7ef6e5d52ebd52d2427657fa593aaf15b3789850841d1044d9bbba7ca",
+  "environment/notes/apps.md": "20c22da2296bd9bf73ee2a27bdcea97eb0fb0b3481cc9eb548a8c627c2b4a40c",
+  "environment/notes/core.md": "85868ae4c7c11f8cdcb76242ea45d9197aa1a013355f04551e48dc8ff5509ee9",
+  "environment/notes/dashboard.md": "41fce776a1a6bbe7e8c7f49ee129680e2987c3bceb5b31650d063f8be91e0fd6",
+  "environment/sidecars/backoffice.cjs": "b488c5b4959e3a0c1135c14986374e85b11ee172799ba2a53a4beeee4bcaa791",
+  "environment/sidecars/chat.py": "aed21a3ae2c1f1ddaf20fd662871485c27df876688f506bea45d14c96e789973",
+  "environment/sidecars/ci.py": "cbb448a549f9006403b42daf640edbccf6a119aa4234373d28439ec535473ab4",
+  "environment/sidecars/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
+  "environment/sidecars/gitserver_app.py": "473d069eebfbc0cd13ad205bf5e571b97d17d6e304d15798175549d8e8aa902c",
+  "environment/sidecars/gitserver_start.py": "668d9bad33186d00998277fa65c971dbd82ee49ea8b4b19be4b430f5c190a756",
+  "environment/sidecars/provider_start.sh": "d06f8705444abef78245dbe4ad03b58252e3b81f6951537f97af3ab9365f922f",
+  "environment/sidecars/seat.sh": "3e6c3644586b2e5a79a9c3704d20b92fd02b6842196fcc271ddea6750e0ae761",
+  "environment/sidecars/service.py": "fe048ee6fd7e66910bb7b59b7e0cc4d83b2dca8850141fcef171a504d63450c4",
+  "environment/sidecars/setup.py": "de4aabd972ef1dc45e429be16ba01a9125972689e77bf0e5aa3670e1e077daf7",
+  "environment/sidecars/setup_smtp.py": "1e02ca662509bf1689e36bc9deb40dc9dfd34a2e9b4264bfa629b41944e87cfc",
+  "environment/sidecars/stripe_mock.py": "677d4a68bd3052e27c7f2d0c45ca7779f436462aed97d8ef4c77fca34a0fbc8b",
+  "environment/sidecars/team_mcp.py": "442a42cc48257af1d5adeeb1037d75ba1393ca19e4be94e72eef5d853ddf2068",
+  "environment/sidecars/traffic.py": "d2e5bf213928803836377fbac2bf651172d2945bf639ffdbf054bc3abc10b200",
+  "seats/lead.md": "105cef584b7e3d51a2cb1ef3f83ac0f420c2f82d4de0ad9e8bcca5a725c2f808",
+  "seats/solo.md": "9cff9a65a8a8abadeb5fe99d8f49040adfaeeb513e1d8966476ea149b8ee0e8c",
+  "solution/apps.patch": "9ae48f8e40b6ca8b1c9adcb0f5c4b5bdf94b38b9f85a6d03eac64734bb99b5df",
+  "solution/core.patch": "86cc8034a62b8715d5db03d25306f79053d528b791d9f7cd1a29931bf7ae2289",
+  "solution/dashboard.patch": "872e4dd2afee88fbf59e2abff11dcded2a6e3b63aa48399faf1035479c209521",
+  "solution/solve.sh": "f6ef697cf928e64a63af74c81e20d49e1b04a603c9f88c0937a6f7b76f74df67",
+  "tests/backoffice.cjs": "b488c5b4959e3a0c1135c14986374e85b11ee172799ba2a53a4beeee4bcaa791",
+  "tests/checks.py": "7ab817ec3f98cdfea4b9e149c757227cdf05ba7e330d52965e8eb4c00ffb6566",
+  "tests/config.json": "c0891951785fab5bcaf236f77aadd0e1892470897662d3492450f7d1475fe02d",
+  "tests/flows.py": "d2e5bf213928803836377fbac2bf651172d2945bf639ffdbf054bc3abc10b200",
+  "tests/rubric.py": "d5a5ca23a0bd2c07b19b1f6d9e4ae510c9f207c83b689c04fe1a46548c69921a",
+  "tests/rubric.toml": "95f8a2af567758c0e74c627c93ebb75fd31d3c27703623c216f8a13fa46a17d6",
+  "tests/score.py": "708a7fd3eeac2e4c4703fc163b20d3931ac0226898a18dd5c394c1cab0bfce87",
+  "tests/test.sh": "8cf00fcc052d37bb88f456ac75e90fc5e7bf5810cfbcfa4162984374343a29f0"
+ },
+ "runners": {
+  "tools/harbor_team.py": "c380f66e29eb4fd8af8f828c4e40766127ac16221fb560a91687ac9e0915bea1",
+  "tools/harbor_harness.sh": "a522d7967eaa7d6fbbcb9b9879c205bd94004435877b14f5ca9f387c1dfcb6c0"
+ },
+ "images": {
+  "seedco-platform-apps:1": "sha256:ab300030ab801906691e8d9d519556692f6fe7fd3d4587c38e36055cdfd3b71d",
+  "seedco-platform-dashboard:1": "sha256:ef62469600d73e5f9d7afc9bcccb9ff9180c92c5965873078cb47b9eb2c7ce78",
+  "seedco-platform-core:1": "sha256:907603fafcef44cdda10b3518cf81914ad0818ef0bcaa529323a00dd23f080d0"
+ },
+ "frozen_at": "2026-11-17T01:51:12Z"
+}

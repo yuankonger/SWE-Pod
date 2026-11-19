@@ -1,0 +1,58 @@
+# Support desk API. Owner: Support. The paths and shapes follow Chatwoot's.
+openapi: 3.0.3
+info: {title: Support desk API, version: 1.0.0}
+paths:
+  /public/api/v1/inboxes/web/contacts:
+    post: {summary: 'Public. Find or create a contact by email. Body {name, email}. Returns {id, name, email}.'}
+  /public/api/v1/inboxes/web/contacts/{contact_id}/conversations:
+    post: {summary: 'Public. Open a conversation. Body {message}. Returns the Conversation.'}
+  /public/api/v1/inboxes/web/contacts/{contact_id}/conversations/{conversation_id}:
+    get: {summary: 'Public. The conversation as the customer sees it, without private notes.'}
+  /public/api/v1/inboxes/web/contacts/{contact_id}/conversations/{conversation_id}/messages:
+    post: {summary: 'Public. The customer writes. Body {content}. Reopens a resolved conversation.'}
+  /api/v1/accounts/1/conversations:
+    get: {summary: 'Agents. Conversations, newest first, as {data: {meta: {all_count}, payload: [Conversation]}}. Optional ?status=open|pending|resolved.'}
+  /api/v1/accounts/1/conversations/{conversation_id}:
+    get: {summary: 'Agents. One conversation with every message, private notes included.'}
+  /api/v1/accounts/1/conversations/{conversation_id}/messages:
+    post: {summary: 'Agents. Reply or leave a note. Body {content, private, message_type}; message_type defaults to outgoing.'}
+  /api/v1/accounts/1/conversations/{conversation_id}/toggle_status:
+    post: {summary: 'Agents. Body {status}; without it the conversation flips between open and resolved.'}
+  /api/v1/accounts/1/canned_responses:
+    get: {summary: 'Agents. Saved replies as [{short_code, content}].'}
+  /api/v1/accounts/1/integrations/saleor/orders:
+    get: {summary: 'Agents. The orders of the contact given by ?contact_id=, read from Core.'}
+components:
+  securitySchemes:
+    agent: {type: apiKey, in: header, name: api_access_token}
+  schemas:
+    Conversation:
+      type: object
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [open, pending, resolved]}
+        created_at: {type: integer, description: Unix seconds.}
+        meta: {type: object, properties: {sender: {type: object, properties: {id: {type: integer}, name: {type: string}, email: {type: string}}}}}
+        messages: {type: array, items: {$ref: '#/components/schemas/Message'}}
+    Message:
+      type: object
+      properties:
+        id: {type: integer}
+        message_type: {type: integer, description: '0 incoming (from the customer), 1 outgoing (from an agent), 2 activity (from a system).'}
+        private: {type: boolean}
+        content: {type: string}
+        sender: {type: string, nullable: true}
+        created_at: {type: integer, description: Unix seconds.}
+    Order:
+      type: object
+      properties:
+        id: {type: string}
+        number: {type: string}
+        created: {type: string}
+        status: {type: string}
+        charge_status: {type: string}
+        total: {type: string, example: '66.15'}
+        currency: {type: string}
+        refunded: {type: string, example: '0.00'}
+        items: {type: string, example: '2 x Small monthly box, 1 x Tea add-on'}
+        dashboard_url: {type: string}

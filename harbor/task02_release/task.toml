@@ -1,0 +1,28 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/task02-release"
+description = "Release 2026.12: seven tickets across all ten owners"
+keywords = ["swe-pod", "multi-service", "delegation"]
+
+[metadata]
+category = "software-engineering"
+change_type = "A release backlog: one coupled change across four owners, one coupled pair, and four independent changes"
+owners_touched = 10
+criteria = 26
+seed = "OPS-7 as in task 1 (Saleor's order confirmation). PAY-21 and SUB-18: a default page size introduced on a list another service scans (AIP-180 treats this as breaking). OPS-9: an alert on another team's metric name. MOB-8: a new client release beside an old one. SHOP-31 and SUP-12: independent single-owner features."
+
+[verifier]
+# The verifier starts nine services and Prometheus in the agent's container and drives them over HTTP.
+timeout_sec = 1800.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 2400.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+workdir = "/work"

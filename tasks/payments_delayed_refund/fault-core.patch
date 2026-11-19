@@ -1,0 +1,29 @@
+diff --git a/saleor/payment/transaction_item_calculations.py b/saleor/payment/transaction_item_calculations.py
+index 397deb7f2..b8f587f27 100644
+--- a/saleor/payment/transaction_item_calculations.py
++++ b/saleor/payment/transaction_item_calculations.py
+@@ -300,7 +300,10 @@ def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
+         elif event.type == TransactionEventType.REFUND_FAILURE:
+             event_map.refund[psp_reference].failure = event
+         elif event.type == TransactionEventType.REFUND_SUCCESS:
+-            event_map.refund[psp_reference].success = event
++            if event_map.refund[psp_reference].success:
++                event_map.without_psp_reference.append(event)
++            else:
++                event_map.refund[psp_reference].success = event
+         elif event.type == TransactionEventType.REFUND_REVERSE:
+             event_map.refund[psp_reference].reverse = event
+ 
+diff --git a/saleor/payment/utils.py b/saleor/payment/utils.py
+index 9c57c5841..2f88a1b75 100644
+--- a/saleor/payment/utils.py
++++ b/saleor/payment/utils.py
+@@ -1133,6 +1133,8 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
+         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+         TransactionEventType.CHARGE_ACTION_REQUIRED,
+         TransactionEventType.INFO,
++        TransactionEventType.REFUND_SUCCESS,
++        TransactionEventType.REFUND_FAILURE,
+     ]:
+         # We don't need to take into account the events that are only a record of
+         # additional action required from the payment app.

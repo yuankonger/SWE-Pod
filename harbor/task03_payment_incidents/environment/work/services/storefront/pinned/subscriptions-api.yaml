@@ -1,0 +1,79 @@
+# Subscriptions API. Owner: Subscriptions. Readers keep a pinned copy; ask before relying on anything not written here.
+openapi: 3.0.3
+info: {title: Subscriptions API, version: 1.0.0}
+paths:
+  /api/plans:
+    get:
+      summary: The plans that renew monthly.
+      responses:
+        '200': {description: Plans, content: {application/json: {schema: {type: object, properties: {plans: {type: array, items: {$ref: '#/components/schemas/Plan'}}}}}}}
+  /api/subscriptions:
+    get:
+      summary: Subscriptions, oldest first. One is started for each plan line of a paid order.
+      parameters: [{name: email, in: query, schema: {type: string}}]
+      responses:
+        '200': {description: Subscriptions, content: {application/json: {schema: {type: object, properties: {subscriptions: {type: array, items: {$ref: '#/components/schemas/Subscription'}}}}}}}
+  /api/subscriptions/{subscription_id}/plan:
+    post:
+      summary: Change plan. A more expensive plan starts now and the difference for the rest of the period is charged; a cheaper one starts at the period end.
+      parameters: [{name: subscription_id, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [sku], properties: {sku: {type: string}, as_of: {type: string, format: date, description: Defaults to today (UTC)}}}}}
+      responses:
+        '200': {description: The subscription, content: {application/json: {schema: {$ref: '#/components/schemas/Subscription'}}}}
+        '400': {description: Unknown plan, or the subscription is not active}
+        '402': {description: The charge was declined; the plan is unchanged}
+        '404': {description: No such subscription}
+  /api/subscriptions/{subscription_id}/cancel:
+    post:
+      summary: End the subscription at the end of the period already paid for.
+      parameters: [{name: subscription_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: The subscription, content: {application/json: {schema: {$ref: '#/components/schemas/Subscription'}}}}
+  /api/customers/payment-method:
+    put:
+      summary: Replace the payment method on all of a customer's subscriptions.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [email, payment_method], properties: {email: {type: string}, payment_method: {type: string}}}}}
+      responses:
+        '200': {description: The customer's subscriptions}
+  /api/renewals/run:
+    post:
+      summary: Renew every subscription whose period has ended by as_of, and retry failed renewals that are due. Run daily by the scheduler.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, properties: {as_of: {type: string, format: date, description: Defaults to today (UTC)}}}}}
+      responses:
+        '200': {description: Counts, content: {application/json: {schema: {type: object, properties: {as_of: {type: string}, renewed: {type: integer}, failed: {type: integer}, ended: {type: integer}}}}}}
+components:
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency]
+      properties: {amount: {type: number, description: A decimal in major units, as in Core.}, currency: {type: string}}
+    Plan:
+      type: object
+      required: [sku, name, unit_price]
+      properties: {sku: {type: string}, name: {type: string}, unit_price: {$ref: '#/components/schemas/Money'}}
+    Subscription:
+      type: object
+      required: [subscription_id, order_id, email, sku, name, qty, unit_price, status, current_period_start, current_period_end]
+      properties:
+        subscription_id: {type: string}
+        order_id: {type: string, description: The Core order that started it.}
+        email: {type: string}
+        sku: {type: string}
+        name: {type: string}
+        qty: {type: integer}
+        unit_price: {$ref: '#/components/schemas/Money'}
+        status: {type: string, enum: [active, past_due, canceled, terminated]}
+        current_period_start: {type: string, format: date}
+        current_period_end: {type: string, format: date}
+        payment_method: {type: string}
+        pending_sku: {type: string, nullable: true, description: The plan it changes to at the period end.}
+        pending_name: {type: string, nullable: true}
+        cancel_at_period_end: {type: boolean}
+        failed_attempts: {type: integer}
+        next_attempt: {type: string, format: date, nullable: true}

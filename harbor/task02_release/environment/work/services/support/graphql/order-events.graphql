@@ -1,0 +1,8 @@
+# What the support desk reads from Core when an order is cancelled or refunded, to tell the agent on the case.
+subscription OrderEvents {
+  event {
+    __typename
+    ... on OrderCancelled { order { number userEmail } }
+    ... on OrderRefunded { order { number userEmail totalRefunded { amount } } }
+  }
+}

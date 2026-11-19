@@ -1,0 +1,10 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.91
+{"timestamp":"2026-11-13T10:06:35.6080693Z","level":"info","service":"subscriptions","message":"subscriptions listening on 7606"}
+{"timestamp":"2026-11-13T10:06:43.7681819Z","level":"error","service":"subscriptions","message":"core or payments failed: core: Variable \u0027$input\u0027 got invalid value None at \u0027input[0].value\u0027; Expected non-nullable type \u0027String!\u0027 not to be None."}
+{"timestamp":"2026-11-13T10:06:43.8056595Z","level":"error","service":"subscriptions","message":"core or payments failed: core: Variable \u0027$input\u0027 got invalid value None at \u0027input[0].value\u0027; Expected non-nullable type \u0027String!\u0027 not to be None."}
+{"timestamp":"2026-11-13T10:06:43.8439288Z","level":"error","service":"subscriptions","message":"core or payments failed: core: Variable \u0027$input\u0027 got invalid value None at \u0027input[0].value\u0027; Expected non-nullable type \u0027String!\u0027 not to be None."}

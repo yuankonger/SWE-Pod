@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Notifications (Python). Same task names in every service: ./run test | ./run serve | ./run query "<sql>"
+set -euo pipefail
+cd "$(dirname "$0")"
+export PYTHONDONTWRITEBYTECODE=1
+case "${1:-}" in
+  test) python3 -m unittest discover -s test -p 'test_*.py' ;;
+  serve) cd src && exec python3 server.py ;;
+  query)
+    # Read-only SQL against this owner's database: the history under data/, or the database in SEEDCO_DATA_DIR.
+    exec python3 - "${SEEDCO_DATA_DIR:-data}/notifications.db" "${2:-}" <<'PY'
+import json, sqlite3, sys
+db = sqlite3.connect("file:{}?mode=ro".format(sys.argv[1]), uri=True)
+cursor = db.execute(sys.argv[2])
+columns = [c[0] for c in cursor.description or []]
+rows = cursor.fetchmany(201)
+for row in rows[:200]:
+    print(json.dumps(dict(zip(columns, row)), default=str))
+print("[more rows: only the first 200 are shown]" if len(rows) > 200 else "({} rows)".format(len(rows)))
+PY
+    ;;
+  *) echo "usage: ./run test|serve|query <sql>" >&2; exit 2 ;;
+esac

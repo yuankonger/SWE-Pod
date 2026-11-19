@@ -1,0 +1,15 @@
+# Prometheus for SeedCo. Owner: on-call. The platform writes targets.json (one target per running service,
+# labelled `service`) next to this file when the company starts; everything else here is ours.
+global:
+  scrape_interval: 1s
+  evaluation_interval: 1s
+
+rule_files:
+  - rules/*.rules.yml
+
+scrape_configs:
+  - job_name: seedco
+    metrics_path: /metrics
+    file_sd_configs:
+      - files: [targets.json]
+        refresh_interval: 5s

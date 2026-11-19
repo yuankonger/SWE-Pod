@@ -2,7 +2,7 @@
 
 A workflow declares the shape of the object it reads. An event that does not fit is rejected before any template
 runs, so a customer never gets a half-rendered email. The checker covers the small part of JSON Schema we use:
-type, required, properties, additionalProperties: False, items and enum.
+type, required, properties, items and enum.
 """
 
 TYPES = {"string": str, "integer": int, "number": (int, float), "object": dict, "array": list, "boolean": bool,
@@ -27,44 +27,31 @@ def check(value, schema: dict, path: str = "$"):
         for key in schema.get("required", []):
             if key not in value:
                 raise PayloadError("{}.{} is required".format(path, key))
-        props = schema.get("properties", {})
         for key, item in value.items():
-            if key in props:
-                check(item, props[key], "{}.{}".format(path, key))
-            elif schema.get("additionalProperties") is False:
-                raise PayloadError("{}.{} is not a field this workflow knows".format(path, key))
+            if key in schema.get("properties", {}):
+                check(item, schema["properties"][key], "{}.{}".format(path, key))
     if isinstance(value, list) and "items" in schema:
         for i, item in enumerate(value):
             check(item, schema["items"], "{}[{}]".format(path, i))
 
 
-def obj(required: list, strict: bool = False, **properties) -> dict:
-    schema = {"type": "object", "required": required, "properties": properties}
-    if strict:
-        schema["additionalProperties"] = False
-    return schema
+def obj(required: list, **properties) -> dict:
+    return {"type": "object", "required": required, "properties": properties}
 
 
-STR, INT, NUM = {"type": "string"}, {"type": "integer"}, {"type": "number"}
-MONEY = NUM  # money on the wire is a plain number of dollars
+STR, INT, NUM, BOOL = {"type": "string"}, {"type": "integer"}, {"type": "number"}, {"type": "boolean"}
+AMOUNT = obj(["amount"], amount=NUM)                       # Core's Money: a decimal number in major units
+TAXED = obj(["gross"], gross=AMOUNT, net=AMOUNT, tax=AMOUNT)
 
-ORDER = obj(["order_id", "customer_id", "email", "lines", "total"],
-            order_id=STR, customer_id=STR, email=STR, total=MONEY,
-            lines={"type": "array", "items": obj(["name", "qty"], name=STR, qty=INT)})
+# The order as graphql/order-events.graphql asks for it.
+ORDER = obj(["id", "number", "userEmail", "lines", "subtotal", "shippingPrice", "total"],
+            id=STR, number=STR, userEmail=STR, displayGrossPrices=BOOL,
+            lines={"type": "array", "items": obj(["productName", "quantity", "totalPrice"], productName=STR, variantName=STR, quantity=INT,
+                                                 totalPrice=obj(["net", "gross"], net=AMOUNT, gross=AMOUNT))},
+            subtotal=obj(["net", "gross"], net=AMOUNT, gross=AMOUNT), shippingPrice=TAXED,
+            total=obj(["gross", "tax"], gross=AMOUNT, tax=AMOUNT), totalRefunded=AMOUNT)
 
-# Receipts are strict: a receipt must account for everything on the invoice, so an invoice with a field or a
-# line type this workflow has never seen is rejected instead of being rendered without it.
-INVOICE_LINE = obj(["type", "name", "qty", "amount"], strict=True,
-                   type={"enum": ["RECURRING", "FIXED", "PRORATION", "CREDIT"]},
-                   sku=STR, name=STR, qty=INT, unit_price=MONEY, amount=MONEY)
-INVOICE = obj(["invoice_id", "order_id", "customer_id", "email", "lines", "subtotal", "tax", "total"], strict=True,
-              invoice_id=STR, order_id=STR, subscription_id={"type": ["string", "null"]}, customer_id=STR, email=STR,
-              reason={"enum": ["order", "renewal", "plan_change"]}, lines={"type": "array", "items": INVOICE_LINE},
-              subtotal=MONEY, tax=MONEY, total=MONEY, status=STR, issued_at=STR)
-
-PAYMENT = obj(["payment_id", "customer_id", "email", "amount", "failure_reason"],
-              payment_id=STR, customer_id=STR, email=STR, amount=MONEY, failure_reason=STR)
-
-SUBSCRIPTION = obj(["subscription_id", "customer_id", "email", "name", "status", "current_period_end"],
-                   subscription_id=STR, customer_id=STR, email=STR, name=STR, status=STR, current_period_end=STR,
-                   pending_name={"type": ["string", "null"]})
+# Messages other services ask us to send (POST /api/notify), in the shape of Saleor's NOTIFY_USER.
+NOTIFY = obj(["notify_event", "payload"], notify_event=STR,
+             payload=obj(["notification_id", "recipient_email"], notification_id=STR, recipient_email=STR,
+                         plan_name=STR, pending_plan_name=STR, period_end=STR, amount=AMOUNT, reason=STR))

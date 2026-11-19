@@ -10,7 +10,7 @@ export class Upstream extends Error {
   }
 }
 
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 30_000;
 
 export async function call<T = any>(url: string, method = "GET", body?: unknown, headers: Record<string, string> = {}): Promise<T> {
   const res = await fetch(url, {

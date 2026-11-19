@@ -1,0 +1,22 @@
+# Taxes API. Owner: Taxes. The webhooks Core calls are in the manifest (GET /api/manifest); this file is the
+# tax documents we keep, for finance and for anyone reconciling orders against what was reported.
+openapi: 3.0.3
+info: {title: Taxes API, version: 1.0.0}
+paths:
+  /api/tax-documents:
+    get:
+      summary: Every tax document, in order number order. One per order at most.
+      responses:
+        '200': {description: Tax documents, content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {$ref: '#/components/schemas/TaxDocument'}}}}}}}
+components:
+  schemas:
+    TaxDocument:
+      type: object
+      required: [order_id, order_number, tax, gross, status]
+      properties:
+        order_id: {type: string, description: The order's id in Core.}
+        order_number: {type: string}
+        tax: {type: number, description: The order's total tax, a decimal in major units.}
+        gross: {type: number, description: The order's gross total, a decimal in major units.}
+        postal_code: {type: string, nullable: true}
+        status: {type: string, enum: [committed, voided], description: 'committed: reported. voided: the order was cancelled.'}

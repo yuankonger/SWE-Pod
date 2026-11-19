@@ -1,0 +1,113 @@
+# The rubric of payments_partial_capture: every criterion the work is judged by, what decides it, and why it is there.
+# tools/harbor_payments_score.py (in a task: /tests/score.py) runs it. Format and reward: see that file's header.
+#
+# gate    = must pass for anything to be scored.
+# target  = what the work is to put right. Fails on the company as the work starts.
+# guard   = what must keep working. Passes on the company as the work starts.
+# measure = reported beside the reward, never part of it.
+# reward  = 0 if a gate fails, else share of targets that pass x share of guards that pass.
+
+repeats = 2
+
+# ---------------------------------------------------------------- the gate
+
+[[criterion]]
+id = "live-shop-runs-main"
+kind = "gate"
+type = "deploy"
+note = """What is judged is the running company, so first it is settled what is running: `main` of each repository,
+what CI last deployed and what each system says of itself are the same commits, the deploy is over and every
+system is up. Otherwise the orders below would be placed on something nobody can name."""
+
+# ---------------------------------------------------------------- targets: the complaint
+
+[[criterion]]
+id = "partial-charge-takes-part"
+kind = "target"
+type = "scenario"
+charge = 0.4
+note = """The complaint itself: staff charge 40% of what was authorised, the provider's ledger says that amount was
+taken from the card and no more, and the API reports that amount as charged."""
+
+[[criterion]]
+id = "small-partial-charge"
+kind = "target"
+type = "scenario"
+charge = 0.07
+note = """The same with 7% of the authorisation. A small part gives an amount with odd cents, so a fix that gets the
+conversion to the provider's minor units wrong is caught here."""
+
+[[criterion]]
+id = "partial-charge-then-refund"
+kind = "target"
+type = "scenario"
+charge = 0.6
+refunds = [0.5]
+note = """Staff charge 60% and then refund half of that. The refund is of what was charged, not of what was authorised:
+the ledger returns that half and the API reports the rest as charged and nothing pending."""
+
+# ---------------------------------------------------------------- guards: what works today
+
+[[criterion]]
+id = "full-charge"
+kind = "guard"
+type = "scenario"
+charge = "all"
+note = """Staff charge an order without naming an amount: the whole authorisation is taken. Guards against a fix
+that only works when an amount is given."""
+
+[[criterion]]
+id = "full-charge-amount-named"
+kind = "guard"
+type = "scenario"
+charge = "all-named"
+note = """Staff charge the whole authorisation and name the amount. Guards against a fix that treats every named
+amount as a partial charge."""
+
+[[criterion]]
+id = "full-charge-then-refund"
+kind = "guard"
+type = "scenario"
+charge = "all"
+refunds = [0.5]
+note = """The whole is charged and half refunded: the ledger returns the half and the API agrees."""
+
+[[criterion]]
+id = "declined-card"
+kind = "guard"
+type = "scenario"
+card = "declined"
+note = """A declined card takes nothing and places no order."""
+
+# ---------------------------------------------------------------- measures: the shop while the work went on
+
+[[criterion]]
+id = "traffic-charged-as-asked"
+kind = "measure"
+type = "records"
+measure = "charged_as_asked"
+note = """Of the shop's own orders that staff charged in part: the provider took what staff asked for. The same
+question as the targets, asked of orders the verifier did not place."""
+
+[[criterion]]
+id = "traffic-books-agree"
+kind = "measure"
+type = "records"
+measure = "ledger_agreement"
+note = """For the shop's own orders, what the API reports as charged and refunded is what the provider's ledger says."""
+
+[[criterion]]
+id = "traffic-keeps-working"
+kind = "measure"
+type = "records"
+measure = "traffic_success"
+note = """The shop's own orders did not fail. The brief asks that the shop keeps working; this is not in the reward
+because a deploy here restarts the system, so orders placed during one fail whatever was deployed."""
+
+[[criterion]]
+id = "fix-is-general"
+kind = "measure"
+type = "judge"
+prompt = "Staff of a shop may charge only part of an authorised card payment, and the payment provider was taking the whole authorisation. Does the change make the provider take the amount staff asked for in a way that holds for every currency the provider supports, including currencies without minor units and with three decimal places, and without special cases for particular amounts, orders or callers? PASS only if it does."
+note = """The scenarios pay in one currency. A reviewer reads the change for what they cannot show. Not run unless a
+judge is configured, and never part of the reward."""

@@ -1,0 +1,846 @@
+diff --git a/.changeset/calm-mails-report.md b/.changeset/calm-mails-report.md
+new file mode 100644
+index 0000000..21b0dd3
+--- /dev/null
++++ b/.changeset/calm-mails-report.md
+@@ -0,0 +1,5 @@
++---
++"saleor-app-smtp": minor
++---
++
++Added AppProblems support - when an SMTP server can not be reached, rejects credentials or rejects the sender address, the app reports it to Saleor and Dashboard displays it for the staff. Problems are dismissed when the configuration is updated.
+diff --git a/apps/smtp/next.config.ts b/apps/smtp/next.config.ts
+index ebb4fbd..c0934a0 100644
+--- a/apps/smtp/next.config.ts
++++ b/apps/smtp/next.config.ts
+@@ -4,6 +4,7 @@ import { type NextConfig } from "next";
+ const nextConfig: NextConfig = {
+   reactStrictMode: true,
+   transpilePackages: [
++    "@saleor/app-problems",
+     "@saleor/apps-otel",
+     "@saleor/apps-logger",
+     "@saleor/apps-shared",
+diff --git a/apps/smtp/package.json b/apps/smtp/package.json
+index a04199d..2bc8677 100644
+--- a/apps/smtp/package.json
++++ b/apps/smtp/package.json
+@@ -29,6 +29,7 @@
+     "@opentelemetry/sdk-logs": "catalog:",
+     "@opentelemetry/sdk-trace-node": "catalog:",
+     "@opentelemetry/semantic-conventions": "catalog:",
++    "@saleor/app-problems": "workspace:*",
+     "@saleor/app-sdk": "link:../../node_modules/@saleor/app-sdk",
+     "@saleor/apps-logger": "workspace:*",
+     "@saleor/apps-otel": "workspace:*",
+diff --git a/apps/smtp/src/modules/app-problems/smtp-problem-reporter.test.ts b/apps/smtp/src/modules/app-problems/smtp-problem-reporter.test.ts
+new file mode 100644
+index 0000000..9f59b0e
+--- /dev/null
++++ b/apps/smtp/src/modules/app-problems/smtp-problem-reporter.test.ts
+@@ -0,0 +1,191 @@
++import { type Client } from "urql";
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++import { SmtpEmailSender } from "../smtp/services/smtp-email-sender";
++import { classifySmtpError, PROBLEM_KEYS, SmtpProblemReporter } from "./smtp-problem-reporter";
++
++const config = {
++  id: "config-1",
++  name: "Main mailbox",
++  smtpHost: "smtp.example.com",
++  smtpPort: "587",
++  senderEmail: "shop@example.com",
++};
++
++/**
++ * Errors in the shape Nodemailer rejects with
++ */
++const smtpError = (props: { code: string; command?: string; responseCode?: number }) =>
++  Object.assign(new Error("SMTP error"), props);
++
++const connectionRefused = smtpError({ code: "ESOCKET", command: "CONN" });
++const invalidLogin = smtpError({ code: "EAUTH", command: "AUTH PLAIN", responseCode: 535 });
++const senderRejected = smtpError({ code: "EENVELOPE", command: "MAIL FROM", responseCode: 550 });
++
++describe("classifySmtpError", () => {
++  it.each(["ECONNECTION", "ESOCKET", "ETIMEDOUT", "EDNS", "ETLS"])(
++    "treats %s as connection failure",
++    (code) => {
++      expect(classifySmtpError(smtpError({ code, command: "CONN" }))).toBe("connectionFailure");
++    },
++  );
++
++  it("treats sender timeout as connection failure", () => {
++    expect(
++      classifySmtpError(new SmtpEmailSender.SmtpEmailSenderTimeoutError("Sending email timeout")),
++    ).toBe("connectionFailure");
++  });
++
++  it("treats rejected login as auth failure", () => {
++    expect(classifySmtpError(invalidLogin)).toBe("authFailure");
++  });
++
++  it("treats permanently rejected MAIL FROM as rejected sender", () => {
++    expect(classifySmtpError(senderRejected)).toBe("senderRejected");
++  });
++
++  it.each([
++    ["temporarily rejected sender", { code: "EENVELOPE", command: "MAIL FROM", responseCode: 451 }],
++    ["rejected recipient", { code: "EENVELOPE", command: "RCPT TO", responseCode: 550 }],
++    ["rejected message", { code: "EMESSAGE", command: "DATA", responseCode: 554 }],
++  ])("ignores %s", (_name, props) => {
++    expect(classifySmtpError(smtpError(props))).toBeNull();
++  });
++
++  it.each([[new Error("Unknown encryption type")], ["string"], [null], [undefined]])(
++    "ignores errors that did not come from SMTP server: %s",
++    (error) => {
++      expect(classifySmtpError(error)).toBeNull();
++    },
++  );
++});
++
++describe("SmtpProblemReporter", () => {
++  const mutation = vi.fn();
++  const getSaleorVersion = vi.fn<() => Promise<string>>();
++  const client = { mutation } as unknown as Client;
++
++  const mockMutationResult = (result: { data?: unknown; error?: Error }) =>
++    mutation.mockReturnValue({ toPromise: async () => result });
++
++  const createReporter = () => new SmtpProblemReporter({ client, getSaleorVersion });
++
++  beforeEach(() => {
++    vi.resetAllMocks();
++    getSaleorVersion.mockResolvedValue("3.22.36");
++    mockMutationResult({ data: { appProblemCreate: { errors: [] } } });
++  });
++
++  describe("reportSendFailure", () => {
++    it.each([
++      { error: connectionRefused, key: "smtp-connection-failure:config-1", criticalThreshold: 3 },
++      { error: invalidLogin, key: "smtp-auth-failure:config-1", criticalThreshold: 1 },
++      { error: senderRejected, key: "smtp-sender-rejected:config-1", criticalThreshold: 1 },
++    ])("reports $key, naming the configuration", async ({ error, key, criticalThreshold }) => {
++      await createReporter().reportSendFailure(error, config);
++
++      expect(mutation).toHaveBeenCalledOnce();
++      expect(mutation.mock.calls[0][1]).toStrictEqual({
++        input: {
++          key,
++          criticalThreshold,
++          message: expect.stringContaining('configuration "Main mailbox"'),
++        },
++      });
++    });
++
++    it("names the server and the sender in the message, but never the credentials", async () => {
++      await createReporter().reportSendFailure(senderRejected, {
++        ...config,
++        ...{ smtpUser: "user", smtpPassword: "secret-password" },
++      });
++
++      const { message } = mutation.mock.calls[0][1].input;
++
++      expect(message).toContain("smtp.example.com:587");
++      expect(message).toContain('"shop@example.com"');
++      expect(message).not.toContain("secret-password");
++    });
++
++    it("does not report errors specific to a single message", async () => {
++      await createReporter().reportSendFailure(
++        smtpError({ code: "EENVELOPE", command: "RCPT TO", responseCode: 550 }),
++        config,
++      );
++
++      expect(getSaleorVersion).not.toHaveBeenCalled();
++      expect(mutation).not.toHaveBeenCalled();
++    });
++
++    it.each(["3.22.35", "3.21.4", "3.20.0"])(
++      "does not call the API in Saleor %s, which does not have it",
++      async (version) => {
++        getSaleorVersion.mockResolvedValue(version);
++
++        await createReporter().reportSendFailure(invalidLogin, config);
++
++        expect(mutation).not.toHaveBeenCalled();
++      },
++    );
++
++    it("does not call the API and does not throw if Saleor version can not be resolved", async () => {
++      getSaleorVersion.mockRejectedValue(new Error("Can't fetch Saleor version"));
++
++      await expect(createReporter().reportSendFailure(invalidLogin, config)).resolves.not.toThrow();
++      expect(mutation).not.toHaveBeenCalled();
++    });
++
++    it("does not throw when Saleor rejects the mutation", async () => {
++      mockMutationResult({ error: new Error('Cannot query field "appProblemCreate"') });
++
++      await expect(createReporter().reportSendFailure(invalidLogin, config)).resolves.not.toThrow();
++    });
++
++    it("does not throw when the client throws", async () => {
++      mutation.mockImplementation(() => {
++        throw new Error("Network error");
++      });
++
++      await expect(createReporter().reportSendFailure(invalidLogin, config)).resolves.not.toThrow();
++    });
++  });
++
++  describe("clearProblemsForConfig", () => {
++    beforeEach(() => {
++      mockMutationResult({ data: { appProblemDismiss: { errors: [] } } });
++    });
++
++    it("dismisses all problems of the configuration by key", async () => {
++      await createReporter().clearProblemsForConfig("config-1");
++
++      expect(mutation).toHaveBeenCalledOnce();
++      expect(mutation.mock.calls[0][1]).toStrictEqual({
++        keys: [
++          PROBLEM_KEYS.connectionFailure("config-1"),
++          PROBLEM_KEYS.authFailure("config-1"),
++          PROBLEM_KEYS.senderRejected("config-1"),
++        ],
++      });
++    });
++
++    it("dismisses only requested kinds", async () => {
++      await createReporter().clearProblemsForConfig("config-1", ["senderRejected"]);
++
++      expect(mutation.mock.calls[0][1]).toStrictEqual({ keys: ["smtp-sender-rejected:config-1"] });
++    });
++
++    it("does not call the API in Saleor which does not have it", async () => {
++      getSaleorVersion.mockResolvedValue("3.21.0");
++
++      await createReporter().clearProblemsForConfig("config-1");
++
++      expect(mutation).not.toHaveBeenCalled();
++    });
++
++    it("does not throw when Saleor rejects the mutation", async () => {
++      mockMutationResult({ error: new Error("Network error") });
++
++      await expect(createReporter().clearProblemsForConfig("config-1")).resolves.not.toThrow();
++    });
++  });
++});
+diff --git a/apps/smtp/src/modules/app-problems/smtp-problem-reporter.ts b/apps/smtp/src/modules/app-problems/smtp-problem-reporter.ts
+new file mode 100644
+index 0000000..937735f
+--- /dev/null
++++ b/apps/smtp/src/modules/app-problems/smtp-problem-reporter.ts
+@@ -0,0 +1,172 @@
++import { AppProblemsReporter } from "@saleor/app-problems";
++import { type Client } from "urql";
++
++import { createLogger } from "../../logger";
++import { type SmtpConfiguration } from "../smtp/configuration/smtp-config-schema";
++import { SmtpEmailSender } from "../smtp/services/smtp-email-sender";
++
++const logger = createLogger("SmtpProblemReporter");
++
++export const PROBLEM_KEYS = {
++  connectionFailure: (configId: string) => `smtp-connection-failure:${configId}`,
++  authFailure: (configId: string) => `smtp-auth-failure:${configId}`,
++  senderRejected: (configId: string) => `smtp-sender-rejected:${configId}`,
++} as const;
++
++export type SmtpProblemKind = keyof typeof PROBLEM_KEYS;
++
++type ProblemConfig = Pick<
++  SmtpConfiguration,
++  "id" | "name" | "smtpHost" | "smtpPort" | "senderEmail"
++>;
++
++/**
++ * Nodemailer error codes raised before the SMTP conversation can start: the server
++ * can not be resolved, refuses the connection, does not answer or fails the TLS handshake.
++ */
++const CONNECTION_ERROR_CODES = ["ECONNECTION", "ESOCKET", "ETIMEDOUT", "EDNS", "ETLS"];
++
++/**
++ * Maps an error thrown while sending to a problem staff has to act on.
++ * Returns null for everything that is specific to a single message (rejected recipient,
++ * message content, unknown errors) - these should not be raised as app problems.
++ */
++export const classifySmtpError = (error: unknown): SmtpProblemKind | null => {
++  if (error instanceof SmtpEmailSender.SmtpEmailSenderTimeoutError) {
++    return "connectionFailure";
++  }
++
++  if (typeof error !== "object" || error === null) {
++    return null;
++  }
++
++  const { code, command, responseCode } = error as {
++    code?: unknown;
++    command?: unknown;
++    responseCode?: unknown;
++  };
++
++  if (code === "EAUTH") {
++    return "authFailure";
++  }
++
++  if (typeof code === "string" && CONNECTION_ERROR_CODES.includes(code)) {
++    return "connectionFailure";
++  }
++
++  // Permanent (5xx) answer to MAIL FROM. 4xx is temporary (e.g. greylisting) and Saleor retries the webhook.
++  if (
++    code === "EENVELOPE" &&
++    command === "MAIL FROM" &&
++    typeof responseCode === "number" &&
++    responseCode >= 500
++  ) {
++    return "senderRejected";
++  }
++
++  return null;
++};
++
++const problems: Record<
++  SmtpProblemKind,
++  { criticalThreshold: number; message: (config: ProblemConfig) => string }
++> = {
++  connectionFailure: {
++    // A single timeout can be a network blip. Three within the aggregation period mean the server is down or misconfigured.
++    criticalThreshold: 3,
++    message: (config) =>
++      `SMTP server ${config.smtpHost}:${config.smtpPort} of configuration "${config.name}" can not be reached (connection refused or timed out). Emails using this configuration are not being sent. Please verify the host, port and encryption of the configuration and that the server is running.`,
++  },
++  authFailure: {
++    criticalThreshold: 1,
++    message: (config) =>
++      `SMTP server ${config.smtpHost}:${config.smtpPort} rejected the credentials of configuration "${config.name}". Emails using this configuration are not being sent. Please update the SMTP user and password.`,
++  },
++  senderRejected: {
++    criticalThreshold: 1,
++    message: (config) =>
++      `SMTP server ${config.smtpHost}:${config.smtpPort} rejected the sender address "${config.senderEmail}" of configuration "${config.name}". Emails using this configuration are not being sent. Please use a sender address the server is allowed to send from.`,
++  },
++};
++
++export interface ISmtpProblemReporter {
++  reportSendFailure(error: unknown, config: ProblemConfig): Promise<void>;
++}
++
++/**
++ * Reports SMTP delivery problems to Saleor (App Problems API), so staff can see them in the Dashboard.
++ * Methods never throw - failing to report must not change how the webhook or the configuration update ends.
++ */
++export class SmtpProblemReporter implements ISmtpProblemReporter {
++  private reporter: AppProblemsReporter;
++  private getSaleorVersion: () => Promise<string>;
++
++  constructor(args: { client: Client; getSaleorVersion: () => Promise<string> }) {
++    this.reporter = new AppProblemsReporter(args.client);
++    this.getSaleorVersion = args.getSaleorVersion;
++  }
++
++  /**
++   * SMTP webhook payloads do not include Saleor version, so it is fetched (only when there is something to report).
++   */
++  private async isApiAvailable(): Promise<boolean> {
++    try {
++      return AppProblemsReporter.isApiCompatible(await this.getSaleorVersion());
++    } catch (e) {
++      logger.warn("Can not resolve Saleor version, skipping App Problems API", { error: e });
++
++      return false;
++    }
++  }
++
++  async reportSendFailure(error: unknown, config: ProblemConfig): Promise<void> {
++    const kind = classifySmtpError(error);
++
++    if (!kind) {
++      return;
++    }
++
++    try {
++      if (!(await this.isApiAvailable())) {
++        return;
++      }
++
++      const result = await this.reporter.reportProblem({
++        key: PROBLEM_KEYS[kind](config.id),
++        criticalThreshold: problems[kind].criticalThreshold,
++        message: problems[kind].message(config),
++      });
++
++      if (result.isErr()) {
++        logger.warn("Failed to report SMTP problem", { error: result.error, kind });
++      }
++    } catch (e) {
++      logger.warn("Failed to report SMTP problem", { error: e, kind });
++    }
++  }
++
++  /**
++   * Dismisses problems of the configuration. Should be called when staff changes the settings
++   * the problems refer to - if they are still wrong, the next failed email will report again.
++   */
++  async clearProblemsForConfig(
++    configId: string,
++    kinds: SmtpProblemKind[] = ["connectionFailure", "authFailure", "senderRejected"],
++  ): Promise<void> {
++    try {
++      if (!(await this.isApiAvailable())) {
++        return;
++      }
++
++      const result = await this.reporter.clearProblems(
++        kinds.map((kind) => PROBLEM_KEYS[kind](configId)),
++      );
++
++      if (result.isErr()) {
++        logger.warn("Failed to clear SMTP problems", { error: result.error, configId });
++      }
++    } catch (e) {
++      logger.warn("Failed to clear SMTP problems", { error: e, configId });
++    }
++  }
++}
+diff --git a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.factory.ts b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.factory.ts
+index 2b42115..e1948fc 100644
+--- a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.factory.ts
++++ b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.factory.ts
+@@ -2,6 +2,7 @@ import { type AuthData } from "@saleor/app-sdk/APL";
+ 
+ import { createInstrumentedGraphqlClient } from "../../../lib/create-instrumented-graphql-client";
+ import { createSettingsManager } from "../../../lib/metadata-manager";
++import { SmtpProblemReporter } from "../../app-problems/smtp-problem-reporter";
+ import { FeatureFlagService } from "../../feature-flag-service/feature-flag-service";
+ import { SmtpConfigurationService } from "../../smtp/configuration/smtp-configuration.service";
+ import { SmtpMetadataManager } from "../../smtp/configuration/smtp-metadata-manager";
+@@ -19,6 +20,8 @@ export class SendEventMessagesUseCaseFactory {
+       token: authData.token,
+     });
+ 
++    const featureFlagService = new FeatureFlagService({ client });
++
+     return new SendEventMessagesUseCase({
+       emailSender: new SmtpEmailSender(),
+       emailCompiler: new EmailCompiler(
+@@ -27,12 +30,16 @@ export class SendEventMessagesUseCaseFactory {
+         new MjmlCompiler(),
+       ),
+       configService: new SmtpConfigurationService({
+-        featureFlagService: new FeatureFlagService({ client }),
++        featureFlagService,
+         metadataManager: new SmtpMetadataManager(
+           createSettingsManager(client, authData.appId),
+           authData.saleorApiUrl,
+         ),
+       }),
++      problemReporter: new SmtpProblemReporter({
++        client,
++        getSaleorVersion: featureFlagService.getSaleorVersion,
++      }),
+     });
+   }
+ }
+diff --git a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.test.ts b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.test.ts
+index d929f2e..b94e871 100644
+--- a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.test.ts
++++ b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.test.ts
+@@ -2,6 +2,7 @@ import { err, errAsync, ok, okAsync } from "neverthrow";
+ import { beforeEach, describe, expect, it, vi } from "vitest";
+ 
+ import { BaseError } from "../../../errors";
++import { type ISmtpProblemReporter } from "../../app-problems/smtp-problem-reporter";
+ import {
+   getFallbackSmtpConfigSchema,
+   type SmtpConfiguration,
+@@ -137,6 +138,9 @@ describe("SendEventMessagesUseCase", () => {
+   let emailCompiler: MockEmailCompiler;
+   let emailSender: MockSmtpSender;
+   let configService: MockConfigService;
++  const problemReporter = {
++    reportSendFailure: vi.fn<ISmtpProblemReporter["reportSendFailure"]>(),
++  };
+ 
+   let useCaseInstance: SendEventMessagesUseCase;
+ 
+@@ -162,6 +166,7 @@ describe("SendEventMessagesUseCase", () => {
+       emailCompiler,
+       emailSender,
+       configService,
++      problemReporter,
+     });
+   });
+ 
+@@ -224,6 +229,110 @@ describe("SendEventMessagesUseCase", () => {
+       );
+     });
+ 
++    describe("Problems reporting", () => {
++      const smtpError = Object.assign(new Error("Invalid login"), { code: "EAUTH" });
++
++      it("Reports failed sending with the configuration that failed and still returns the error", async () => {
++        emailSender.mockSendEmailMethod.mockRejectedValue(smtpError);
++
++        const result = await useCaseInstance.sendEventMessages({
++          event: EVENT_TYPE,
++          payload: {},
++          channelSlug: "channel-slug",
++          recipientEmail: "recipient@test.com",
++          saleorApiUrl: "https://demo.saleor.cloud/graphql/",
++        });
++
++        expect(result._unsafeUnwrapErr()[0]).toBeInstanceOf(SendEventMessagesUseCase.ServerError);
++        expect(problemReporter.reportSendFailure).toHaveBeenCalledOnce();
++        expect(problemReporter.reportSendFailure).toHaveBeenCalledWith(
++          smtpError,
++          expect.objectContaining({ id: "1", name: "Config 1" }),
++        );
++      });
++
++      it("Does not report when email was sent", async () => {
++        const result = await useCaseInstance.sendEventMessages({
++          event: EVENT_TYPE,
++          payload: {},
++          channelSlug: "channel-slug",
++          recipientEmail: "recipient@test.com",
++          saleorApiUrl: "https://demo.saleor.cloud/graphql/",
++        });
++
++        expect(result.isOk()).toBe(true);
++        expect(problemReporter.reportSendFailure).not.toHaveBeenCalled();
++      });
++
++      it("Does not report when template of a message fails to compile", async () => {
++        emailCompiler.mockEmailCompileMethod.mockImplementation(
++          MockEmailCompiler.returnErrorCompiling,
++        );
++
++        const result = await useCaseInstance.sendEventMessages({
++          event: EVENT_TYPE,
++          payload: {},
++          channelSlug: "channel-slug",
++          recipientEmail: "recipient@test.com",
++          saleorApiUrl: "https://demo.saleor.cloud/graphql/",
++        });
++
++        expect(result._unsafeUnwrapErr()[0]).toBeInstanceOf(
++          SendEventMessagesUseCase.EmailCompilationError,
++        );
++        expect(problemReporter.reportSendFailure).not.toHaveBeenCalled();
++      });
++
++      it("Does not report failures of Saleor fallback SMTP", async () => {
++        configService.mockGetConfigurationsMethod.mockImplementation(
++          MockConfigService.returnEmptyConfigurationsList,
++        );
++        configService.mockGetIsFallbackSmtpEnabledMethod.mockImplementation(
++          MockConfigService.returnFallbackEnabled,
++        );
++        vi.mocked(getFallbackSmtpConfigSchema).mockReturnValue({
++          smtpHost: "fallback.smtp.host",
++          smtpPort: "587",
++          smtpUser: "fallback-user",
++          smtpPassword: "fallback-pass",
++          encryption: "TLS",
++          senderName: "Fallback Sender",
++          senderDomain: "example.com",
++          blockedDomains: [],
++        });
++        emailSender.mockSendEmailMethod.mockRejectedValue(smtpError);
++
++        const result = await useCaseInstance.sendEventMessages({
++          event: EVENT_TYPE,
++          payload: {},
++          channelSlug: "channel-slug",
++          recipientEmail: "recipient@test.com",
++          saleorApiUrl: "https://demo.saleor.cloud/graphql/",
++        });
++
++        expect(result.isErr()).toBe(true);
++        expect(problemReporter.reportSendFailure).not.toHaveBeenCalled();
++      });
++
++      it("Works without problem reporter", async () => {
++        emailSender.mockSendEmailMethod.mockRejectedValue(smtpError);
++
++        const result = await new SendEventMessagesUseCase({
++          emailCompiler,
++          emailSender,
++          configService,
++        }).sendEventMessages({
++          event: EVENT_TYPE,
++          payload: {},
++          channelSlug: "channel-slug",
++          recipientEmail: "recipient@test.com",
++          saleorApiUrl: "https://demo.saleor.cloud/graphql/",
++        });
++
++        expect(result._unsafeUnwrapErr()[0]).toBeInstanceOf(SendEventMessagesUseCase.ServerError);
++      });
++    });
++
+     describe("Fallback SMTP behavior", () => {
+       beforeEach(() => {
+         configService.mockGetConfigurationsMethod.mockImplementation(
+diff --git a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.ts b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.ts
+index f94e1f3..074abcb 100644
+--- a/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.ts
++++ b/apps/smtp/src/modules/event-handlers/use-case/send-event-messages.use-case.ts
+@@ -3,6 +3,7 @@ import { err, errAsync, fromThrowable, ok, Result, ResultAsync } from "neverthro
+ import { BaseError } from "../../../errors";
+ import { bytesToKb } from "../../../lib/bytes-to-kb";
+ import { createLogger } from "../../../logger";
++import { type ISmtpProblemReporter } from "../../app-problems/smtp-problem-reporter";
+ import { FallbackSenderEmail } from "../../saleor-fallback-behavior/fallback-sender-email";
+ import { TenantName } from "../../saleor-fallback-behavior/tenant-name";
+ import {
+@@ -18,6 +19,8 @@ import { type IEmailCompiler } from "../../smtp/services/email-compiler";
+ import { type ISMTPEmailSender, type SendMailArgs } from "../../smtp/services/smtp-email-sender";
+ import { type MessageEventTypes, messageEventTypes } from "../message-event-types";
+ 
++const FALLBACK_CONFIGURATION_ID = "fallback";
++
+ export class SendEventMessagesUseCase {
+   static BaseError = BaseError.subclass("SendEventMessagesUseCaseError");
+ 
+@@ -62,6 +65,7 @@ export class SendEventMessagesUseCase {
+       configService: IGetSmtpConfiguration & IGetFallbackSmtpEnabled;
+       emailCompiler: IEmailCompiler;
+       emailSender: ISMTPEmailSender;
++      problemReporter?: ISmtpProblemReporter;
+     },
+   ) {}
+ 
+@@ -193,10 +197,22 @@ export class SendEventMessagesUseCase {
+     }
+ 
+     return ResultAsync.fromPromise(
+-      this.deps.emailSender.sendEmailWithSmtp({
+-        mailData: { ...preparedEmailResult.value, ...(headers && { headers }) },
+-        smtpSettings,
+-      }),
++      this.deps.emailSender
++        .sendEmailWithSmtp({
++          mailData: { ...preparedEmailResult.value, ...(headers && { headers }) },
++          smtpSettings,
++        })
++        .catch(async (error) => {
++          /*
++           * Fallback SMTP is operated by Saleor, not by staff - there is nothing they can fix.
++           * Awaited, because serverless runtime can freeze right after the response is sent.
++           */
++          if (config.id !== FALLBACK_CONFIGURATION_ID) {
++            await this.deps.problemReporter?.reportSendFailure(error, config);
++          }
++
++          throw error;
++        }),
+       (err) => {
+         this.logger.debug("Error sending email with SMTP", { error: err });
+ 
+@@ -318,7 +334,7 @@ export class SendEventMessagesUseCase {
+     const senderEmail = senderEmailResult.value;
+ 
+     const fallbackConfig: SmtpConfiguration = {
+-      id: "fallback",
++      id: FALLBACK_CONFIGURATION_ID,
+       active: true,
+       name: "Saleor Cloud Fallback",
+       senderName: fallbackSmtpConfig.senderName,
+diff --git a/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.problems.test.ts b/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.problems.test.ts
+new file mode 100644
+index 0000000..806e9e6
+--- /dev/null
++++ b/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.problems.test.ts
+@@ -0,0 +1,95 @@
++import { errAsync, okAsync } from "neverthrow";
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++import { saleorApp } from "../../../saleor-app";
++import { SmtpProblemReporter } from "../../app-problems/smtp-problem-reporter";
++import { smtpConfigurationRouter } from "./smtp-configuration.router";
++import { SmtpConfigurationService } from "./smtp-configuration.service";
++import { smtpDefaultEmptyConfigurations } from "./smtp-default-empty-configurations";
++
++vi.mock("../../webhook-management/sync-webhook-status", () => ({
++  syncWebhookStatus: vi.fn(),
++}));
++
++const mockSaleorApiUrl = "https://test.saleor.io/graphql/";
++
++const createCaller = () =>
++  smtpConfigurationRouter.createCaller({
++    saleorApiUrl: mockSaleorApiUrl,
++    token: "mock-token",
++    ssr: true,
++    appId: "app:id",
++    baseUrl: "",
++  });
++
++const smtpInput = {
++  id: "config-1",
++  smtpHost: "smtp.example.com",
++  smtpPort: "587",
++  smtpUser: "user",
++  smtpPassword: "password",
++  encryption: "TLS" as const,
++};
++
++describe("smtpConfigurationRouter - app problems", () => {
++  const configuration = { ...smtpDefaultEmptyConfigurations.configuration(), id: "config-1" };
++  const clearProblemsForConfig = vi.spyOn(SmtpProblemReporter.prototype, "clearProblemsForConfig");
++  const updateConfiguration = vi.spyOn(SmtpConfigurationService.prototype, "updateConfiguration");
++  const deleteConfiguration = vi.spyOn(SmtpConfigurationService.prototype, "deleteConfiguration");
++
++  beforeEach(() => {
++    vi.spyOn(saleorApp.apl, "get").mockResolvedValue({
++      saleorApiUrl: mockSaleorApiUrl,
++      token: "mock-token",
++      appId: "mock-app-id",
++    });
++
++    clearProblemsForConfig.mockReset().mockResolvedValue();
++    updateConfiguration.mockReset().mockReturnValue(okAsync(configuration));
++    deleteConfiguration.mockReset().mockReturnValue(okAsync(undefined));
++  });
++
++  it("updateSmtp dismisses all problems of the updated configuration", async () => {
++    await createCaller().updateSmtp(smtpInput);
++
++    expect(clearProblemsForConfig).toHaveBeenCalledOnce();
++    expect(clearProblemsForConfig).toHaveBeenCalledWith("config-1");
++  });
++
++  it("updateSmtp does not dismiss problems if configuration was not saved", async () => {
++    updateConfiguration.mockReturnValue(
++      errAsync(new SmtpConfigurationService.ConfigNotFoundError("Configuration not found")),
++    );
++
++    await expect(createCaller().updateSmtp(smtpInput)).rejects.toThrow();
++
++    expect(clearProblemsForConfig).not.toHaveBeenCalled();
++  });
++
++  it("updateSender dismisses only rejected sender problem", async () => {
++    await createCaller().updateSender({
++      id: "config-1",
++      senderEmail: "shop@example.com",
++      senderName: "Shop",
++    });
++
++    expect(clearProblemsForConfig).toHaveBeenCalledOnce();
++    expect(clearProblemsForConfig).toHaveBeenCalledWith("config-1", ["senderRejected"]);
++  });
++
++  it("deleteConfiguration dismisses all problems of the deleted configuration", async () => {
++    await createCaller().deleteConfiguration({ id: "config-1" });
++
++    expect(clearProblemsForConfig).toHaveBeenCalledOnce();
++    expect(clearProblemsForConfig).toHaveBeenCalledWith("config-1");
++  });
++
++  it.each(["updateBasicInformation", "updateBranding"] as const)(
++    "%s keeps problems, because it does not change what they are about",
++    async (procedure) => {
++      await createCaller()[procedure]({ id: "config-1", name: "New name", active: true });
++
++      expect(clearProblemsForConfig).not.toHaveBeenCalled();
++    },
++  );
++});
+diff --git a/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.ts b/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.ts
+index c4993db..b63304b 100644
+--- a/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.ts
++++ b/apps/smtp/src/modules/smtp/configuration/smtp-configuration.router.ts
+@@ -1,10 +1,13 @@
+ import { TRPCError } from "@trpc/server";
+ import { fromThrowable } from "neverthrow";
++import { type Client } from "urql";
+ import { z } from "zod";
+ 
+ import { BaseError } from "../../../errors";
+ import { createLogger } from "../../../logger";
++import { SmtpProblemReporter } from "../../app-problems/smtp-problem-reporter";
+ import { updateChannelsInputSchema } from "../../channels/channel-configuration-schema";
++import { type FeatureFlagService } from "../../feature-flag-service/feature-flag-service";
+ import { protectedWithConfigurationServices } from "../../trpc/protected-client-procedure-with-services";
+ import { router } from "../../trpc/trpc-server";
+ import { EmailCompiler } from "../services/email-compiler";
+@@ -83,6 +86,15 @@ export const throwTrpcErrorFromConfigurationServiceError = (
+   });
+ };
+ 
++const createProblemReporter = (ctx: {
++  apiClient: Client;
++  featureFlagService: FeatureFlagService;
++}) =>
++  new SmtpProblemReporter({
++    client: ctx.apiClient,
++    getSaleorVersion: ctx.featureFlagService.getSaleorVersion,
++  });
++
+ export const smtpConfigurationRouter = router({
+   fetch: protectedWithConfigurationServices.query(async ({ ctx }) => {
+     const logger = createLogger("smtpConfigurationRouter", { saleorApiUrl: ctx.saleorApiUrl });
+@@ -143,6 +155,8 @@ export const smtpConfigurationRouter = router({
+         (v) => v,
+         (e) => throwTrpcErrorFromConfigurationServiceError(e),
+       );
++
++      await createProblemReporter(ctx).clearProblemsForConfig(input.id);
+     }),
+   getEventConfiguration: protectedWithConfigurationServices
+     .input(smtpGetEventConfigurationInputSchema)
+@@ -265,10 +279,15 @@ export const smtpConfigurationRouter = router({
+ 
+       logger.debug(input, "smtpConfigurationRouter.updateSmtp called");
+ 
+-      return await ctx.smtpConfigurationService.updateConfiguration({ ...input }).match(
++      const updated = await ctx.smtpConfigurationService.updateConfiguration({ ...input }).match(
+         (v) => v,
+         (e) => throwTrpcErrorFromConfigurationServiceError(e),
+       );
++
++      // Connection settings changed: reported problems are outdated. If still broken, next email will report again.
++      await createProblemReporter(ctx).clearProblemsForConfig(input.id);
++
++      return updated;
+     }),
+ 
+   updateSender: protectedWithConfigurationServices
+@@ -278,10 +297,14 @@ export const smtpConfigurationRouter = router({
+ 
+       logger.debug(input, "smtpConfigurationRouter.updateSender called");
+ 
+-      return await ctx.smtpConfigurationService.updateConfiguration({ ...input }).match(
++      const updated = await ctx.smtpConfigurationService.updateConfiguration({ ...input }).match(
+         (v) => v,
+         (e) => throwTrpcErrorFromConfigurationServiceError(e),
+       );
++
++      await createProblemReporter(ctx).clearProblemsForConfig(input.id, ["senderRejected"]);
++
++      return updated;
+     }),
+ 
+   updateBranding: protectedWithConfigurationServices
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index b4edf42..e37e36f 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -1788,6 +1788,9 @@ importers:
+       '@opentelemetry/semantic-conventions':
+         specifier: 'catalog:'
+         version: 1.30.0
++      '@saleor/app-problems':
++        specifier: workspace:*
++        version: link:../../packages/app-problems
+       '@saleor/app-sdk':
+         specifier: link:../../node_modules/@saleor/app-sdk
+         version: link:../../node_modules/@saleor/app-sdk

@@ -1,0 +1,66 @@
+[
+  {
+    "targets": [
+      "core:7000"
+    ],
+    "labels": {
+      "service": "core"
+    }
+  },
+  {
+    "targets": [
+      "storefront:7001"
+    ],
+    "labels": {
+      "service": "storefront"
+    }
+  },
+  {
+    "targets": [
+      "dashboard:7002"
+    ],
+    "labels": {
+      "service": "dashboard"
+    }
+  },
+  {
+    "targets": [
+      "payments:7003"
+    ],
+    "labels": {
+      "service": "payments"
+    }
+  },
+  {
+    "targets": [
+      "taxes:7004"
+    ],
+    "labels": {
+      "service": "taxes"
+    }
+  },
+  {
+    "targets": [
+      "notifications:7005"
+    ],
+    "labels": {
+      "service": "notifications"
+    }
+  },
+  {
+    "targets": [
+      "subscriptions:7006"
+    ],
+    "labels": {
+      "service": "subscriptions"
+    }
+  },
+  {
+    "targets": [
+      "support:7007"
+    ],
+    "labels": {
+      "service": "support"
+    }
+  }
+]

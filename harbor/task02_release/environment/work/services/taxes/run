@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Taxes (Java). Same task names in every service: ./run test | ./run serve | ./run query "<sql>"
+set -euo pipefail
+cd "$(dirname "$0")"
+JARS=${SEEDCO_JARS:-/opt/jars}
+OUT=${SEEDCO_BUILD_DIR:-/tmp/seedco-build/taxes}
+build() {
+  mkdir -p "$OUT/main"
+  javac -nowarn -cp "$JARS/*" -d "$OUT/main" $(find src -name '*.java')
+}
+case "${1:-}" in
+  test)
+    build
+    mkdir -p "$OUT/test"
+    javac -nowarn -cp "$JARS/*:$OUT/main" -d "$OUT/test" $(find test -name '*.java')
+    # the JUnit launcher does not expand "dir/*", so the library jars are listed one by one
+    LIBS=$(ls "$JARS"/*.jar | grep -v junit-platform-console | tr '\n' ':')
+    java -jar "$JARS"/junit-platform-console-standalone-*.jar execute --class-path "$OUT/main:$OUT/test:$LIBS" \
+      --scan-class-path "$OUT/test" --disable-banner --details=summary --fail-if-no-tests
+    ;;
+  serve)
+    build
+    exec java -cp "$OUT/main:$JARS/*" seedco.taxes.Main
+    ;;
+  query)
+    # Read-only SQL against this owner's database: the history under data/, or the database in SEEDCO_DATA_DIR.
+    DIR=$(cd "${SEEDCO_DATA_DIR:-data}" && pwd)
+    exec java -cp "$JARS/*" org.h2.tools.Shell -url "jdbc:h2:file:$DIR/taxes;ACCESS_MODE_DATA=r;IFEXISTS=TRUE" -user "" -password "" -sql "${2:-}"
+    ;;
+  *) echo "usage: ./run test|serve|query <sql>" >&2; exit 2 ;;
+esac

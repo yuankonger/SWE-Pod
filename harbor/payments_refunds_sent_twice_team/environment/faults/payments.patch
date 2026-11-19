@@ -1,0 +1,1154 @@
+diff --git a/apps/avatax/e2e/generated/types.ts b/apps/avatax/e2e/generated/types.ts
+index 88ffde1..46493d9 100644
+--- a/apps/avatax/e2e/generated/types.ts
++++ b/apps/avatax/e2e/generated/types.ts
+@@ -31638,12 +31638,6 @@ export type TransactionCancelationRequested = Event & {
+   __typename?: 'TransactionCancelationRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31661,12 +31655,6 @@ export type TransactionChargeRequested = Event & {
+   __typename?: 'TransactionChargeRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -32222,12 +32210,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/dummy-payment-app/generated/graphql.ts b/apps/dummy-payment-app/generated/graphql.ts
+index b7355f2..f743fec 100644
+--- a/apps/dummy-payment-app/generated/graphql.ts
++++ b/apps/dummy-payment-app/generated/graphql.ts
+@@ -31642,12 +31642,6 @@ export type TransactionCancelationRequested = Event & {
+   __typename?: 'TransactionCancelationRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31665,12 +31659,6 @@ export type TransactionChargeRequested = Event & {
+   __typename?: 'TransactionChargeRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -32226,12 +32214,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/dummy-shipping-app/generated/graphql.ts b/apps/dummy-shipping-app/generated/graphql.ts
+index 7649f05..34d6abf 100644
+--- a/apps/dummy-shipping-app/generated/graphql.ts
++++ b/apps/dummy-shipping-app/generated/graphql.ts
+@@ -31639,12 +31639,6 @@ export type TransactionCancelationRequested = Event & {
+   __typename?: 'TransactionCancelationRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31662,12 +31656,6 @@ export type TransactionChargeRequested = Event & {
+   __typename?: 'TransactionChargeRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -32223,12 +32211,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/np-atobarai/generated/graphql.ts b/apps/np-atobarai/generated/graphql.ts
+index 4ab3076..37d7424 100644
+--- a/apps/np-atobarai/generated/graphql.ts
++++ b/apps/np-atobarai/generated/graphql.ts
+@@ -30577,12 +30577,6 @@ export type TransactionActionEnum =
+ export type TransactionCancelationRequested = Event & {
+   /** Requested action data. */
+   readonly action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -30599,12 +30593,6 @@ export type TransactionCancelationRequested = Event & {
+ export type TransactionChargeRequested = Event & {
+   /** Requested action data. */
+   readonly action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31126,12 +31114,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   readonly grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/onboarding/generated/graphql.ts b/apps/onboarding/generated/graphql.ts
+index 1e486eb..bd28a1e 100644
+--- a/apps/onboarding/generated/graphql.ts
++++ b/apps/onboarding/generated/graphql.ts
+@@ -30577,12 +30577,6 @@ export type TransactionActionEnum =
+ export type TransactionCancelationRequested = Event & {
+   /** Requested action data. */
+   readonly action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -30599,12 +30593,6 @@ export type TransactionCancelationRequested = Event & {
+ export type TransactionChargeRequested = Event & {
+   /** Requested action data. */
+   readonly action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31126,12 +31114,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   readonly grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  readonly idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   readonly issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/stripe/CHANGELOG.md b/apps/stripe/CHANGELOG.md
+index 070d21d..95a4b2f 100644
+--- a/apps/stripe/CHANGELOG.md
++++ b/apps/stripe/CHANGELOG.md
+@@ -145,14 +145,6 @@
+   - @saleor/apps-shared@1.17.2
+   - @saleor/apps-trpc@4.0.5
+ 
+-## 2.10.0
+-
+-### Minor Changes
+-
+-- 57acbeb: Refunds, captures and cancellations are no longer performed twice when Saleor re-delivers the same request. Saleor retries a transaction action webhook up to five times when the app is slow or returns an error, and until now each retry reached Stripe as a brand new call - a retry that arrived after Stripe had already accepted a refund created a second, duplicate refund. The app now forwards the `idempotencyKey` that Saleor sends with the request, so Stripe returns the original refund instead of creating another one. Two separate refunds of the same amount are still processed independently, because Saleor assigns each requested action its own key.
+-
+-  Requires Saleor 3.23 or newer, which is where `idempotencyKey` was added to the transaction action webhook payloads.
+-
+ ## 2.9.1
+ 
+ ### Patch Changes
+diff --git a/apps/stripe/e2e/generated/graphql.ts b/apps/stripe/e2e/generated/graphql.ts
+index 99289d9..abc9fb1 100644
+--- a/apps/stripe/e2e/generated/graphql.ts
++++ b/apps/stripe/e2e/generated/graphql.ts
+@@ -31390,12 +31390,6 @@ export type TransactionCancelationRequested = Event & {
+   __typename?: 'TransactionCancelationRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31413,12 +31407,6 @@ export type TransactionChargeRequested = Event & {
+   __typename?: 'TransactionChargeRequested';
+   /** Requested action data. */
+   action: TransactionAction;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+@@ -31957,12 +31945,6 @@ export type TransactionRefundRequested = Event & {
+    * Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    */
+   grantedRefund?: Maybe<OrderGrantedRefund>;
+-  /**
+-   * Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-   *
+-   * Added in Saleor 3.23.
+-   */
+-  idempotencyKey: Scalars['String']['output'];
+   /** Time of the event. */
+   issuedAt?: Maybe<Scalars['DateTime']['output']>;
+   /** The user or application that triggered the event. */
+diff --git a/apps/stripe/generated/graphql.ts b/apps/stripe/generated/graphql.ts
+index de92b52..4a5da71 100644
+--- a/apps/stripe/generated/graphql.ts
++++ b/apps/stripe/generated/graphql.ts
+@@ -650,19 +650,19 @@ export type PaymentGatewayInitializeSessionSubscriptionVariables = Exact<{ [key:
+ 
+ export type PaymentGatewayInitializeSessionSubscription = { readonly event?: { readonly version?: string | null, readonly sourceObject: { readonly __typename: 'Checkout', readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | { readonly __typename: 'Order', readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } }, readonly recipient?: { readonly id: string } | null } | {} | null };
+ 
+-export type TransactionCancelationRequestedEventFragment = { readonly idempotencyKey: string, readonly version?: string | null, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
++export type TransactionCancelationRequestedEventFragment = { readonly version?: string | null, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
+ 
+ export type TransactionCancelationRequestedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+ 
+ 
+-export type TransactionCancelationRequestedSubscription = { readonly event?: { readonly idempotencyKey: string, readonly version?: string | null, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
++export type TransactionCancelationRequestedSubscription = { readonly event?: { readonly version?: string | null, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
+ 
+-export type TransactionChargeRequestedEventFragment = { readonly idempotencyKey: string, readonly version?: string | null, readonly action: { readonly amount: number }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
++export type TransactionChargeRequestedEventFragment = { readonly version?: string | null, readonly action: { readonly amount: number }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
+ 
+ export type TransactionChargeRequestedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+ 
+ 
+-export type TransactionChargeRequestedSubscription = { readonly event?: { readonly idempotencyKey: string, readonly version?: string | null, readonly action: { readonly amount: number }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
++export type TransactionChargeRequestedSubscription = { readonly event?: { readonly version?: string | null, readonly action: { readonly amount: number }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
+ 
+ export type TransactionInitializeSessionEventFragment = { readonly data?: JSONValue | null, readonly idempotencyKey: string, readonly version?: string | null, readonly action: { readonly amount: number, readonly currency: string, readonly actionType: TransactionFlowStrategyEnum }, readonly transaction: { readonly id: string }, readonly sourceObject: { readonly __typename: 'Checkout', readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | { readonly __typename: 'Order', readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } }, readonly recipient?: { readonly id: string } | null };
+ 
+@@ -678,12 +678,12 @@ export type TransactionProcessSessionSubscriptionVariables = Exact<{ [key: strin
+ 
+ export type TransactionProcessSessionSubscription = { readonly event?: { readonly version?: string | null, readonly transaction: { readonly pspReference: string }, readonly action: { readonly amount: number, readonly actionType: TransactionFlowStrategyEnum }, readonly sourceObject: { readonly __typename: 'Checkout', readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | { readonly __typename: 'Order', readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } }, readonly recipient?: { readonly id: string } | null } | {} | null };
+ 
+-export type TransactionRefundRequestedEventFragment = { readonly idempotencyKey: string, readonly version?: string | null, readonly action: { readonly amount: number, readonly currency: string }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
++export type TransactionRefundRequestedEventFragment = { readonly version?: string | null, readonly action: { readonly amount: number, readonly currency: string }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null };
+ 
+ export type TransactionRefundRequestedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+ 
+ 
+-export type TransactionRefundRequestedSubscription = { readonly event?: { readonly idempotencyKey: string, readonly version?: string | null, readonly action: { readonly amount: number, readonly currency: string }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
++export type TransactionRefundRequestedSubscription = { readonly event?: { readonly version?: string | null, readonly action: { readonly amount: number, readonly currency: string }, readonly transaction?: { readonly id: string, readonly pspReference: string, readonly checkout?: { readonly id: string, readonly channel: { readonly id: string, readonly slug: string } } | null, readonly order?: { readonly id: string, readonly number: string, readonly checkoutId?: string | null, readonly channel: { readonly id: string, readonly slug: string } } | null } | null, readonly recipient?: { readonly id: string } | null } | {} | null };
+ 
+ export const UntypedConfigChannelFragmentDoc = gql`
+     fragment ConfigChannel on Channel {
+@@ -760,7 +760,6 @@ export const UntypedPaymentGatewayInitializeSessionEventFragmentDoc = gql`
+ export const UntypedTransactionCancelationRequestedEventFragmentDoc = gql`
+     fragment TransactionCancelationRequestedEvent on TransactionCancelationRequested {
+   ...EventMetadata
+-  idempotencyKey
+   transaction {
+     id
+     pspReference
+@@ -782,7 +781,6 @@ export const UntypedTransactionCancelationRequestedEventFragmentDoc = gql`
+ export const UntypedTransactionChargeRequestedEventFragmentDoc = gql`
+     fragment TransactionChargeRequestedEvent on TransactionChargeRequested {
+   ...EventMetadata
+-  idempotencyKey
+   action {
+     amount
+   }
+@@ -842,7 +840,6 @@ export const UntypedTransactionProcessSessionEventFragmentDoc = gql`
+ export const UntypedTransactionRefundRequestedEventFragmentDoc = gql`
+     fragment TransactionRefundRequestedEvent on TransactionRefundRequested {
+   ...EventMetadata
+-  idempotencyKey
+   action {
+     amount
+     currency
+@@ -1005,19 +1002,19 @@ export const ChannelFragmentDoc = {"kind":"Document","definitions":[{"kind":"Fra
+ export const OrderCreatedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"OrderCreatedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderCreated"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"App"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<OrderCreatedEventFragment, unknown>;
+ export const SourceObjectFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<SourceObjectFragment, unknown>;
+ export const PaymentGatewayInitializeSessionEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentGatewayInitializeSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PaymentGatewayInitializeSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]} as unknown as DocumentNode<PaymentGatewayInitializeSessionEventFragment, unknown>;
+-export const TransactionCancelationRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionCancelationRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionCancelationRequestedEventFragment, unknown>;
+-export const TransactionChargeRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionChargeRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionChargeRequestedEventFragment, unknown>;
++export const TransactionCancelationRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionCancelationRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionCancelationRequestedEventFragment, unknown>;
++export const TransactionChargeRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionChargeRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionChargeRequestedEventFragment, unknown>;
+ export const TransactionInitializeSessionEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionInitializeSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionInitializeSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"actionType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"data"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]} as unknown as DocumentNode<TransactionInitializeSessionEventFragment, unknown>;
+ export const TransactionProcessSessionEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionProcessSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionProcessSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pspReference"}}]}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"actionType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]} as unknown as DocumentNode<TransactionProcessSessionEventFragment, unknown>;
+-export const TransactionRefundRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionRefundRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionRefundRequestedEventFragment, unknown>;
++export const TransactionRefundRequestedEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionRefundRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]} as unknown as DocumentNode<TransactionRefundRequestedEventFragment, unknown>;
+ export const TransactionEventReportWithPaymentDetailsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TransactionEventReportWithPaymentDetails"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transactionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"message"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"amount"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PositiveDecimal"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pspReference"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"time"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionEventTypeEnum"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"availableActions"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionActionEnum"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"externalUrl"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"paymentMethodDetails"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaymentMethodDetailsInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"transactionEventReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transactionId"}}},{"kind":"Argument","name":{"kind":"Name","value":"message"},"value":{"kind":"Variable","name":{"kind":"Name","value":"message"}}},{"kind":"Argument","name":{"kind":"Name","value":"amount"},"value":{"kind":"Variable","name":{"kind":"Name","value":"amount"}}},{"kind":"Argument","name":{"kind":"Name","value":"pspReference"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pspReference"}}},{"kind":"Argument","name":{"kind":"Name","value":"time"},"value":{"kind":"Variable","name":{"kind":"Name","value":"time"}}},{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}},{"kind":"Argument","name":{"kind":"Name","value":"availableActions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"availableActions"}}},{"kind":"Argument","name":{"kind":"Name","value":"externalUrl"},"value":{"kind":"Variable","name":{"kind":"Name","value":"externalUrl"}}},{"kind":"Argument","name":{"kind":"Name","value":"paymentMethodDetails"},"value":{"kind":"Variable","name":{"kind":"Name","value":"paymentMethodDetails"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"alreadyProcessed"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transactionEvent"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]} as unknown as DocumentNode<TransactionEventReportWithPaymentDetailsMutation, TransactionEventReportWithPaymentDetailsMutationVariables>;
+ export const TransactionEventReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TransactionEventReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transactionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"message"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"amount"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PositiveDecimal"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pspReference"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"time"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionEventTypeEnum"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"availableActions"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionActionEnum"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"externalUrl"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"transactionEventReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transactionId"}}},{"kind":"Argument","name":{"kind":"Name","value":"message"},"value":{"kind":"Variable","name":{"kind":"Name","value":"message"}}},{"kind":"Argument","name":{"kind":"Name","value":"amount"},"value":{"kind":"Variable","name":{"kind":"Name","value":"amount"}}},{"kind":"Argument","name":{"kind":"Name","value":"pspReference"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pspReference"}}},{"kind":"Argument","name":{"kind":"Name","value":"time"},"value":{"kind":"Variable","name":{"kind":"Name","value":"time"}}},{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}},{"kind":"Argument","name":{"kind":"Name","value":"availableActions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"availableActions"}}},{"kind":"Argument","name":{"kind":"Name","value":"externalUrl"},"value":{"kind":"Variable","name":{"kind":"Name","value":"externalUrl"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"alreadyProcessed"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transactionEvent"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]} as unknown as DocumentNode<TransactionEventReportMutation, TransactionEventReportMutationVariables>;
+ export const FetchChannelsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FetchChannels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"channels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ConfigChannel"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ConfigChannel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"isActive"}},{"kind":"Field","name":{"kind":"Name","value":"currencyCode"}}]}}]} as unknown as DocumentNode<FetchChannelsQuery, FetchChannelsQueryVariables>;
+ export const FetchOrderSyncStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FetchOrderSyncStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"app"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}}]}},{"kind":"Field","name":{"kind":"Name","value":"webhooks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<FetchOrderSyncStatusQuery, FetchOrderSyncStatusQueryVariables>;
+ export const OrderCreatedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"OrderCreated"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"OrderCreatedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"OrderCreatedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderCreated"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"App"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrderCreatedSubscription, OrderCreatedSubscriptionVariables>;
+ export const PaymentGatewayInitializeSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PaymentGatewayInitializeSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PaymentGatewayInitializeSessionEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PaymentGatewayInitializeSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PaymentGatewayInitializeSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}}]}}]} as unknown as DocumentNode<PaymentGatewayInitializeSessionSubscription, PaymentGatewayInitializeSessionSubscriptionVariables>;
+-export const TransactionCancelationRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionCancelationRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionCancelationRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionCancelationRequestedSubscription, TransactionCancelationRequestedSubscriptionVariables>;
+-export const TransactionChargeRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionChargeRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionChargeRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionChargeRequestedSubscription, TransactionChargeRequestedSubscriptionVariables>;
++export const TransactionCancelationRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionCancelationRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionCancelationRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionCancelationRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionCancelationRequestedSubscription, TransactionCancelationRequestedSubscriptionVariables>;
++export const TransactionChargeRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionChargeRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionChargeRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionChargeRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionChargeRequestedSubscription, TransactionChargeRequestedSubscriptionVariables>;
+ export const TransactionInitializeSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionInitializeSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionInitializeSessionEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionInitializeSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionInitializeSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"actionType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"data"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}}]}}]} as unknown as DocumentNode<TransactionInitializeSessionSubscription, TransactionInitializeSessionSubscriptionVariables>;
+ export const TransactionProcessSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionProcessSession"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionProcessSessionEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceObject"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"OrderOrCheckout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Checkout"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Order"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionProcessSessionEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionProcessSession"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pspReference"}}]}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"actionType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sourceObject"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceObject"}}]}}]}}]} as unknown as DocumentNode<TransactionProcessSessionSubscription, TransactionProcessSessionSubscriptionVariables>;
+-export const TransactionRefundRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionRefundRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionRefundRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"idempotencyKey"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionRefundRequestedSubscription, TransactionRefundRequestedSubscriptionVariables>;
+\ No newline at end of file
++export const TransactionRefundRequestedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"TransactionRefundRequested"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"EventMetadata"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Event"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Channel"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Channel"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TransactionRefundRequestedEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TransactionRefundRequested"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"EventMetadata"}},{"kind":"Field","name":{"kind":"Name","value":"action"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}}]}},{"kind":"Field","name":{"kind":"Name","value":"transaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"pspReference"}},{"kind":"Field","name":{"kind":"Name","value":"checkout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"checkoutId"}},{"kind":"Field","name":{"kind":"Name","value":"channel"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Channel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TransactionRefundRequestedSubscription, TransactionRefundRequestedSubscriptionVariables>;
+\ No newline at end of file
+diff --git a/apps/stripe/graphql/subscriptions/transaction-cancelation-requested.graphql b/apps/stripe/graphql/subscriptions/transaction-cancelation-requested.graphql
+index e4e077d..c6a3eed 100644
+--- a/apps/stripe/graphql/subscriptions/transaction-cancelation-requested.graphql
++++ b/apps/stripe/graphql/subscriptions/transaction-cancelation-requested.graphql
+@@ -1,6 +1,5 @@
+ fragment TransactionCancelationRequestedEvent on TransactionCancelationRequested {
+   ...EventMetadata
+-  idempotencyKey
+   transaction {
+     id
+     pspReference
+diff --git a/apps/stripe/graphql/subscriptions/transaction-charge-requested.graphql b/apps/stripe/graphql/subscriptions/transaction-charge-requested.graphql
+index 786f920..1502ca4 100644
+--- a/apps/stripe/graphql/subscriptions/transaction-charge-requested.graphql
++++ b/apps/stripe/graphql/subscriptions/transaction-charge-requested.graphql
+@@ -1,6 +1,5 @@
+ fragment TransactionChargeRequestedEvent on TransactionChargeRequested {
+   ...EventMetadata
+-  idempotencyKey
+   action {
+     amount
+   }
+diff --git a/apps/stripe/graphql/subscriptions/transaction-refund-requested.graphql b/apps/stripe/graphql/subscriptions/transaction-refund-requested.graphql
+index ae98104..cbf197e 100644
+--- a/apps/stripe/graphql/subscriptions/transaction-refund-requested.graphql
++++ b/apps/stripe/graphql/subscriptions/transaction-refund-requested.graphql
+@@ -1,6 +1,5 @@
+ fragment TransactionRefundRequestedEvent on TransactionRefundRequested {
+   ...EventMetadata
+-  idempotencyKey
+   action {
+     amount
+     currency
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-cancelation-requested-fixture.ts b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-cancelation-requested-fixture.ts
+index 08a124a..b93cc7b 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-cancelation-requested-fixture.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-cancelation-requested-fixture.ts
+@@ -4,14 +4,12 @@ import {
+   mockedSaleorTransactionId,
+ } from "@/__tests__/mocks/constants";
+ import { type TransactionCancelationRequestedEventFragment } from "@/generated/graphql";
+-import { RandomId } from "@/lib/random-id";
+ import { type StripePaymentIntentId } from "@/modules/stripe/stripe-payment-intent-id";
+ 
+ export const transactionCancelationRequestedFixture = (
+   stripePaymentIntentId: StripePaymentIntentId,
+ ): TransactionCancelationRequestedEventFragment => {
+   return {
+-    idempotencyKey: new RandomId().generate(),
+     transaction: {
+       id: mockedSaleorTransactionId,
+       pspReference: stripePaymentIntentId,
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-charge-requested-fixture.ts b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-charge-requested-fixture.ts
+index 0961e4b..5f65ac9 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-charge-requested-fixture.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-charge-requested-fixture.ts
+@@ -4,7 +4,6 @@ import {
+   mockedSaleorTransactionId,
+ } from "@/__tests__/mocks/constants";
+ import { type TransactionChargeRequestedEventFragment } from "@/generated/graphql";
+-import { RandomId } from "@/lib/random-id";
+ import { type StripePaymentIntentId } from "@/modules/stripe/stripe-payment-intent-id";
+ 
+ export const transactionChargeRequestedFixture = (args: {
+@@ -12,7 +11,6 @@ export const transactionChargeRequestedFixture = (args: {
+   amount: number;
+ }): TransactionChargeRequestedEventFragment => {
+   return {
+-    idempotencyKey: new RandomId().generate(),
+     action: {
+       amount: args.amount,
+     },
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-refund-requested-fixture.ts b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-refund-requested-fixture.ts
+index efe7c3c..78b7ee1 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-refund-requested-fixture.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/fixtures/transaction-refund-requested-fixture.ts
+@@ -6,23 +6,20 @@ import {
+ import { type TransactionRefundRequestedEventFragment } from "@/generated/graphql";
+ import { type StripePaymentIntentId } from "@/modules/stripe/stripe-payment-intent-id";
+ 
+-export const transactionRefundRequestedFixture = (args: {
+-  stripePaymentIntentId: StripePaymentIntentId;
+-  idempotencyKey: string;
+-  amount?: number;
+-}): TransactionRefundRequestedEventFragment => {
++export const transactionRefundRequestedFixture = (
++  stripePaymentIntentId: StripePaymentIntentId,
++): TransactionRefundRequestedEventFragment => {
+   return {
+-    idempotencyKey: args.idempotencyKey,
+     recipient: {
+       id: mockedSaleorAppId,
+     },
+     action: {
+-      amount: args.amount ?? 123.3,
++      amount: 123.3,
+       currency: "USD",
+     },
+     transaction: {
+       id: mockedSaleorTransactionId,
+-      pspReference: args.stripePaymentIntentId,
++      pspReference: stripePaymentIntentId,
+       checkout: {
+         channel: {
+           slug: "default-channel",
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts b/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
+index addbbfa..2813519 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/stripe-webhook.test.ts
+@@ -236,7 +236,6 @@ describe("Stripe Webhook: integration", () => {
+     const stripeRefund = await refundApi.createRefund({
+       paymentIntentId: stripePaymentIntentId,
+       stripeMoney,
+-      idempotencyKey: new RandomId().generate(),
+     });
+ 
+     const stripeRefundId = createStripeRefundId(stripeRefund._unsafeUnwrap().id);
+diff --git a/apps/stripe/src/__tests__/integration/webhooks/transaction-refund-requested.test.ts b/apps/stripe/src/__tests__/integration/webhooks/transaction-refund-requested.test.ts
+index 1314934..dfa99a3 100644
+--- a/apps/stripe/src/__tests__/integration/webhooks/transaction-refund-requested.test.ts
++++ b/apps/stripe/src/__tests__/integration/webhooks/transaction-refund-requested.test.ts
+@@ -21,12 +21,8 @@ import { dynamoMainTable } from "@/modules/dynamodb/dynamo-main-table";
+ import { createResolvedTransactionFlow } from "@/modules/resolved-transaction-flow";
+ import { createSaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import { createSaleorTransactionFlow } from "@/modules/saleor/saleor-transaction-flow";
+-import { StripeClient } from "@/modules/stripe/stripe-client";
+ import { StripeMoney } from "@/modules/stripe/stripe-money";
+-import {
+-  createStripePaymentIntentId,
+-  type StripePaymentIntentId,
+-} from "@/modules/stripe/stripe-payment-intent-id";
++import { createStripePaymentIntentId } from "@/modules/stripe/stripe-payment-intent-id";
+ import { StripePaymentIntentsApiFactory } from "@/modules/stripe/stripe-payment-intents-api-factory";
+ import { createStripePublishableKey } from "@/modules/stripe/stripe-publishable-key";
+ import { createStripeRestrictedKey } from "@/modules/stripe/stripe-restricted-key";
+@@ -68,74 +64,6 @@ const stripeMoney = StripeMoney.createFromSaleorAmount({
+   currency: "USD",
+ })._unsafeUnwrap();
+ 
+-const stripeClient = StripeClient.createFromRestrictedKey(restrictedKey).nativeClient;
+-
+-/**
+- * Creates a real, charged Stripe Payment Intent and records it, so the refund webhook can act on it
+- */
+-const createChargedPaymentIntent = async () => {
+-  const paymentIntentResult = await paymentIntentApi.createPaymentIntent({
+-    stripeMoney,
+-    idempotencyKey: new RandomId().generate(),
+-    intentParams: {
+-      return_url: "https://saleor-stripe-integration-test.com",
+-      automatic_payment_methods: {
+-        enabled: true,
+-      },
+-      payment_method: "pm_card_visa",
+-      confirm: true,
+-    },
+-  });
+-
+-  const stripePaymentIntentId = createStripePaymentIntentId(paymentIntentResult._unsafeUnwrap().id);
+-
+-  await transactionRecorderRepo.recordTransaction(
+-    {
+-      saleorApiUrl: realSaleorApiUrl,
+-      appId: mockedSaleorAppId,
+-    },
+-    new RecordedTransaction({
+-      saleorTransactionId: mockedSaleorTransactionId,
+-      stripePaymentIntentId,
+-      saleorTransactionFlow: createSaleorTransactionFlow("CHARGE"),
+-      resolvedTransactionFlow: createResolvedTransactionFlow("CHARGE"),
+-      selectedPaymentMethod: "card",
+-      saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
+-    }),
+-  );
+-
+-  return stripePaymentIntentId;
+-};
+-
+-const postRefundRequest = async (args: {
+-  stripePaymentIntentId: StripePaymentIntentId;
+-  idempotencyKey: string;
+-  amount?: number;
+-}) => {
+-  let body: { pspReference: string };
+-
+-  await testApiHandler({
+-    appHandler: transactionRefundRequested,
+-    async test({ fetch }) {
+-      const response = await fetch({
+-        method: "POST",
+-        body: JSON.stringify(transactionRefundRequestedFixture(args)),
+-        headers: new Headers({
+-          "saleor-api-url": realSaleorApiUrl,
+-          "saleor-event": "transaction_refund_requested",
+-          "saleor-signature": "mock-signature",
+-        }),
+-      });
+-
+-      expect(response.status).toStrictEqual(200);
+-
+-      body = await response.json();
+-    },
+-  });
+-
+-  return body!;
+-};
+-
+ describe("TransactionRefundRequested webhook: integration", async () => {
+   beforeEach(async () => {
+     vi.spyOn(verifyWebhookSignatureModule, "verifyWebhookSignature").mockImplementation(
+@@ -175,56 +103,59 @@ describe("TransactionRefundRequested webhook: integration", async () => {
+   });
+ 
+   it("Returns response with pspReference of the Stripe refund (Saleor async flow)", async () => {
+-    const stripePaymentIntentId = await createChargedPaymentIntent();
+-
+-    const body = await postRefundRequest({
+-      stripePaymentIntentId,
++    const paymentIntentResult = await paymentIntentApi.createPaymentIntent({
++      stripeMoney,
+       idempotencyKey: new RandomId().generate(),
++      intentParams: {
++        return_url: "https://saleor-stripe-integration-test.com",
++        automatic_payment_methods: {
++          enabled: true,
++        },
++        payment_method: "pm_card_visa",
++        confirm: true,
++      },
+     });
+ 
+-    expect(body).toStrictEqual({
+-      pspReference: expect.stringContaining("re_"),
+-    });
+-  });
+-
+-  it("Creates only one Stripe refund when Saleor redelivers the same refund request", async () => {
+-    const stripePaymentIntentId = await createChargedPaymentIntent();
+-    // Saleor reuses the key of the request event on every delivery retry
+-    const idempotencyKey = new RandomId().generate();
+-
+-    const firstBody = await postRefundRequest({ stripePaymentIntentId, idempotencyKey });
+-    const secondBody = await postRefundRequest({ stripePaymentIntentId, idempotencyKey });
+-
+-    expect(secondBody.pspReference).toStrictEqual(firstBody.pspReference);
+-
+-    const refunds = await stripeClient.refunds.list({
+-      payment_intent: stripePaymentIntentId,
+-    });
+-
+-    expect(refunds.data).toHaveLength(1);
+-  });
+-
+-  it("Creates two Stripe refunds for two distinct refund requests of the same amount", async () => {
+-    const stripePaymentIntentId = await createChargedPaymentIntent();
+-    const amount = 10;
+-
+-    const firstBody = await postRefundRequest({
+-      stripePaymentIntentId,
+-      idempotencyKey: new RandomId().generate(),
+-      amount,
+-    });
+-    const secondBody = await postRefundRequest({
+-      stripePaymentIntentId,
+-      idempotencyKey: new RandomId().generate(),
+-      amount,
+-    });
++    const stripePaymentIntentId = createStripePaymentIntentId(
++      paymentIntentResult._unsafeUnwrap().id,
++    );
+ 
+-    expect(secondBody.pspReference).not.toStrictEqual(firstBody.pspReference);
++    await transactionRecorderRepo.recordTransaction(
++      {
++        saleorApiUrl: realSaleorApiUrl,
++        appId: mockedSaleorAppId,
++      },
++      new RecordedTransaction({
++        saleorTransactionId: mockedSaleorTransactionId,
++        stripePaymentIntentId,
++        saleorTransactionFlow: createSaleorTransactionFlow("CHARGE"),
++        resolvedTransactionFlow: createResolvedTransactionFlow("CHARGE"),
++        selectedPaymentMethod: "card",
++        saleorSchemaVersion: mockedSaleorSchemaVersionSupportingPaymentMethodDetails,
++      }),
++    );
+ 
+-    const refunds = await stripeClient.refunds.list({
+-      payment_intent: stripePaymentIntentId,
++    await testApiHandler({
++      appHandler: transactionRefundRequested,
++      async test({ fetch }) {
++        const response = await fetch({
++          method: "POST",
++          body: JSON.stringify(transactionRefundRequestedFixture(stripePaymentIntentId)),
++          headers: new Headers({
++            "saleor-api-url": realSaleorApiUrl,
++            "saleor-event": "transaction_refund_requested",
++            "saleor-signature": "mock-signature",
++          }),
++        });
++
++        const body = await response.json();
++
++        expect(body).toStrictEqual({
++          pspReference: expect.stringContaining("re_"),
++        });
++
++        expect(response.status).toStrictEqual(200);
++      },
+     });
+-
+-    expect(refunds.data).toHaveLength(2);
+   });
+ });
+diff --git a/apps/stripe/src/__tests__/mocks/constants.ts b/apps/stripe/src/__tests__/mocks/constants.ts
+index 59198dd..1c37a86 100644
+--- a/apps/stripe/src/__tests__/mocks/constants.ts
++++ b/apps/stripe/src/__tests__/mocks/constants.ts
+@@ -17,7 +17,6 @@ export const mockAdyenWebhookUrl = `${mockAppUrlBase}?${new URLSearchParams({
+   [WebhookParams.appIdSearchParam]: mockedSaleorAppId,
+ }).toString()}`;
+ export const mockedSaleorTransactionId = createSaleorTransactionId("mocked-transaction-id");
+-export const mockedSaleorActionIdempotencyKey = "mocked-action-idempotency-key";
+ 
+ export const getMockedSaleorMoney = (amount: number = 10_00, currency: string = "usd") =>
+   SaleorMoney.createFromStripe({
+diff --git a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-cancelation-request-event.ts b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-cancelation-request-event.ts
+index 682a410..74237b2 100644
+--- a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-cancelation-request-event.ts
++++ b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-cancelation-request-event.ts
+@@ -1,15 +1,10 @@
+ import { type TransactionCancelationRequestedEventFragment } from "@/generated/graphql";
+ 
+-import {
+-  mockedSaleorActionIdempotencyKey,
+-  mockedSaleorChannelId,
+-  mockedSaleorTransactionId,
+-} from "../constants";
++import { mockedSaleorChannelId, mockedSaleorTransactionId } from "../constants";
+ import { mockedStripePaymentIntentId } from "../mocked-stripe-payment-intent-id";
+ 
+ export const getMockedTransactionCancelationRequestedEvent =
+   (): TransactionCancelationRequestedEventFragment => ({
+-    idempotencyKey: mockedSaleorActionIdempotencyKey,
+     transaction: {
+       id: mockedSaleorTransactionId,
+       pspReference: mockedStripePaymentIntentId,
+diff --git a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-charge-requested-event.ts b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-charge-requested-event.ts
+index 7e3f084..79b6c7b 100644
+--- a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-charge-requested-event.ts
++++ b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-charge-requested-event.ts
+@@ -1,15 +1,10 @@
+ import { type TransactionChargeRequestedEventFragment } from "@/generated/graphql";
+ 
+-import {
+-  mockedSaleorActionIdempotencyKey,
+-  mockedSaleorChannelId,
+-  mockedSaleorTransactionId,
+-} from "../constants";
++import { mockedSaleorChannelId, mockedSaleorTransactionId } from "../constants";
+ import { mockedStripePaymentIntentId } from "../mocked-stripe-payment-intent-id";
+ 
+ export const getMockedTransactionChargeRequestedEvent =
+   (): TransactionChargeRequestedEventFragment => ({
+-    idempotencyKey: mockedSaleorActionIdempotencyKey,
+     action: {
+       amount: 100,
+     },
+diff --git a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-refund-request-event.ts b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-refund-request-event.ts
+index 5f4d3b1..a0f9737 100644
+--- a/apps/stripe/src/__tests__/mocks/saleor-events/transaction-refund-request-event.ts
++++ b/apps/stripe/src/__tests__/mocks/saleor-events/transaction-refund-request-event.ts
+@@ -1,15 +1,10 @@
+ import { type TransactionRefundRequestedEventFragment } from "@/generated/graphql";
+ 
+-import {
+-  mockedSaleorActionIdempotencyKey,
+-  mockedSaleorChannelId,
+-  mockedSaleorTransactionId,
+-} from "../constants";
++import { mockedSaleorChannelId, mockedSaleorTransactionId } from "../constants";
+ import { mockedStripePaymentIntentId } from "../mocked-stripe-payment-intent-id";
+ 
+ export const getMockedTransactionRefundRequestedEvent =
+   (): TransactionRefundRequestedEventFragment => ({
+-    idempotencyKey: mockedSaleorActionIdempotencyKey,
+     action: {
+       amount: 100,
+       currency: "USD",
+diff --git a/apps/stripe/src/app/api/manifest/route.test.ts b/apps/stripe/src/app/api/manifest/route.test.ts
+index db0eee1..fa456d9 100644
+--- a/apps/stripe/src/app/api/manifest/route.test.ts
++++ b/apps/stripe/src/app/api/manifest/route.test.ts
+@@ -90,7 +90,7 @@ describe("Manifest handler", async () => {
+          {
+            "isActive": true,
+            "name": "Stripe Transaction Charge Requested",
+-           "query": "subscription TransactionChargeRequested { event { ...TransactionChargeRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionChargeRequestedEvent on TransactionChargeRequested { ...EventMetadata idempotencyKey action { amount } transaction { id pspReference checkout { id channel { ...Channel } } order { id number checkoutId channel { ...Channel } } }}",
++           "query": "subscription TransactionChargeRequested { event { ...TransactionChargeRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionChargeRequestedEvent on TransactionChargeRequested { ...EventMetadata action { amount } transaction { id pspReference checkout { id channel { ...Channel } } order { id number checkoutId channel { ...Channel } } }}",
+            "syncEvents": [
+              "TRANSACTION_CHARGE_REQUESTED",
+            ],
+@@ -99,7 +99,7 @@ describe("Manifest handler", async () => {
+          {
+            "isActive": true,
+            "name": "Stripe Transaction Cancelation Requested",
+-           "query": "subscription TransactionCancelationRequested { event { ...TransactionCancelationRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionCancelationRequestedEvent on TransactionCancelationRequested { ...EventMetadata idempotencyKey transaction { id pspReference checkout { id channel { ...Channel } } order { id channel { ...Channel } } }}",
++           "query": "subscription TransactionCancelationRequested { event { ...TransactionCancelationRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionCancelationRequestedEvent on TransactionCancelationRequested { ...EventMetadata transaction { id pspReference checkout { id channel { ...Channel } } order { id channel { ...Channel } } }}",
+            "syncEvents": [
+              "TRANSACTION_CANCELATION_REQUESTED",
+            ],
+@@ -108,7 +108,7 @@ describe("Manifest handler", async () => {
+          {
+            "isActive": true,
+            "name": "Stripe Transaction Refund Requested",
+-           "query": "subscription TransactionRefundRequested { event { ...TransactionRefundRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionRefundRequestedEvent on TransactionRefundRequested { ...EventMetadata idempotencyKey action { amount currency } transaction { id pspReference checkout { id channel { ...Channel } } order { id number checkoutId channel { ...Channel } } }}",
++           "query": "subscription TransactionRefundRequested { event { ...TransactionRefundRequestedEvent }}fragment EventMetadata on Event { version recipient { id }}fragment Channel on Channel { id slug}fragment TransactionRefundRequestedEvent on TransactionRefundRequested { ...EventMetadata action { amount currency } transaction { id pspReference checkout { id channel { ...Channel } } order { id number checkoutId channel { ...Channel } } }}",
+            "syncEvents": [
+              "TRANSACTION_REFUND_REQUESTED",
+            ],
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
+index a4af189..e34f289 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.test.ts
+@@ -3,11 +3,7 @@ import type Stripe from "stripe";
+ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+-import {
+-  mockedSaleorActionIdempotencyKey,
+-  mockedSaleorAppId,
+-  mockedSaleorTransactionId,
+-} from "@/__tests__/mocks/constants";
++import { mockedSaleorAppId, mockedSaleorTransactionId } from "@/__tests__/mocks/constants";
+ import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripePaymentIntentsApi } from "@/__tests__/mocks/mocked-stripe-payment-intents-api";
+@@ -83,7 +79,6 @@ describe("TransactionCancelationRequestedUseCase", () => {
+ 
+     expect(spy).toHaveBeenCalledWith({
+       id: mockedStripePaymentIntentId,
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+     });
+   });
+ 
+@@ -111,7 +106,6 @@ describe("TransactionCancelationRequestedUseCase", () => {
+ 
+     expect(spy).toHaveBeenCalledWith({
+       id: mockedStripePaymentIntentId,
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+     });
+   });
+ 
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
+index a4161e9..dba61e0 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-cancelation-requested/use-case.ts
+@@ -18,7 +18,6 @@ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/reso
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import {
+   getChannelIdFromRequestedEventPayload,
+-  getIdempotencyKeyFromRequestedEventPayload,
+   getTransactionFromRequestedEventPayload,
+ } from "@/modules/saleor/transaction-requested-event-helpers";
+ import { mapStripeErrorToApiError } from "@/modules/stripe/stripe-api-error";
+@@ -116,7 +115,6 @@ export class TransactionCancelationRequestedUseCase {
+ 
+     const cancelPaymentIntentResult = await stripePaymentIntentsApi.cancelPaymentIntent({
+       id: stripePaymentIntentId,
+-      idempotencyKey: getIdempotencyKeyFromRequestedEventPayload(event),
+     });
+ 
+     if (cancelPaymentIntentResult.isErr()) {
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
+index d364361..21f1c76 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.test.ts
+@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+ import {
+-  mockedSaleorActionIdempotencyKey,
+   mockedSaleorAppId,
+   mockedSaleorChannelId,
+   mockedSaleorTransactionId,
+@@ -83,7 +82,6 @@ describe("TransactionChargeRequestedUseCase", () => {
+ 
+     expect(spy).toHaveBeenCalledWith({
+       id: mockedStripePaymentIntentId,
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+       metadata: {
+         saleor_checkout_id: "mock-channel-1",
+       },
+@@ -114,7 +112,6 @@ describe("TransactionChargeRequestedUseCase", () => {
+ 
+     expect(spy).toHaveBeenCalledWith({
+       id: mockedStripePaymentIntentId,
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+       metadata: {
+         saleor_checkout_id: "mock-channel-1",
+       },
+@@ -161,7 +158,6 @@ describe("TransactionChargeRequestedUseCase", () => {
+ 
+     expect(spy).toHaveBeenCalledWith({
+       id: mockedStripePaymentIntentId,
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+       metadata: {
+         saleor_order_id: "order-id",
+         saleor_order_number: "123",
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+index 920ec26..41161f4 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-charge-requested/use-case.ts
+@@ -18,7 +18,6 @@ import { resolveSaleorMoneyFromStripePaymentIntent } from "@/modules/saleor/reso
+ import { type SaleorApiUrl } from "@/modules/saleor/saleor-api-url";
+ import {
+   getChannelIdFromRequestedEventPayload,
+-  getIdempotencyKeyFromRequestedEventPayload,
+   getTransactionFromRequestedEventPayload,
+ } from "@/modules/saleor/transaction-requested-event-helpers";
+ import { getSaleorOrderStripeMetadata } from "@/modules/stripe/saleor-order-stripe-metadata";
+@@ -114,7 +113,6 @@ export class TransactionChargeRequestedUseCase {
+ 
+     const capturePaymentIntentResult = await stripePaymentIntentsApi.capturePaymentIntent({
+       id: paymentIntentIdResult,
+-      idempotencyKey: getIdempotencyKeyFromRequestedEventPayload(event),
+       metadata: getSaleorOrderStripeMetadata(transaction),
+     });
+ 
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
+index 30651e0..40ae7ad 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-initialize-session/use-case.ts
+@@ -331,8 +331,6 @@ export class TransactionInitializeSessionUseCase {
+       if (paymentIntentIdResult.isOk()) {
+         const cancelResult = await stripePaymentIntentsApi.cancelPaymentIntent({
+           id: paymentIntentIdResult.value,
+-          // Best-effort rollback, not a Saleor-requested action - it has no idempotency key of its own
+-          idempotencyKey: undefined,
+         });
+ 
+         if (cancelResult.isErr()) {
+@@ -380,8 +378,6 @@ export class TransactionInitializeSessionUseCase {
+ 
+       const cancelResult = await stripePaymentIntentsApi.cancelPaymentIntent({
+         id: stripePaymentIntentId,
+-        // Best-effort rollback, not a Saleor-requested action - it has no idempotency key of its own
+-        idempotencyKey: undefined,
+       });
+ 
+       if (cancelResult.isErr()) {
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
+index 1b96dc5..1d1a003 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.test.ts
+@@ -3,11 +3,7 @@ import type Stripe from "stripe";
+ import { describe, expect, it, vi } from "vitest";
+ 
+ import { mockedAppConfigRepo } from "@/__tests__/mocks/app-config-repo";
+-import {
+-  mockedSaleorActionIdempotencyKey,
+-  mockedSaleorAppId,
+-  mockedSaleorTransactionId,
+-} from "@/__tests__/mocks/constants";
++import { mockedSaleorAppId, mockedSaleorTransactionId } from "@/__tests__/mocks/constants";
+ import { mockStripeProblemReporter } from "@/__tests__/mocks/mock-stripe-problem-reporter";
+ import { mockedStripePaymentIntentId } from "@/__tests__/mocks/mocked-stripe-payment-intent-id";
+ import { mockedStripeRefundId } from "@/__tests__/mocks/mocked-stripe-refund-id";
+@@ -80,7 +76,6 @@ describe("TransactionRefundRequestedUseCase", () => {
+     expect(spy).toHaveBeenCalledWith({
+       paymentIntentId: mockedStripePaymentIntentId,
+       stripeMoney: expect.any(StripeMoney),
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+       metadata: {
+         saleor_source_id: "mock-channel-1",
+         saleor_source_type: "Checkout",
+@@ -116,7 +111,6 @@ describe("TransactionRefundRequestedUseCase", () => {
+     expect(spy).toHaveBeenCalledWith({
+       paymentIntentId: mockedStripePaymentIntentId,
+       stripeMoney: expect.any(StripeMoney),
+-      idempotencyKey: mockedSaleorActionIdempotencyKey,
+       metadata: {
+         saleor_source_id: "mock-channel-1",
+         saleor_source_type: "Checkout",
+diff --git a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
+index a60edc0..8839379 100644
+--- a/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
++++ b/apps/stripe/src/app/api/webhooks/saleor/transaction-refund-requested/use-case.ts
+@@ -19,7 +19,6 @@ import { SaleorMoney } from "@/modules/saleor/saleor-money";
+ import { createSaleorTransactionId } from "@/modules/saleor/saleor-transaction-id";
+ import {
+   getChannelIdFromRequestedEventPayload,
+-  getIdempotencyKeyFromRequestedEventPayload,
+   getTransactionFromRequestedEventPayload,
+ } from "@/modules/saleor/transaction-requested-event-helpers";
+ import { getSaleorOrderStripeMetadata } from "@/modules/stripe/saleor-order-stripe-metadata";
+@@ -136,7 +135,6 @@ export class TransactionRefundRequestedUseCase {
+     const createRefundResult = await stripeRefundsApi.createRefund({
+       paymentIntentId: stripePaymentIntentId,
+       stripeMoney: stripeMoneyResult.value,
+-      idempotencyKey: getIdempotencyKeyFromRequestedEventPayload(event),
+       metadata: {
+         saleor_source_id: transaction.checkout?.id
+           ? transaction.checkout.id
+diff --git a/apps/stripe/src/modules/saleor/transaction-requested-event-helpers.ts b/apps/stripe/src/modules/saleor/transaction-requested-event-helpers.ts
+index bbe96ed..00689b4 100644
+--- a/apps/stripe/src/modules/saleor/transaction-requested-event-helpers.ts
++++ b/apps/stripe/src/modules/saleor/transaction-requested-event-helpers.ts
+@@ -4,9 +4,6 @@ import {
+   type TransactionRefundRequestedEventFragment,
+ } from "@/generated/graphql";
+ import { BaseError } from "@/lib/errors";
+-import { createLogger } from "@/lib/logger";
+-
+-const logger = createLogger("transaction-requested-event-helpers");
+ 
+ const MissingTransactionError = BaseError.subclass("MissingTransactionError", {
+   props: {
+@@ -56,29 +53,3 @@ export const getChannelIdFromRequestedEventPayload = (
+ 
+   return possibleChannelId;
+ };
+-
+-/**
+- * Saleor sends `idempotencyKey` on transaction action requested events since 3.23. It is stable
+- * across Saleor's delivery retries of the same request, so passing it to Stripe prevents the action
+- * from being performed twice.
+- *
+- * Installations that didn't migrate their webhook subscription query yet don't send it. In that case
+- * Stripe SDK generates its own key, which only covers retries within a single request - the
+- * pre-3.23 behavior.
+- */
+-export const getIdempotencyKeyFromRequestedEventPayload = (
+-  event:
+-    | TransactionRefundRequestedEventFragment
+-    | TransactionChargeRequestedEventFragment
+-    | TransactionCancelationRequestedEventFragment,
+-): string | undefined => {
+-  if (!event.idempotencyKey) {
+-    logger.warn(
+-      "Event has no idempotencyKey, Stripe action can't be deduplicated across Saleor delivery retries. Webhook subscription query is outdated - run webhooks migration",
+-    );
+-
+-    return undefined;
+-  }
+-
+-  return event.idempotencyKey;
+-};
+diff --git a/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts b/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
+index 6b48d50..97f800b 100644
+--- a/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
++++ b/apps/stripe/src/modules/stripe/stripe-payment-intents-api.ts
+@@ -60,16 +60,12 @@ export class StripePaymentIntentsApi implements IStripePaymentIntentsApi {
+ 
+   async capturePaymentIntent(args: {
+     id: StripePaymentIntentId;
+-    idempotencyKey: string | undefined;
+     metadata?: AllowedStripeObjectMetadata;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>> {
+     return ResultAsync.fromPromise(
+       this.stripeApiWrapper.paymentIntents.capture(
+         args.id,
+         args.metadata && { metadata: args.metadata },
+-        {
+-          idempotencyKey: args.idempotencyKey,
+-        },
+       ),
+       (error) => error,
+     );
+@@ -77,12 +73,9 @@ export class StripePaymentIntentsApi implements IStripePaymentIntentsApi {
+ 
+   async cancelPaymentIntent(args: {
+     id: StripePaymentIntentId;
+-    idempotencyKey: string | undefined;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>> {
+     return ResultAsync.fromPromise(
+-      this.stripeApiWrapper.paymentIntents.cancel(args.id, undefined, {
+-        idempotencyKey: args.idempotencyKey,
+-      }),
++      this.stripeApiWrapper.paymentIntents.cancel(args.id),
+       (error) => error,
+     );
+   }
+diff --git a/apps/stripe/src/modules/stripe/stripe-refunds-api.ts b/apps/stripe/src/modules/stripe/stripe-refunds-api.ts
+index 06f4ea7..d5bd5ed 100644
+--- a/apps/stripe/src/modules/stripe/stripe-refunds-api.ts
++++ b/apps/stripe/src/modules/stripe/stripe-refunds-api.ts
+@@ -23,20 +23,14 @@ export class StripeRefundsApi implements IStripeRefundsApi {
+   async createRefund(args: {
+     paymentIntentId: StripePaymentIntentId;
+     stripeMoney: StripeMoney;
+-    idempotencyKey: string | undefined;
+     metadata?: Stripe.MetadataParam;
+   }): Promise<Result<Stripe.Refund, unknown>> {
+     return ResultAsync.fromPromise(
+-      this.stripeApiWrapper.refunds.create(
+-        {
+-          payment_intent: args.paymentIntentId,
+-          amount: args.stripeMoney.amount,
+-          metadata: args.metadata,
+-        },
+-        {
+-          idempotencyKey: args.idempotencyKey,
+-        },
+-      ),
++      this.stripeApiWrapper.refunds.create({
++        payment_intent: args.paymentIntentId,
++        amount: args.stripeMoney.amount,
++        metadata: args.metadata,
++      }),
+       (error) => error,
+     );
+   }
+diff --git a/apps/stripe/src/modules/stripe/types.ts b/apps/stripe/src/modules/stripe/types.ts
+index e7c13f0..949995e 100644
+--- a/apps/stripe/src/modules/stripe/types.ts
++++ b/apps/stripe/src/modules/stripe/types.ts
+@@ -21,7 +21,6 @@ export interface IStripeRefundsApi {
+   createRefund(args: {
+     paymentIntentId: StripePaymentIntentId;
+     stripeMoney: StripeMoney;
+-    idempotencyKey: string | undefined;
+     metadata?: AllowedStripeObjectMetadata;
+   }): Promise<Result<Stripe.Refund, unknown>>;
+ }
+@@ -64,12 +63,10 @@ export interface IStripePaymentIntentsApi {
+   }): Promise<Result<Stripe.PaymentIntent, unknown>>;
+   capturePaymentIntent(args: {
+     id: StripePaymentIntentId;
+-    idempotencyKey: string | undefined;
+     metadata?: AllowedStripeObjectMetadata;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>>;
+   cancelPaymentIntent(args: {
+     id: StripePaymentIntentId;
+-    idempotencyKey: string | undefined;
+   }): Promise<Result<Stripe.PaymentIntent, unknown>>;
+   updatePaymentIntent(args: {
+     id: StripePaymentIntentId;
+diff --git a/schema.graphql b/schema.graphql
+index b8fa0dd..a39f731 100644
+--- a/schema.graphql
++++ b/schema.graphql
+@@ -39476,12 +39476,6 @@ type TransactionCancelationRequested implements Event @doc(category: "Payments")
+   """Requested action data."""
+   action: TransactionAction!
+ 
+-  """
+-  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-  
+-  Added in Saleor 3.23.
+-  """
+-  idempotencyKey: String!
+ }
+ 
+ type TransactionAction @doc(category: "Payments") {
+@@ -39515,12 +39509,6 @@ type TransactionChargeRequested implements Event @doc(category: "Payments") {
+   """Requested action data."""
+   action: TransactionAction!
+ 
+-  """
+-  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-  
+-  Added in Saleor 3.23.
+-  """
+-  idempotencyKey: String!
+ }
+ 
+ """Event sent when transaction refund is requested."""
+@@ -39543,12 +39531,6 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
+   """Requested action data."""
+   action: TransactionAction!
+ 
+-  """
+-  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+-  
+-  Added in Saleor 3.23.
+-  """
+-  idempotencyKey: String!
+ 
+   """
+   Granted refund related to refund request.

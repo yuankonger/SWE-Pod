@@ -1,0 +1,131 @@
+/* SWE-Pod layouts using Footnote's tokens and components. */
+html { scroll-behavior: smooth; }
+#fn-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+#example, #pilot { scroll-margin-top: 4rem; }
+.fn a:focus-visible, .state-options input:focus-visible + span {
+  outline: 2px solid var(--fn-ink);
+  outline-offset: 3px;
+}
+.fn-foot a:focus-visible { outline-color: var(--fn-paper); }
+.skip {
+  position: fixed;
+  inset: .5rem auto auto .5rem;
+  transform: translateY(-200%);
+  z-index: 50;
+  padding: .5rem .75rem;
+  background: var(--fn-sheet);
+}
+.skip:focus { transform: none; }
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4rem);
+}
+.hero-copy > .fn-label { margin-bottom: 1rem; }
+.fn .hero-copy h1 { margin-top: 0; margin-bottom: 1.25rem; text-wrap: balance; }
+.deployment-figure { --r: var(--fn-tilt-sheet); margin: 0; }
+.deployment-figure .fn-sheet-head { justify-content: flex-start; }
+.deployment-figure figcaption { margin-top: 1rem; text-align: right; }
+.schematic {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 .75rem;
+  text-align: center;
+  font-family: var(--fn-font-mono);
+  font-size: var(--fn-step--1);
+  line-height: 1.35;
+}
+.lane { display: grid; }
+.node, .ci, .verifier {
+  display: grid;
+  place-content: center;
+  min-height: 2.5rem;
+  padding: .4rem;
+  background: var(--fn-paper-2);
+  border-radius: var(--fn-radius-sm);
+}
+.repo { background: var(--fn-hl-blue); overflow-wrap: anywhere; }
+.bus { position: relative; height: 1.65rem; border-left: var(--fn-border) solid var(--fn-ink-2); justify-self: center; }
+.bus small { position: absolute; top: .3rem; left: .4rem; color: var(--fn-text-muted); }
+.join, .fork { grid-column: 1 / -1; height: 1.4rem; position: relative; margin-inline: calc(25% - .2rem); }
+.join::before, .fork::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 50%;
+  border: var(--fn-border) solid var(--fn-ink-2);
+  border-top: 0;
+}
+.join i, .fork i { position: absolute; top: 50%; bottom: 0; left: 50%; width: var(--fn-border); background: var(--fn-ink-2); }
+.fork { transform: rotate(180deg); }
+.ci, .verifier { grid-column: 1 / -1; justify-self: center; padding-inline: .8rem; font-weight: 700; }
+.ci { background: var(--fn-paper-3); }
+.verifier { background: var(--fn-paper-3); display: flex; align-items: center; gap: .35rem; }
+.service small { color: var(--fn-text-muted); }
+.example {
+  padding-block: var(--fn-section-y);
+  border-block: var(--fn-border) solid var(--fn-rule);
+}
+.fn .example .fn-sec-head { margin: 0; padding-top: .5rem; }
+.example .fn-sec-head p:last-child { margin-top: 1rem; }
+.lab { min-width: 0; }
+.state-options {
+  border: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .35rem;
+  margin-bottom: .85rem;
+  min-width: 0;
+}
+.state-options legend { padding-bottom: .5rem; }
+.state-options label { position: relative; display: grid; cursor: pointer; }
+.state-options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.state-options label span {
+  display: grid;
+  place-items: center;
+  min-height: 2.5rem;
+  text-align: center;
+  padding: .25rem;
+  font: 500 var(--fn-step--1)/1.25 var(--fn-font-mono);
+  border: var(--fn-border) solid var(--fn-rule);
+  border-radius: var(--fn-radius-sm);
+  transition: background var(--fn-dur-press) ease;
+}
+.state-options label:hover span { background: var(--fn-paper-2); }
+.state-options input:checked + span { background: var(--fn-ink); color: var(--fn-paper); }
+.change-status { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin-bottom: .85rem; }
+.change-status div { display: grid; align-content: start; padding: .45rem .55rem; background: var(--fn-paper-2); }
+.change-status strong { font: 500 var(--fn-step--1)/1.4 var(--fn-font-mono); }
+.outcome { display: flex; align-items: flex-start; min-height: 6rem; gap: 1rem; padding: .75rem; background: var(--fn-paper-2); }
+.outcome p { margin-top: .15rem; color: var(--fn-text-muted); }
+.verdict { font: 700 var(--fn-step--1)/1.4 var(--fn-font-mono); margin: .15rem .2em 0; }
+.example-note { margin-top: .85rem; color: var(--fn-text-muted); font-size: var(--fn-step--1); }
+.fn .pilot { min-height: 0; padding-block: var(--fn-section-y); }
+@media (max-width: 900px) {
+  .hero-layout { grid-template-columns: minmax(0, 1fr); }
+  .deployment-figure { width: min(100%, 36rem); }
+}
+@media (max-width: 520px) {
+  .state-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fn-top .fn-btn { padding-inline: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* The reference landscapes sit between sections without extending the scroll. */
+.hero-layout { position: relative; isolation: isolate; }
+.reference-ridge, .reference-shore {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  background: linear-gradient(var(--fn-paper), var(--fn-hl-orange));
+}
+.reference-ridge { height: clamp(8rem, 22vw, 18rem); }
+.fn .pilot { padding-bottom: 0; }
+.reference-shore {
+  height: clamp(8rem, 17vw, 15rem);
+  margin-top: 1.5rem;
+  background: linear-gradient(var(--fn-paper), var(--fn-hl-blue));
+}

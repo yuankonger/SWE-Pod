@@ -1,0 +1,17 @@
+SWE-POD
+Evaluation pilot brief
+
+Research question
+How do repository ownership, delegation, and communication affect whether coding agents can deliver a change across deployed services?
+
+Available demonstration
+The Saleor Core and Dashboard customer-attributes scenario uses real repository snapshots, Git-enforced write access, CI and deployed services. The current grader reports feature completion, regressions and GraphQL agreement. The synthetic SeedCo environment adds seeded histories and released-client checks.
+
+Proposed pilot
+1. Reproduce the no-op and reference outcomes for a frozen task package.
+2. Compare solo, fixed team, and fixed team with explicit chat disabled using the same model, tools, environment resources and budget policy.
+3. Validate one new private scenario with a hidden deployment-level business check. Verify that a full reference change passes and each one-sided change misses the intended outcome.
+4. Review deployment checkpoints, strict success, component scores, elapsed time, model cost and infrastructure failures.
+
+Proposed delivery
+Versioned task manifests, starting states, runner instructions, scoring output, and replayable sample traces. Broader training use can be evaluated on held-out task families at a matched inference budget.

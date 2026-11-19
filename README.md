@@ -1,64 +1,253 @@
 # SeedCo
 
-A small fictional company for multi-agent RL: four services in four languages, each owned by one agent, and tasks
-that are changes crossing service boundaries.
+A small fictional company for multi-agent RL. Its systems mirror a real one: Saleor, an open-source commerce
+platform, with the apps and tools a Saleor merchant runs around it. Each system has one owner agent, and tasks
+are changes that cross the boundaries between them.
 
-| Service | Language | Owns |
-| --- | --- | --- |
-| `storefront` | TypeScript on Node.js | The shop (HTML pages), the JSON API for the mobile app, page view models |
-| `orders` | Java, H2 | Catalogue, carts, orders, the order state machine, the event outbox |
-| `billing` | C#, SQLite | Tax, payments, refunds, invoices, plans, subscriptions, renewals |
-| `notifications` | Python, SQLite | Emails from order and billing events, payload schemas, the dedup log |
+| Owner | Language | What it is | Mirrors |
+| --- | --- | --- | --- |
+| `core` | Python, GraphQL, SQLite | The commerce API: catalogue, checkouts, orders, transactions, apps and webhooks | [saleor/saleor](https://github.com/saleor/saleor) (BSD-3-Clause) |
+| `storefront` | TypeScript | The web shop | [saleor/storefront](https://github.com/saleor/storefront) (FSL: structure only) |
+| `dashboard` | TypeScript | What staff use to fulfil, cancel and refund | [saleor/saleor-dashboard](https://github.com/saleor/saleor-dashboard) (BSD-3-Clause) |
+| `mobile` | TypeScript | The phone app, with released builds that cannot be changed | [saleor/example-react-native-typescript](https://github.com/saleor/example-react-native-typescript) (archived, no licence: structure only) |
+| `payments` | C#, SQLite | The payment app Core calls to charge and refund | [saleor/apps](https://github.com/saleor/apps) `apps/stripe` (BSD-3-Clause) |
+| `taxes` | Java, H2 | The tax app Core calls for taxes; keeps tax documents | saleor/apps `apps/avatax` |
+| `notifications` | Python, SQLite | The email app: order events become customer emails | saleor/apps `apps/smtp` |
+| `subscriptions` | C#, SQLite | Monthly subscriptions as an app on Core: renewals, plan changes, dunning | Not in Saleor. Built the way a merchant adds it; rules from Kill Bill and Lago |
+| `support` | Ruby, SQLite | The support desk, with the customer's orders beside each conversation | [chatwoot/chatwoot](https://github.com/chatwoot/chatwoot) (MIT outside `enterprise/`) |
+| `ops` | Prometheus rules | Monitoring: scrape config, alert rules, rule tests, runbooks | The real Prometheus runs them; Core's metric names follow Saleor's telemetry |
+
+All code is written fresh. The references give names, boundaries and contracts, not source.
+
+## How the systems fit together
+
+- Core's API is GraphQL with Saleor's type, field, enum and mutation names (`services/core/contracts/schema.graphql`).
+- Core calculates no tax and takes no payments. It calls the tax app and the payment app with synchronous
+  webhooks, and tells every subscribed app about order events with asynchronous ones.
+- An app is installed from its manifest. Each webhook carries a GraphQL subscription query (under the app's
+  `graphql/`), and the payload Core sends is that query's result: an app receives only the fields it asked for.
+- Shops and the dashboard keep no data; they read and write through Core.
 
 ## Layout
 
-    docker/Dockerfile      one image with all four toolchains (seedco-toolchain:0.2)
-    platform/              the event broker and the stack runner (no owner edits these)
-    services/<name>/       src, tests, contracts/ (what it publishes), pinned/ (copies of what it reads), NOTES.md
+    docker/Dockerfile      one image with every toolchain and the Prometheus binaries (seedco-toolchain:0.4)
+    docker/compose.yaml    the company with one container per owner
+    platform/stack.py      starts the whole company on localhost (no owner edits this)
+    services/<owner>/      src, tests, contracts/ (what it publishes), pinned/ (copies of what it reads), NOTES.md
     integration/           end-to-end tests of the base company
-    kernel/                the episode runner, the stand-in agent harness and the scorer
-    tasks/<id>/            task.json (briefs), overlay/ (starting state), hidden/ (checks), solution/ (reference)
-    tools/                 write_contracts.py (contract files and pinned copies), derive_task01_solution.py
+    kernel/                the episode runner, the stand-in agent harness, the scorer and the verifier (rubric.py)
+    tasks/<id>/            task.json (briefs), overlay/ (starting state), solution/ (reference),
+                           regression/ (end-to-end checks agents can see), hidden/ (rubric.toml and the checks they cannot)
+    tasks/<id>/history.py  what happened in the company before the task; seed/ holds the databases it leaves behind
+    tools/                 write_catalogue.py, build_task_seed.py, derive_solutions.py, export_harbor.py, check_the_checks.py
+    harbor/<id>/           each task as a Harbor task directory (generated by tools/export_harbor.py)
+    docs/SPEC.md           the design and its history
 
-Every service has the same two commands: `./run test` and `./run serve`.
+Every owner has `./run test`. Services also have `./run serve`; `mobile` has `./run release` and `./run replay`.
 
 Each service keeps its own database. With `SEEDCO_DATA_DIR` set it is a file in that directory and survives a
 restart; without it the database is in memory. The stack runner gives every start a fresh data directory unless
 it is handed one.
 
-The task 1 reference solution is derived from the base services, not written by hand. After changing a service
-or a contract, run `python3 tools/write_contracts.py .` (if a contract changed) and then
-`python3 tools/derive_task01_solution.py .`; the second fails if an edit it expects no longer applies.
+### Data
+
+The company's data is invented, in two layers:
+
+- **The catalogue** (`services/core/src/catalogue.json`, written by `tools/write_catalogue.py`): 29 products and
+  83 variants in the shape of Saleor's sample data: nested categories, product types, products with one variant
+  and with ten, two variants with no SKU, names with accents and quotes, prices from 1.99 to 2,300.
+- **A history per task** (`tasks/<id>/history.py`): customers buying through the shop, staff shipping, cancelling
+  and refunding, subscriptions changing, customers writing to support. `tools/build_task_seed.py` replays it
+  against the running company and keeps every service's database under `tasks/<id>/seed/`.
+
+In an episode each owner gets a copy of its own database under its `data/` directory and a `query_data` tool for
+read-only SQL on it (`./run query "<sql>"`); no owner sees another's. Scoring starts the company from the task's
+seed, so the verifier runs against a company with a past. Rebuild a seed after changing how a service stores
+its data:
+
+    seedco python3 tools/build_task_seed.py task01_order_confirmation
+
+The reference solutions are derived from the base services, not written by hand. `tools/derive_solutions.py`
+holds each ticket as a set of exact edits, and a task's solution is its tickets applied together. After changing
+a service, run `python3 tools/derive_solutions.py .`; it fails if an edit it expects no longer applies.
+
+### Tasks
+
+| Task | What it is | Owners touched | Criteria (feature + regression) |
+| --- | --- | --- | --- |
+| `task01_order_confirmation` | One change: staff confirm orders before they are fulfilled | 4 | 9 + 8 |
+| `task02_release` | A release of seven tickets: the task 1 change, a coupled pair (Payments pages a list that Subscriptions scans), and four independent tickets | 10 | 18 + 8 |
+| `task03_payment_incidents` | Three reports a week after a release, symptoms only: refunds paid too often (Core and Payments), a subscriber billed three times and renewals held up (Subscriptions). Built by `tools/derive_incidents.py` | 3 | 8 + 8 |
+
+### How work is verified
+
+Each task has a rubric, `tasks/<id>/hidden/rubric.toml`: a list of criteria, each with a note saying what it
+checks and why. `kernel/rubric.py` runs it.
+
+    [[criterion]]
+    id = "ops7-no-tax-if-never-confirmed"
+    ticket = "OPS-7"
+    kind = "feature"
+    type = "test"
+    test = "test_core_taxes__an_order_cancelled_before_confirmation_is_never_reported"
+    note = """An order cancelled while it is still held is never reported for tax. This is the reason the business
+    wanted the change."""
+
+| | |
+| --- | --- |
+| `kind = "feature"` | What the work adds. Fails on the company as it was. Belongs to a ticket. Agents cannot see these. |
+| `kind = "regression"` | What must keep working. Passes on the company as it was. The checks are in `tasks/<id>/regression/`, which agents can read and run; the verifier runs its own copy, so editing the visible one changes nothing. |
+| `type = "test"` | A check method, run against the whole company started from its history |
+| `type = "command"` | A shell command in the company's directory; exit 0 passes (`promtool test rules ...`) |
+| `type = "judge"` | A question a model answers about named files (is the runbook usable?). Run only with `--judge`; otherwise reported as not run and left out of the reward |
+
+The reward measures progress:
+
+    reward = (weighted share of feature criteria passed) x (weighted share of regression criteria passed)
+
+So every ticket finished earns something, an untouched company earns 0, and breaking what worked costs a share
+of everything earned. The result also gives the share per ticket. On task 2:
+
+| Company | Progress | Regression | Reward |
+| --- | --- | --- | --- |
+| Reference solution | 1.00 | 1.00 | 1.00 |
+| Every ticket but OPS-7 | 0.53 | 1.00 | 0.53 |
+| Only OPS-7 | 0.47 | 1.00 | 0.47 |
+| Every ticket but SUB-18 (the list is paged, Subscriptions still scans it) | 0.95 | 0.88 | 0.83 |
+| Untouched | 0.00 | 1.00 | 0.00 |
+
+Before it starts the company, the verifier kills (SIGKILL) whatever is listening on the ten ports it uses
+(7100-7109), so services an agent left running can neither block it nor answer in the company's place.
+
+To verify a company by hand:
+
+    seedco python3 kernel/rubric.py --workspace runs/<run-id>/ws --out /tmp/verdict --seed tasks/task01_order_confirmation/seed \
+        --checks tasks/task01_order_confirmation/regression tasks/task01_order_confirmation/hidden tasks/task02_release/hidden
 
 ## Run
 
 Everything runs inside the toolchain image.
 
-    docker build -t seedco-toolchain:0.2 docker/
-    alias seedco='docker run --rm -v "$PWD":/work -e ANTHROPIC_API_KEY seedco-toolchain:0.2'
+    docker build -t seedco-toolchain:0.4 docker/
+    alias seedco='docker run --rm -v "$PWD":/work -e ANTHROPIC_API_KEY seedco-toolchain:0.4'
 
-    seedco python3 platform/stack.py     # the whole company on ports 7000-7004, until interrupted
+    seedco python3 platform/stack.py     # the whole company on ports 7000-7009, until interrupted
 
     seedco python3 -m unittest discover -s integration -p "test_*.py"     # base company, end to end
     seedco python3 -m unittest kernel.tests.test_kernel                   # kernel, scripted agents
 
-    seedco python3 -m kernel.run --task task01_money --condition team --oracle    # reference team, no tokens
-    seedco python3 -m kernel.run --task task01_money --condition team             # model team
-    seedco python3 -m kernel.run --task task01_money --condition team_no_messaging
-    seedco python3 -m kernel.run --task task01_money --condition solo
+    seedco python3 -m kernel.run --task task02_release --condition team --oracle    # reference team, costs nothing
+    seedco python3 -m kernel.run --task task02_release --condition lead             # a lead that staffs the work itself
+    seedco python3 -m kernel.run --task task02_release --condition team             # one agent per owner
+    seedco python3 -m kernel.run --task task02_release --condition team_no_messaging
+    seedco python3 -m kernel.run --task task02_release --condition solo
 
-A run writes `runs/<run-id>/events.jsonl` (every model call, tool call and message), `result.json` (score per check
-and per boundary, tokens, each service's own tests) and leaves the final workspace in `runs/<run-id>/ws`.
+### One container per owner
+
+The company can also run with every owner in its own container, each holding only that owner's directory:
+
+    docker compose -f docker/compose.yaml up -d      # shop: http://localhost:7001   dashboard: http://localhost:7002
+    python3 -m unittest integration/test_compose.py  # on the host: a purchase across the containers
+    docker compose -f docker/compose.yaml down -v
+
+For episodes, `--isolation containers` gives every agent a container that holds only its own files and has no
+network; the agent's tests run there. The solo agent's container holds the whole company. The finished
+workspace is scored in a container of its own. This mode drives docker, so the kernel runs on the host:
+
+    python3 -m kernel.run --task task01_order_confirmation --condition team --oracle --isolation containers
+    python3 -m unittest kernel.tests.test_containers
+
+Every container uses the one toolchain image today. A model run in this mode needs the `anthropic` package on the host.
+
+### Harbor
+
+Every task is also exported as a [Harbor](https://docs.harborframework.com/tasks/overview) task directory, so it
+runs in existing evaluation infrastructure with any Harbor agent:
+
+    python3 tools/export_harbor.py .                              # writes harbor/<task>/ from tasks/ and services/
+    python3 tools/export_harbor.py . --check                      # fails, naming the files, if harbor/ is behind its sources
+    harbor run -p harbor/task02_release -a oracle                 # the reference solution: reward 1.0
+    harbor run -p harbor/task02_release -a claude-code -m <model>
+
+A Harbor task is one container and one agent, so the export is the task as one agent with the whole company
+sees it: the instruction is the solo brief, the environment is the company in `/work` with the task's starting
+state, each owner's data and the regression suite (`/work/regression`), the verifier runs the task's rubric and
+writes its reward (with `rubric.json` beside it: every criterion, its note and why it failed), and the oracle
+copies the reference solution in.
+The agent has a shell there, so it can start the whole company itself. An agent that starts sub-agents of its
+own is the Harbor counterpart of the `lead` condition. The one-agent-per-owner conditions need files hidden
+from each agent, which one shared shell cannot do; they run through `kernel.run`.
+
+`tasks/` is the source and `harbor/` is a copy. The task's whole rubric is one generated file,
+`harbor/<task>/tests/rubric.toml`, put together from the rubrics under `tasks/`. Never edit under `harbor/`:
+change the source and export again. The kernel's tests run `--check`, so a copy that has fallen behind (the
+rubric, a check, a service, the seed) fails them.
+
+The verifier takes nothing from the agent's side that could grade itself: the stack runner, the checks, its
+copy of the regression suite, the production history, the released mobile build and the driver that replays it
+come from `tests/`, which Harbor puts in the container only after the agent has finished.
+
+### Checking the rubric
+
+A criterion can be wrong in two ways: it can pass work that is wrong, or fail work that is right but done
+differently. `tools/check_the_checks.py` runs task 2's rubric against variations of the reference solution and
+names the criteria each must fail: wrong ones (an alert that always fires, a mobile build that fakes its
+screens, a released build edited after shipping), partial ones (every ticket but OPS-7; PAY-21 without SUB-18),
+and correct-but-unusual ones that must fail none (pages laid out differently, a button written as an `<input>`,
+a tax app that notes an order before committing it). On the untouched company it requires every regression
+criterion to pass and every feature criterion to fail, which is what the two kinds mean.
+
+    seedco python3 tools/check_the_checks.py
+
+The checks buy through Core's API and read pages as HTML, so the layout of a page only matters to the checks
+that are about that page.
+
+### Comparing conditions
+
+`kernel.experiment` runs a task under solo, lead, team and team-without-messaging with the same model, effort
+and budget in dollars, and prints them side by side: criteria passed, progress, regression, cost, reward, the
+tickets left unfinished, and for the lead, the agents
+it started and the directories it gave each. Put the API key in a `.env` file at the repository root
+(`ANTHROPIC_API_KEY=...`; the file is ignored by git):
+
+    docker run --rm -v "$PWD":/work -w /work --env-file .env seedco-toolchain:0.4 \
+        python3 -m kernel.experiment --task task01_order_confirmation
+
+Add `--oracle` to try it with the scripted reference team, which uses no tokens.
+
+A run writes, under `runs/<run-id>/`:
+
+| File | What it holds |
+| --- | --- |
+| `trajectories/<agent>.json` | One trajectory per agent in ATIF, the format Harbor uses (`ATIF-v1.8`): the system prompt, what the agent was told each turn, each model call with its reasoning, tool calls, what every tool returned, tokens and cost. An agent the lead started has its own file, and the lead's `spawn_agent` result points at it |
+| `events.jsonl` | The raw log the trajectories are built from, in the order things happened across agents (`python3 -m kernel.atif runs/<run-id>` rebuilds them) |
+| `result.json` | The rubric's result per criterion and per ticket, cost, each owner's own tests |
+| `ws/` | The company as the agents left it |
+
+A Harbor run keeps the agent's own ATIF trajectory in its trial directory.
 
 ## How an episode works
 
-- Each owner agent sees only its own service directory. The solo agent sees all four.
+- Four ways to staff a task (`--condition`): `team` is one agent per owner the task has a brief for; `solo` is one
+  agent with every directory; `lead` is one agent with every directory that may also start other agents, give
+  each some directories and instructions, and work with them by message; `team_no_messaging` is the team with
+  no channel. An agent sees only the directories it holds.
 - Turns go round-robin; a turn is one model call and the tool calls it makes.
-- All agents draw on one shared token budget (`--budget`), counted as every token read or written. A hard stop on
-  model calls (`--max-calls`) is a safety net.
+- All agents are paid from one shared budget in dollars (`--budget`), priced per model from its input, output
+  and cached-token rates. A hard stop on model calls (`--max-calls`) is a safety net.
+- Every agent can read and run the regression suite (`read_regression`, `run_regression`): the whole company is
+  started as it is now and the checks of what must keep working are run. No agent can see or run the feature
+  criteria. Each service's log of the run is left in its owner's `logs/regression.log`.
+- When a task's history kept logs, each owner finds its service's log of that history in `logs/production.log`.
+- With `--isolation containers` every agent also has a `shell` in its own container: it holds only that agent's
+  directories, the stack runner and the regression suite, and has no network. An agent with every directory
+  can start the whole company there and send it requests. Without containers there is no shell, because a
+  shell on the kernel's machine could read the verifier's files.
+- The reward puts being right first and cheap second: the rubric's reward (0 to 1), plus, only when that is 1,
+  the unspent share of the budget. It runs from 0 to 2.
 - The episode ends when every agent has submitted, the budget is spent, or the hard stop is reached.
-- Scoring starts the company from the final workspace and runs the task's hidden checks. Each check belongs to one
-  boundary, so a failure can be placed.
+- Scoring starts the company from the final workspace and runs the task's rubric. Each feature criterion belongs
+  to a ticket and each check names the boundary it crosses, so a failure can be placed.
 
 ## The model harness
 

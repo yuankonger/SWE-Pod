@@ -1,0 +1,68 @@
+# The criteria of the regression suite: what the company does today and must still do after any change.
+# The checks are in regression_checks.py. A task's verifier runs these with the task's own criteria
+# (kernel/rubric.py), from its own copy of this directory.
+
+[[criterion]]
+id = "receipt-at-payment"
+kind = "regression"
+type = "test"
+test = "test_core_notifications__a_paid_order_gets_its_receipt"
+note = """A customer who has paid gets a receipt with the right lines, tax and total, and the email app could read
+every order event Core sent it. Guards against a change to order events that the email app silently drops."""
+
+[[criterion]]
+id = "web-shop-buys"
+kind = "regression"
+type = "test"
+test = "test_core_storefront__a_customer_buys_in_the_web_shop"
+note = """A customer can buy in the web shop: Core holds one fully charged order for the right total and the shop
+shows the customer the order number, that it is paid, and the total."""
+
+[[criterion]]
+id = "mobile-builds-buy"
+kind = "regression"
+type = "test"
+test = "test_core_mobile__every_supported_release_buys"
+note = """Every build of the mobile app that customers still run can buy. Old builds cannot be changed, so Core's
+API has to stay usable by them. The build is driven by the verifier's own script, not the mobile owner's."""
+
+[[criterion]]
+id = "release-1.0.0-untouched"
+kind = "regression"
+type = "test"
+test = "test_mobile_data__release_1_0_0_is_as_it_shipped"
+note = """Release 1.0.0 is still listed as supported and its files are byte for byte what shipped. Editing a
+released build fixes nothing: the copy on customers' phones does not change."""
+
+[[criterion]]
+id = "renewal-order-ready-to-ship"
+kind = "regression"
+type = "test"
+test = "test_core_subscriptions__a_subscription_renews_with_an_order_ready_to_ship"
+note = """A subscription started by a new purchase renews, and its renewal order is paid and ready to fulfil
+(UNFULFILLED, from a draft). Renewal orders are created by an app, not placed in a shop."""
+
+[[criterion]]
+id = "subscription-records-card"
+kind = "regression"
+type = "test"
+test = "test_payments_subscriptions__a_new_subscription_records_its_card"
+note = """A new subscription holds the card its first order was paid with, which the Subscriptions app reads from
+Payments. Without it the subscription cannot be charged at renewal."""
+
+[[criterion]]
+id = "old-order-still-ships"
+kind = "regression"
+type = "test"
+test = "test_core_data__an_order_from_the_history_can_still_be_shipped"
+note = """An order that was already waiting to be shipped when the change went out is as it was: staff can fulfil
+it, its confirmation email is not sent a second time, and its tax document is still there, once."""
+
+[[criterion]]
+id = "old-subscription-renews"
+kind = "regression"
+type = "test"
+test = "test_core_data__a_subscription_from_the_history_renews"
+note = """A subscriber from before the change renews at the right price, and the renewal order gets its
+confirmation email and its tax document straight away."""
+

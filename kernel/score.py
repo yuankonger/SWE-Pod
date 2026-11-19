@@ -1,64 +1,40 @@
-"""Scoring: run a task's hidden checks against a finished workspace, and each service's own tests.
+"""Scoring: run a task's rubric against a finished workspace, and each service's own tests.
 
-Hidden checks are unittest methods named `test_<boundary>__<what>`. Each one is a separate check, so a failure can
-be placed at a boundary. The score is the share of hidden checks that pass.
+The rubric (`rubric.toml` in the task's hidden directory) lists the criteria; `kernel/rubric.py` runs them in a
+process of its own and returns the reward: the share of feature criteria passed, times the share of regression
+criteria passed. See that file for the format.
 """
-import importlib.util
+import json
 import os
 import subprocess
 import sys
-import unittest
+import tempfile
+
+from .episode import check_dirs, seed_dir
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-class _Collector(unittest.TextTestResult):
-    def __init__(self, *a, **k):
-        super().__init__(*a, **k)
-        self.checks = {}
+def run_hidden(task_dir: str, workspace: str, base_port: int = 7100, judge: bool = False) -> dict:
+    """Start the workspace's company and run the task's rubric against it.
 
-    def _note(self, test, outcome, detail=""):
-        self.checks[test.id().split(".")[-1]] = {"passed": outcome == "pass", "detail": detail[-1500:]}
-
-    def addSuccess(self, test):
-        super().addSuccess(test)
-        self._note(test, "pass")
-
-    def addFailure(self, test, err):
-        super().addFailure(test, err)
-        self._note(test, "fail", self._exc_info_to_string(err, test))
-
-    def addError(self, test, err):
-        super().addError(test, err)
-        if hasattr(test, "id") and "setUpClass" not in test.id():
-            self._note(test, "error", self._exc_info_to_string(err, test))
-        else:
-            self.checks["__setup__"] = {"passed": False, "detail": self._exc_info_to_string(err, test)[-3000:]}
-
-
-def run_hidden(task_dir: str, workspace: str, base_port: int = 7100) -> dict:
-    """Start the workspace's company and run the task's hidden checks against it."""
-    os.environ["SEEDCO_ROOT"] = workspace
-    os.environ["SEEDCO_BASE_PORT"] = str(base_port)
-    sys.path.insert(0, os.path.join(workspace, "platform"))
-    try:
-        spec = importlib.util.spec_from_file_location("hidden_checks", os.path.join(task_dir, "hidden", "test_task.py"))
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        suite = unittest.defaultTestLoader.loadTestsFromModule(module)
-        names = sorted(t.id().split(".")[-1] for group in suite for t in group)
-        result = unittest.TextTestRunner(stream=open(os.devnull, "w"), resultclass=_Collector).run(suite)
-    finally:
-        sys.path.pop(0)
-        sys.modules.pop("stack", None)
-    checks = result.checks
-    if "__setup__" in checks:  # the company did not start: every check fails, with the reason attached once
-        checks.update({n: {"passed": False, "detail": "the company did not start"} for n in names})
-    passed = sum(1 for n in names if checks.get(n, {}).get("passed"))
-    by_boundary = {}
-    for n in names:
-        b = n[len("test_"):].split("__")[0]
-        by_boundary.setdefault(b, []).append(bool(checks.get(n, {}).get("passed")))
-    return {"score": passed / len(names) if names else 0.0, "passed": passed, "total": len(names), "checks": checks,
-            "boundaries": {b: sum(v) / len(v) for b, v in by_boundary.items()}}
+    Returns the rubric's result (reward, progress, regression, tickets, criteria) with `score` (the reward) and
+    `checks` ({criterion id: {passed, detail}}) beside it. The stack runner and the checks are the repository's,
+    never the workspace's copies."""
+    out = tempfile.mkdtemp(prefix="seedco-verify-")
+    seed = seed_dir(task_dir)      # the company starts from the task's history, if it has one
+    cmd = [sys.executable, os.path.join(HERE, "rubric.py"), "--workspace", workspace, "--out", out, "--base-port", str(base_port),
+           "--platform", os.path.join(HERE, "..", "platform"), "--checks"] + check_dirs(task_dir)
+    p = subprocess.run(cmd + (["--seed", seed] if seed else []) + (["--judge"] if judge else []),
+                       capture_output=True, text=True, env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+    path = os.path.join(out, "rubric.json")
+    if not os.path.isfile(path):      # the verifier itself failed: that is an error, never a score
+        raise RuntimeError("the verifier did not finish:\n" + (p.stderr or p.stdout)[-3000:])
+    with open(path) as f:
+        result = json.load(f)
+    result["score"] = result["reward"]
+    result["checks"] = {c["id"]: {"passed": bool(c["passed"]), "detail": c["detail"]} for c in result["criteria"] if c["passed"] is not None}
+    return result
 
 
 def run_own_tests(workspace: str, build_base: str) -> dict:
@@ -74,3 +50,9 @@ def run_own_tests(workspace: str, build_base: str) -> dict:
         except subprocess.TimeoutExpired:
             out[s] = False
     return out
+
+
+if __name__ == "__main__":
+    # python3 -m kernel.score <task dir> <workspace>: prints the scores as one line of JSON (used for container scoring)
+    task_dir, workspace = sys.argv[1], sys.argv[2]
+    print(json.dumps({"hidden": run_hidden(task_dir, workspace), "own_tests": run_own_tests(workspace, "/tmp/seedco-build-score")}))

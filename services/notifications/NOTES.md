@@ -1,23 +1,24 @@
 # Notifications: owner's notes
 
 - Python 3, standard library only (SQLite included). `./run test`, `./run serve`.
-- `notifications.py` holds the workflows and templates, `payload.py` the payload schemas, `store.py` the database,
-  `server.py` the HTTP wiring and the consumers.
-- The database is SQLite. With `SEEDCO_DATA_DIR` set it is a file there; without it, it is in memory. It holds the
-  outbox, the dedup log, the consumer offsets and the dropped events.
-- We read two topics, `orders` and `billing`, each from the offset we last stored.
-- One workflow per event type: `order.placed`, `order.shipped`, `order.cancelled`, `invoice.paid`,
-  `payment.failed`, `subscription.updated`. A workflow is a payload schema plus a template.
-- Templates read fields straight out of the event's embedded object (`order`, `invoice`, `payment` or
-  `subscription`). The receipt reads each line's `amount`; the confirmation reads only `qty`, `name` and `total`.
-- Each workflow checks the embedded object against its payload schema before rendering. Most schemas allow
-  fields we do not use. The receipt's does not: an invoice with a field or a line `type` we do not know is
-  rejected, so a receipt never leaves a charge out.
-- Money is formatted by `money()`, which treats the value as dollars. A negative amount is shown as `-$13.70`.
-- One email per `event_id`. An event with an id we have seen is ignored, also after a restart.
-- An event we cannot use is recorded (`GET /dropped`) and skipped; the consumer keeps going. The third dropped
-  event of one type sends one alert to operations.
-- `subscription.updated` sends an email for plan changes, scheduled downgrades, scheduled cancellations and
-  terminations. A renewal sends none; the renewal receipt covers it.
-- Pinned copies of the event schemas are in `pinned/`. They are the publishers' description of the events; the
-  schemas in `payload.py` are ours and say what our templates need.
+- `./run query "<sql>"` runs read-only SQL on the database (tables `emails`, `dropped`, `settings`).
+- Modelled on Saleor's SMTP app (github.com/saleor/apps, apps/smtp): Core sends us order events and we turn
+  them into emails. The outbox stands in for the mail provider.
+- `notifications.py` holds the workflows and templates, `payload.py` the payload schemas, `store.py` the
+  database, `server.py` the HTTP wiring.
+- Core installs us from `/api/manifest`. The order fields we receive are the ones `graphql/order-events.graphql`
+  asks for. A template that needs a new field needs it in that query first.
+- Events: ORDER_CREATED (confirmation), ORDER_FULLY_PAID (receipt), ORDER_FULFILLED (shipping),
+  ORDER_CANCELLED (cancellation), ORDER_REFUNDED (refund).
+- Each workflow checks the order against its payload schema before rendering. An event that does not fit is
+  recorded (`GET /dropped`) and answered with 200, because Core sending it again would not help. The third
+  dropped event of one type sends one alert to operations.
+- Core's deliveries carry no id and can arrive twice. The dedup key is the event type and the order id. For
+  refunds it also includes the refunded total, because one order can be refunded several times.
+- Money is Core's `Money`: `amount` is a decimal in major units, formatted by `money()`.
+- The receipt shows line amounts and the subtotal on the side the order asks for (`displayGrossPrices`), and
+  always shows shipping, tax and the gross total.
+- The cancellation email promises nothing about money. A refund has its own email when it happens.
+- Other services ask for a message with `POST /api/notify`, in the shape of Saleor's NOTIFY_USER. The
+  Subscriptions app uses it. `period_end` and plan names are shown as given.
+- A pinned copy of Core's schema is in `pinned/`.

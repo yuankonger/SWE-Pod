@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Mobile app (TypeScript). ./run test | ./run release <version> | ./run replay <version|source> <core url> [purchase json]
+set -euo pipefail
+cd "$(dirname "$0")"
+export NODE_NO_WARNINGS=1
+case "${1:-}" in
+  test) node --test "test/**/*.test.ts" ;;
+  release)
+    # Freezes the current source as a released build. A released build is never edited afterwards.
+    [ -n "${2:-}" ] || { echo "usage: ./run release <version>" >&2; exit 2; }
+    [ ! -e "releases/$2" ] || { echo "release $2 already exists" >&2; exit 1; }
+    mkdir -p "releases/$2" && cp src/operations.ts src/screens.ts src/client.ts "releases/$2/"
+    echo "released $2"
+    ;;
+  replay) shift; exec node src/replay.ts "$@" ;;
+  *) echo "usage: ./run test | release <version> | replay <version|source> <core url> [purchase json]" >&2; exit 2 ;;
+esac

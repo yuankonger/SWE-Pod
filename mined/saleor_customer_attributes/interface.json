@@ -1,0 +1,64 @@
+{
+ "saleor.account.models": {
+  "exists_at_base": true,
+  "names": {
+   "CustomerType": "class CustomerType(ModelWithMetadata)"
+  },
+  "changed": {}
+ },
+ "saleor.account.migrations.tasks.saleor3_23": {
+  "exists_at_base": true,
+  "names": {
+   "assign_default_customer_type_to_users_task": "def assign_default_customer_type_to_users_task()"
+  },
+  "changed": {}
+ },
+ "saleor.account.exceptions": {
+  "exists_at_base": false,
+  "names": {
+   "NoDefaultCustomerType": "class NoDefaultCustomerType(Exception)"
+  },
+  "changed": {}
+ },
+ "saleor.account.utils": {
+  "exists_at_base": true,
+  "names": {
+   "get_default_customer_type": "def get_default_customer_type(database_connection_name: str=settings.DATABASE_CONNECTION_DEFAULT_NAME)"
+  },
+  "changed": {}
+ },
+ "saleor.attribute.models": {
+  "exists_at_base": true,
+  "names": {
+   "AssignedUserAttributeValue": "class AssignedUserAttributeValue(SortableModel)",
+   "AttributeCustomerType": "class AttributeCustomerType(SortableModel)"
+  },
+  "changed": {}
+ },
+ "saleor.account.error_codes": {
+  "exists_at_base": true,
+  "names": {
+   "CustomerTypeAssignAttributesErrorCode": "class CustomerTypeAssignAttributesErrorCode(Enum)",
+   "CustomerTypeCreateErrorCode": "class CustomerTypeCreateErrorCode(Enum)",
+   "CustomerTypeDeleteErrorCode": "class CustomerTypeDeleteErrorCode(Enum)",
+   "CustomerTypeReorderAttributesErrorCode": "class CustomerTypeReorderAttributesErrorCode(Enum)",
+   "CustomerTypeUnassignAttributesErrorCode": "class CustomerTypeUnassignAttributesErrorCode(Enum)",
+   "CustomerTypeUpdateErrorCode": "class CustomerTypeUpdateErrorCode(Enum)"
+  },
+  "changed": {}
+ },
+ "saleor.graphql.account.mutations.customer_type.customer_type_create": {
+  "exists_at_base": false,
+  "names": {
+   "customer_type_qs_select_for_update": "def customer_type_qs_select_for_update()"
+  },
+  "changed": {}
+ },
+ "saleor.graphql.account.sorters": {
+  "exists_at_base": true,
+  "names": {
+   "CustomerTypeSortField": "class CustomerTypeSortField(BaseEnum)"
+  },
+  "changed": {}
+ }
+}

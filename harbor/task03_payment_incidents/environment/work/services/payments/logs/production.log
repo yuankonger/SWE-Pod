@@ -1,0 +1,9 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.94
+{"timestamp":"2026-11-13T10:06:35.6171900Z","level":"info","service":"payments","message":"payments listening on 7603"}
+{"timestamp":"2026-11-13T10:06:40.5539275Z","level":"warning","service":"payments","message":"transaction-initialize-session: CHARGE_FAILURE card_declined"}
+{"timestamp":"2026-11-13T10:06:40.5997936Z","level":"warning","service":"payments","message":"transaction-initialize-session: CHARGE_FAILURE card_declined"}

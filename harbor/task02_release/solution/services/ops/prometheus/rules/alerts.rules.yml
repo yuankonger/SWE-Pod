@@ -1,0 +1,65 @@
+# Alert rules. Each alert names the runbook to open. Metric names are the services' own: Core's follow Saleor's
+# telemetry (saleor_*), the rest are seedco_* and http_server_request_count_total.
+groups:
+  - name: availability
+    rules:
+      - alert: ServiceDown
+        expr: up{job="seedco"} == 0
+        for: 3s
+        labels: {severity: page}
+        annotations:
+          summary: "{{ $labels.service }} is not answering its metrics endpoint"
+          runbook: runbooks/service-down.md
+
+  - name: checkout
+    rules:
+      - alert: TaxCalculationFailing
+        # Core counts every checkout or order it could not get taxes for. Customers cannot complete those checkouts.
+        expr: sum(seedco_tax_errors_total) > 0
+        labels: {severity: page}
+        annotations:
+          summary: "Core could not calculate taxes {{ $value }} times"
+          runbook: runbooks/tax-calculation-failing.md
+
+      - alert: SyncWebhookFailing
+        expr: sum by (saleor_app_identifier, saleor_webhook_event_type) (saleor_webhook_request_count_total{saleor_webhook_execution_mode="sync", outcome="failure"}) > 0
+        labels: {severity: page}
+        annotations:
+          summary: "{{ $labels.saleor_app_identifier }} is failing {{ $labels.saleor_webhook_event_type }}"
+          runbook: runbooks/webhook-failing.md
+
+      - alert: PaymentFailuresHigh
+        # Declined cards are normal; more failures than successes is not.
+        expr: sum(seedco_payment_results_total{result="CHARGE_FAILURE"}) > 3 and sum(seedco_payment_results_total{result="CHARGE_FAILURE"}) > sum(seedco_payment_results_total{result="CHARGE_SUCCESS"} or vector(0))
+        labels: {severity: ticket}
+        annotations:
+          summary: "More payments are failing than succeeding"
+          runbook: runbooks/payment-failures.md
+
+  - name: events
+    rules:
+      - alert: EventDeliveryFailing
+        expr: sum by (saleor_app_identifier) (saleor_webhook_request_count_total{saleor_webhook_execution_mode="async", outcome="failure"}) > 2
+        labels: {severity: ticket}
+        annotations:
+          summary: "Core cannot deliver order events to {{ $labels.saleor_app_identifier }}"
+          runbook: runbooks/webhook-failing.md
+
+      - alert: NotificationsDroppingEvents
+        # The email app answers 200 to an event it cannot use and counts it here, so Core sees nothing wrong.
+        expr: sum by (event_type) (seedco_events_dropped_total) > 0
+        labels: {severity: ticket}
+        annotations:
+          summary: "Customers are not getting emails for {{ $labels.event_type }}"
+          runbook: runbooks/emails-missing.md
+
+  - name: subscriptions
+    rules:
+      - alert: RenewalsFailing
+        # The subscriptions app counts every renewal attempt by outcome. A failed renewal is a customer whose card
+        # was declined and who loses the subscription after the third failure.
+        expr: sum(seedco_renewals_total{outcome="failed"}) > 0
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $value }} subscription renewals have failed"
+          runbook: runbooks/renewals-failing.md

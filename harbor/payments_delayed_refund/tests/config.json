@@ -1,0 +1,17 @@
+{
+  "git": "http://verifier:verifier-c41f09be73@git:8080",
+  "ci": "http://ci:8080",
+  "repositories": [
+    "core",
+    "payments"
+  ],
+  "provider_admin": "provider-admin-6c1e0b93",
+  "publishable_key": "pk_test_seedco51a7c0e2b9d4",
+  "versions": {
+    "core": "http://core.internal:9000/version",
+    "payments": "http://stripe.internal:9000/version"
+  },
+  "traffic": "http://traffic:8090",
+  "traffic_token": "traffic-read-7d31c9",
+  "duplicates": true
+}

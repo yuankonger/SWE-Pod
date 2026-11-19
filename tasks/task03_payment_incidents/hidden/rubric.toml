@@ -1,0 +1,100 @@
+# The rubric for the incidents after release 2026.11. The regression criteria are the regression suite's own
+# (../../task01_order_confirmation/regression/rubric.toml). Checks are in incident_checks.py.
+#
+# The agents are told symptoms only: refunds the provider paid more often than staff asked, a subscriber sent a
+# box three days running, renewals that did not happen. Each criterion below is something that must be true once
+# the causes are fixed, and each fails on the company as the task finds it.
+
+[[criterion]]
+id = "refund-same-amount-twice"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_core_payments__the_same_amount_refunded_twice_is_paid_twice"
+note = """The reported symptom, end to end: staff refund $5 twice on one order; Core records both as succeeded and
+the provider pays back $5 twice, no more. As released, the payment app's ledger refuses a second request of the
+same amount on a transaction after the provider has already paid, Core asks again, and the provider pays again."""
+
+[[criterion]]
+id = "refund-ledger-kept"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_payments_api__the_refund_ledger_holds_what_the_provider_paid"
+note = """The ledger of refund requests that release 2026.11 added is still there and holds exactly the refunds
+the provider paid. Guards against fixing the incident by taking the ledger out, which the task forbids."""
+
+[[criterion]]
+id = "refund-redelivery-paid-once"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_core_payments__a_refund_request_delivered_twice_is_paid_once"
+note = """The payment app's half of the cause: it must be safe to deliver a request to it twice. The verifier's proxy
+hands the app the very request Core built for it, twice. The provider pays once and the app answers the repeat
+as it answered the first. A fix that only stops the ledger from failing passes the first criterion and fails
+this one. The request is Core's own, built from the app's own webhook query, so the check does not assume which
+fields the app reads."""
+
+[[criterion]]
+id = "refund-repeats-share-one-key"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_core_api__a_refund_request_is_repeated_under_one_key"
+note = """Core's half, checked with a payment app the verifier runs: when the app gives no answer, Core asks again
+(what release 2026.11 added must stay) and the repeat carries the same `idempotencyKey`, so an app can tell a
+repeat from a new request. A new request gets a new key. How many times Core asks is not checked."""
+
+[[criterion]]
+id = "refund-lost-answer-paid-once"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_core_payments__a_lost_answer_does_not_pay_twice"
+note = """Both halves together, as it happens in production: the payment app refunds, its answer is lost on the way
+to Core, Core asks again. The provider must have paid once and Core must show the refund as succeeded. This
+needs Core and the payment app to agree on what identifies a request; neither side's fix is enough alone."""
+
+[[criterion]]
+id = "refund-overpayments-reported"
+ticket = "INC-refunds"
+kind = "feature"
+type = "test"
+test = "test_payments_data__finance_gets_the_orders_that_were_refunded_too_much"
+note = """The damage already done. The brief asks for a list of the orders on which the provider paid back more than
+staff asked, with the amount overpaid, as `payments/docs/over-refunds.csv`. The verifier works the right answer
+out from the history itself: what staff asked is in Core's database, what the provider paid is in the payment
+app's, so neither owner can write the list alone. The format is fixed by the brief so that a correct list cannot
+fail on its layout; `#6` and `$24.80` are accepted."""
+
+[[criterion]]
+id = "plan-change-renews-once"
+ticket = "INC-renewals"
+kind = "feature"
+type = "test"
+test = "test_subscriptions_core__a_scheduled_plan_change_renews_once_on_the_new_plan"
+note = """The subscriber who was sent three boxes: a scheduled move to the small box takes effect at the end of
+the month with one renewal order, for the small box, fully charged, and the subscription is on the new plan in
+its new period, however many nights the run is repeated. As released, the run fails after the charge and
+before the subscription is saved."""
+
+[[criterion]]
+id = "plan-change-note-kept"
+ticket = "INC-renewals"
+kind = "feature"
+type = "test"
+test = "test_subscriptions_core__the_renewal_order_of_a_plan_change_names_the_new_box"
+note = """The note for the warehouse that release 2026.11 added is still put on the renewal order, and names the
+new plan. Guards against fixing the incident by taking the note out."""
+
+[[criterion]]
+id = "renewal-after-plan-change"
+ticket = "INC-renewals"
+kind = "feature"
+type = "test"
+test = "test_subscriptions_core__a_subscriber_after_one_with_a_plan_change_is_renewed"
+note = """The subscribers whose boxes were late: someone who subscribed after a subscriber with a plan change is
+renewed in the same run. This passes once the plan change no longer fails. It does not show that some other
+failure for one subscriber would leave the rest of the run standing: the verifier has no way to make a renewal
+fail unexpectedly from outside."""

@@ -1,16 +1,13 @@
 // View models: what the pages show. Everything a customer reads about money and status is formatted here.
-import type { Invoice, Plan, Subscription } from "./clients/billing.ts";
-import type { Cart, Order, OrderLine, Product } from "./clients/orders.ts";
+import type { Checkout, Money, Order, Product, TaxedMoney } from "./clients/core.ts";
+import type { Plan, Subscription } from "./clients/subscriptions.ts";
 
-export type { Invoice, Order, OrderLine };
-
-const STATUS_LABELS: Record<string, string> = {
-  placed: "Order received",
-  paid: "Paid",
-  payment_failed: "Payment failed",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
+const ORDER_LABELS: Record<string, string> = {
+  UNCONFIRMED: "Order received",
+  UNFULFILLED: "Being prepared",
+  PARTIALLY_FULFILLED: "Partly shipped",
+  FULFILLED: "Shipped",
+  CANCELED: "Cancelled",
 };
 
 const SUBSCRIPTION_LABELS: Record<string, string> = {
@@ -20,58 +17,85 @@ const SUBSCRIPTION_LABELS: Record<string, string> = {
   terminated: "Ended (unpaid)",
 };
 
-export function money(amount: number): string {
-  return (amount < 0 ? "-" : "") + "$" + Math.abs(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+/** Core's Money as text. `amount` is a decimal number in major units; only USD exists today. */
+export function money(m: Money): string {
+  return (m.amount < 0 ? "-" : "") + "$" + Math.abs(m.amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-export function orderPage(order: Order, invoices: Invoice[] = []) {
-  // An order can have several invoices (renewals, plan changes); the page shows the one for the order itself.
-  const own = invoices.filter((i) => i.order_id === order.order_id);
-  const invoice = own.find((i) => (i.reason ?? "order") === "order") ?? own[0] ?? null;
-  return {
-    order_id: order.order_id,
-    status: order.status,
-    status_label: STATUS_LABELS[order.status] ?? order.status,
-    lines: order.lines.map((l) => ({
-      name: l.name,
-      qty: l.qty,
-      unit_price_display: money(l.unit_price),
-      line_total_display: money(l.unit_price * l.qty),
-    })),
-    subtotal_display: money(order.subtotal),
-    tax_display: money(order.tax),
-    total_display: money(order.total),
-    invoice: invoice && { invoice_id: invoice.invoice_id, total_display: money(invoice.total), status: invoice.status },
-  };
+/** The side of a taxed price the shop shows: gross when the channel displays gross prices, net otherwise. */
+export function shown(price: TaxedMoney, displayGross: boolean): Money {
+  return displayGross ? price.gross : price.net;
 }
-export type OrderPage = ReturnType<typeof orderPage>;
+
+/** What a line is called: the product, and which variant of it when the product has more than one. */
+export function lineName(productName: string, variantName: string): string {
+  return variantName ? `${productName} (${variantName})` : productName;
+}
 
 export function catalogPage(products: Product[], plans: Plan[] = []) {
-  return products.map((p) => {
-    const plan = plans.find((x) => x.sku === p.sku);
+  return products.flatMap((p) => p.variants.map((v) => {
+    const plan = plans.find((x) => x.sku === v.sku);
     return {
-      sku: p.sku,
-      name: p.name,
-      unit_price_display: money(p.unit_price),
+      variant_id: v.id,
+      sku: v.sku,
+      name: lineName(p.name, v.name),
+      unit_price_display: money(v.pricing.price.net),
       renews: plan ? `Renews monthly at ${money(plan.unit_price)}` : null,
     };
-  });
+  }));
 }
 
-export function cartPage(cart: Cart) {
+/** Lines and totals. Shipping and tax are only known once Core has an address for the checkout. */
+function totals(displayGross: boolean, subtotal: TaxedMoney, shipping: TaxedMoney, total: TaxedMoney) {
   return {
-    lines: cart.items.map((i) => ({
-      sku: i.sku,
-      name: i.name,
-      qty: i.qty,
-      unit_price_display: money(i.unit_price),
-      line_total_display: money(i.unit_price * i.qty),
+    subtotal_display: money(shown(subtotal, displayGross)),
+    shipping_display: money(shipping.gross),
+    tax_display: money(total.tax),
+    tax_note: displayGross ? "Prices include tax" : "Tax is added to the prices shown",
+    total_display: money(total.gross),
+  };
+}
+
+export function cartPage(checkout: Checkout | null) {
+  if (!checkout || checkout.lines.length === 0) return { empty: true, count: 0, lines: [], ...totals(false, ZERO, ZERO, ZERO) };
+  const gross = checkout.displayGrossPrices;
+  return {
+    empty: false,
+    count: checkout.lines.reduce((n, l) => n + l.quantity, 0),
+    lines: checkout.lines.map((l) => ({
+      variant_id: l.variant.id,
+      name: lineName(l.variant.product.name, l.variant.name),
+      qty: l.quantity,
+      unit_price_display: money(shown(l.unitPrice, gross)),
+      line_total_display: money(shown(l.totalPrice, gross)),
     })),
-    subtotal_display: money(cart.subtotal),
-    empty: cart.items.length === 0,
+    ...totals(gross, checkout.subtotalPrice, checkout.shippingPrice, checkout.totalPrice),
   };
 }
 export type CartPage = ReturnType<typeof cartPage>;
+
+const ZERO_MONEY: Money = { amount: 0, currency: "USD" };
+const ZERO: TaxedMoney = { gross: ZERO_MONEY, net: ZERO_MONEY, tax: ZERO_MONEY };
+
+export function orderPage(order: Order) {
+  const gross = order.displayGrossPrices;
+  const refunded = order.totalRefunded.amount > 0;
+  return {
+    order_id: order.id,
+    number: order.number,
+    status: order.status,
+    status_label: ORDER_LABELS[order.status] ?? order.status,
+    payment_label: refunded ? `Refunded ${money(order.totalRefunded)}` : order.chargeStatus === "FULL" ? "Paid" : "Awaiting payment",
+    lines: order.lines.map((l) => ({
+      name: lineName(l.productName, l.variantName),
+      qty: l.quantity,
+      unit_price_display: money(shown(l.unitPrice, gross)),
+      line_total_display: money(shown(l.totalPrice, gross)),
+    })),
+    ...totals(gross, order.subtotal, order.shippingPrice, order.total),
+  };
+}
+export type OrderPage = ReturnType<typeof orderPage>;
 
 export function subscriptionPage(s: Subscription, plans: Plan[] = []) {
   const ended = s.status === "canceled" || s.status === "terminated";
@@ -83,25 +107,28 @@ export function subscriptionPage(s: Subscription, plans: Plan[] = []) {
     subscription_id: s.subscription_id,
     plan: s.name,
     qty: s.qty,
-    price_display: `${money(s.unit_price * s.qty)} a month`,
+    price_display: `${money({ amount: s.unit_price.amount * s.qty, currency: s.unit_price.currency })} a month plus tax`,
     status: s.status,
     status_label: SUBSCRIPTION_LABELS[s.status] ?? s.status,
     note,
     // plans the customer can switch to, and whether the switch is immediate (more expensive) or at period end
     changes: s.status !== "active" || s.cancel_at_period_end ? [] : plans.filter((p) => p.sku !== s.sku).map((p) => ({
       sku: p.sku,
-      label: p.unit_price > s.unit_price ? `Upgrade to ${p.name} now` : `Switch to ${p.name} at period end`,
+      label: p.unit_price.amount > s.unit_price.amount ? `Upgrade to ${p.name} now` : `Switch to ${p.name} at period end`,
     })),
     can_cancel: s.status === "active" && !s.cancel_at_period_end,
   };
 }
 export type SubscriptionPage = ReturnType<typeof subscriptionPage>;
 
-export function validateCheckout(body: any): string | null {
-  if (!body || typeof body !== "object") return "body must be an object";
-  if (typeof body.customer_id !== "string" || !body.customer_id) return "customer_id is required";
-  if (typeof body.email !== "string" || !body.email.includes("@")) return "a valid email is required";
-  if (!Number.isInteger(body.postal_code)) return "postal_code must be an integer";
-  if (!Array.isArray(body.items) || body.items.length === 0) return "items must not be empty";
+export interface CheckoutForm { email: string; firstName: string; lastName: string; streetAddress1: string; city: string; countryArea: string; postalCode: string; paymentMethod: string }
+
+/** What is wrong with the checkout form, or null. */
+export function validateCheckout(f: CheckoutForm): string | null {
+  if (!f.email.includes("@")) return "Enter a valid email address.";
+  if (!f.firstName.trim() || !f.lastName.trim()) return "Enter your name.";
+  if (!f.streetAddress1.trim() || !f.city.trim()) return "Enter your street address and city.";
+  if (!/^[0-9]{5}$/.test(f.postalCode)) return "Enter a five-digit postal code.";
+  if (!f.paymentMethod) return "Choose a payment method.";
   return null;
 }

@@ -7,101 +7,117 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from notifications import DROP_ALERT_THRESHOLD, Outbox, money  # noqa: E402
 from payload import PayloadError  # noqa: E402
+from server import manifest  # noqa: E402
 from store import Store  # noqa: E402
 
-ORDER = {"order_id": "ord_1", "customer_id": "c1", "email": "a@example.com", "status": "paid",
-         "lines": [{"sku": "BOX-S", "name": "Small monthly box", "qty": 2, "unit_price": 24.99}],
-         "subtotal": 49.98, "tax": 4.37, "total": 54.35}
-INVOICE = {"invoice_id": "inv_1", "order_id": "ord_1", "subscription_id": None, "customer_id": "c1",
-           "email": "a@example.com", "reason": "order",
-           "lines": [{"type": "RECURRING", "sku": "BOX-S", "name": "Small monthly box", "qty": 2, "unit_price": 24.99, "amount": 49.98}],
-           "subtotal": 49.98, "tax": 4.37, "total": 54.35, "status": "paid", "issued_at": "2026-01-01T00:00:00Z"}
-PAYMENT = {"payment_id": "pay_1", "order_id": "ord_1", "customer_id": "c1", "email": "a@example.com",
-           "amount": 54.35, "status": "failed", "failure_reason": "card_declined"}
-SUBSCRIPTION = {"subscription_id": "sub_1", "customer_id": "c1", "email": "a@example.com", "sku": "BOX-L",
-                "name": "Large monthly box", "status": "active", "current_period_end": "2026-02-01",
-                "pending_name": "Small monthly box"}
+
+def amount(value):
+    return {"amount": value}
 
 
-def event(event_id, event_type, **data):
-    return {"event_id": event_id, "event_type": event_type, "occurred_at": "2026-01-01T00:00:00Z", "data": data}
+ORDER = {"id": "T3JkZXI6MQ==", "number": "1", "userEmail": "pat@example.com", "displayGrossPrices": False,
+         "lines": [{"productName": "Small monthly box", "variantName": "", "quantity": 2, "totalPrice": {"net": amount(49.98), "gross": amount(54.35)}},
+                   {"productName": "Tea add-on", "quantity": 1, "totalPrice": {"net": amount(6.25), "gross": amount(6.8)}}],
+         "subtotal": {"net": amount(56.23), "gross": amount(61.15)}, "shippingPrice": {"gross": amount(5.0)},
+         "total": {"gross": {"amount": 66.15, "currency": "USD"}, "tax": amount(4.92)}, "totalRefunded": amount(0.0)}
+
+
+def event(typename, **changes):
+    return {"__typename": typename, "order": dict(ORDER, **changes)}
 
 
 class OutboxTest(unittest.TestCase):
     def test_money_formats_dollars(self):
-        self.assertEqual(money(54.35), "$54.35")
-        self.assertEqual(money(1234.5), "$1,234.50")
-        self.assertEqual(money(-54.84), "-$54.84")
+        self.assertEqual(money(amount(54.35)), "$54.35")
+        self.assertEqual(money(amount(1234.5)), "$1,234.50")
+        self.assertEqual(money(amount(-54.84)), "-$54.84")
 
     def test_order_confirmation(self):
-        email = Outbox().handle(event("evt_1", "order.placed", order=ORDER))
-        self.assertEqual(email["to"], "a@example.com")
-        self.assertEqual(email["subject"], "Order ord_1 confirmed")
+        email = Outbox().handle(event("OrderCreated"))
+        self.assertEqual((email["to"], email["subject"]), ("pat@example.com", "Order #1 confirmed"))
         self.assertIn("2 x Small monthly box", email["body"])
-        self.assertIn("Total: $54.35", email["body"])
+        self.assertIn("Total: $66.15", email["body"])
 
-    def test_receipt_shows_lines_tax_and_total(self):
-        email = Outbox().handle(event("evt_2", "invoice.paid", invoice=INVOICE))
-        self.assertEqual(email["kind"], "receipt")
-        self.assertEqual(email["subject"], "Receipt for order ord_1")
-        for text in ("2 x Small monthly box  $49.98", "Subtotal: $49.98", "Tax: $4.37", "Total: $54.35"):
+    def test_receipt_shows_net_lines_shipping_tax_and_total(self):
+        email = Outbox().handle(event("OrderFullyPaid"))
+        self.assertEqual((email["kind"], email["subject"]), ("receipt", "Receipt for order #1"))
+        for text in ("2 x Small monthly box  $49.98", "Subtotal: $56.23", "Shipping: $5.00", "Tax: $4.92", "Total: $66.15"):
             self.assertIn(text, email["body"])
 
-    def test_plan_change_receipt_shows_the_credit(self):
-        lines = [{"type": "CREDIT", "sku": "BOX-S", "name": "Unused time on Small monthly box", "qty": 1, "amount": -13.70},
-                 {"type": "PRORATION", "sku": "BOX-L", "name": "Remaining time on Large monthly box", "qty": 1, "amount": 21.66}]
-        email = Outbox().handle(event("evt_5", "invoice.paid", invoice=dict(
-            INVOICE, reason="plan_change", subscription_id="sub_1", lines=lines, subtotal=7.96, tax=0.70, total=8.66)))
-        self.assertEqual(email["subject"], "Receipt for your plan change on order ord_1")
-        self.assertIn("1 x Unused time on Small monthly box  -$13.70", email["body"])
-
-    def test_one_email_per_event(self):
+    def test_a_line_names_its_variant_when_the_product_has_several(self):
+        tea = {"productName": "Assam Breakfast", "variantName": "100 g", "quantity": 1, "totalPrice": {"net": amount(13.0), "gross": amount(14.14)}}
         box = Outbox()
-        box.handle(event("evt_1", "order.placed", order=ORDER))
-        self.assertIsNone(box.handle(event("evt_1", "order.placed", order=ORDER)))
-        box.handle(event("evt_3", "order.cancelled", order=ORDER))
-        self.assertIsNone(box.handle(event("evt_4", "something.else")))
-        self.assertEqual([e["kind"] for e in box.for_customer("c1")], ["order_confirmation", "cancellation"])
-        self.assertEqual(box.for_customer("c2"), [])
+        self.assertIn("1 x Assam Breakfast (100 g)", box.handle(event("OrderCreated", lines=[tea]))["body"])
+        self.assertIn("1 x Assam Breakfast (100 g)  $13.00", box.handle(event("OrderFullyPaid", lines=[tea]))["body"])
 
-    def test_payment_failed_shipping_and_subscription_emails(self):
+    def test_receipt_shows_gross_lines_when_the_shop_displays_gross_prices(self):
+        email = Outbox().handle(event("OrderFullyPaid", displayGrossPrices=True))
+        for text in ("2 x Small monthly box  $54.35", "Subtotal: $61.15", "Tax: $4.92", "Total: $66.15"):
+            self.assertIn(text, email["body"])
+
+    def test_a_repeated_delivery_sends_one_email(self):
         box = Outbox()
-        self.assertIn("$54.35 did not go through (card_declined)",
-                      box.handle(event("evt_1", "payment.failed", payment=PAYMENT))["body"])
-        self.assertEqual(box.handle(event("evt_2", "order.shipped", order=ORDER))["kind"], "shipping")
-        email = box.handle(event("evt_3", "subscription.updated", subscription=SUBSCRIPTION, change="downgrade_scheduled"))
-        self.assertEqual(email["body"], "Your plan changes to Small monthly box on 2026-02-01. Until then you keep "
-                                        "Large monthly box.")
-        self.assertIsNone(box.handle(event("evt_4", "subscription.updated", subscription=SUBSCRIPTION, change="renewed")))
+        self.assertIsNotNone(box.handle(event("OrderCreated")))
+        self.assertIsNone(box.handle(event("OrderCreated")))
+        self.assertIsNotNone(box.handle(event("OrderFulfilled")))
+        self.assertIsNotNone(box.handle(event("OrderCancelled")))
+        self.assertIsNone(box.handle({"__typename": "SomethingElse"}))
+        self.assertEqual([e["kind"] for e in box.emails("pat@example.com")], ["order_confirmation", "shipping", "cancellation"])
+        self.assertEqual(box.emails("sam@example.com"), [])
+
+    def test_each_refund_is_its_own_email(self):
+        box = Outbox()
+        first = box.handle(event("OrderRefunded", totalRefunded=amount(16.15)))
+        self.assertEqual(first["body"], "We have refunded $16.15 to your payment method.")
+        self.assertIsNone(box.handle(event("OrderRefunded", totalRefunded=amount(16.15))))
+        self.assertIsNotNone(box.handle(event("OrderRefunded", totalRefunded=amount(66.15))))
 
     def test_an_event_that_does_not_fit_its_payload_schema_is_rejected(self):
         box = Outbox()
-        with self.assertRaises(PayloadError):   # total must be a number
-            box.handle(event("evt_1", "order.placed", order=dict(ORDER, total="54.35")))
-        with self.assertRaises(PayloadError):   # receipts are strict: an unknown invoice field is refused
-            box.handle(event("evt_2", "invoice.paid", invoice=dict(INVOICE, discount=1.0)))
-        with self.assertRaises(PayloadError):   # and so is an unknown line type
-            box.handle(event("evt_3", "invoice.paid", invoice=dict(INVOICE, lines=[dict(INVOICE["lines"][0], type="USAGE")])))
-        self.assertIsNotNone(box.handle(event("evt_4", "order.placed", order=dict(ORDER, gift_note="hi"))))
+        with self.assertRaises(PayloadError):   # an amount must be a number
+            box.handle(event("OrderCreated", total={"gross": {"amount": "66.15"}, "tax": amount(4.92)}))
+        with self.assertRaises(PayloadError):
+            box.handle(event("OrderCreated", userEmail=None))
+        with self.assertRaises(PayloadError):
+            box.handle({"__typename": "OrderCreated"})
+        self.assertEqual(box.emails(), [])
 
     def test_dropped_events_are_recorded_and_raise_one_alert(self):
         box = Outbox()
         for i in range(DROP_ALERT_THRESHOLD + 2):
-            self.assertIsNone(box.consume(event("evt_%d" % i, "order.placed", order=dict(ORDER, total=None))))
+            self.assertIsNone(box.consume(event("OrderCreated", total=None)))
         self.assertEqual(len(box.store.dropped()), DROP_ALERT_THRESHOLD + 2)
         alerts = box.store.emails(kind="ops_alert")
-        self.assertEqual(len(alerts), 1)
-        self.assertEqual(alerts[0]["subject"], "Notifications is dropping order.placed events")
+        self.assertEqual([a["subject"] for a in alerts], ["Notifications is dropping OrderCreated events"])
 
-    def test_the_outbox_and_the_dedup_log_survive_a_restart(self):
+    def test_messages_other_services_ask_for(self):
+        box = Outbox()
+        base = {"notification_id": "n1", "recipient_email": "pat@example.com", "plan_name": "Large monthly box"}
+        sent = box.notify({"notify_event": "SUBSCRIPTION_DOWNGRADE_SCHEDULED", "payload": dict(
+            base, pending_plan_name="Small monthly box", period_end="2026-02-01")})
+        self.assertEqual(sent["body"], "Your plan changes to Small monthly box on 2026-02-01. Until then you keep Large monthly box.")
+        self.assertIsNone(box.notify({"notify_event": "SUBSCRIPTION_PLAN_CHANGED", "payload": base}))     # same notification_id
+        failed = box.notify({"notify_event": "SUBSCRIPTION_PAYMENT_FAILED", "payload": dict(
+            base, notification_id="n2", amount=amount(54.35), reason="card_declined")})
+        self.assertEqual(failed["body"], "A payment of $54.35 for Large monthly box did not go through (card_declined). "
+                                         "Please update your payment method.")
+        with self.assertRaises(PayloadError):
+            box.notify({"notify_event": "SUBSCRIPTION_CANCEL_SCHEDULED", "payload": dict(base, notification_id="n3")})   # no period_end
+        with self.assertRaises(PayloadError):
+            box.notify({"notify_event": "NOPE", "payload": dict(base, notification_id="n4")})
+
+    def test_the_outbox_survives_a_restart(self):
         path = os.path.join(tempfile.mkdtemp(prefix="seedco-notif-"), "n.db")
-        first = Outbox(Store(path))
-        first.handle(event("evt_1", "order.placed", order=ORDER))
-        first.store.set_offset("orders", 7)
+        Outbox(Store(path)).handle(event("OrderCreated"))
         again = Outbox(Store(path))
-        self.assertIsNone(again.handle(event("evt_1", "order.placed", order=ORDER)))
-        self.assertEqual(len(again.for_customer("c1")), 1)
-        self.assertEqual(again.store.offset("orders"), 7)
+        self.assertIsNone(again.handle(event("OrderCreated")))
+        self.assertEqual(len(again.emails("pat@example.com")), 1)
+
+    def test_the_manifest_subscribes_to_order_events_with_the_query_file(self):
+        m = manifest("http://notifications.test")
+        self.assertEqual(m["id"], "seedco.notifications")
+        self.assertIn("ORDER_FULLY_PAID", m["webhooks"][0]["asyncEvents"])
+        self.assertIn("fragment OrderDetails on Order", m["webhooks"][0]["query"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,382 @@
+# SeedCo Core API. Owner: Core. This file is the API: the server builds its schema from it.
+# It is a subset of the Saleor API (github.com/saleor/saleor, saleor/graphql/schema.graphql) with the same
+# type, field, enum and mutation names. Readers keep a pinned copy; ask Core before relying on anything else.
+
+scalar JSON
+scalar DateTime
+scalar PositiveDecimal
+
+type Query {
+  products(first: Int = 20, after: String, channel: String, filter: ProductFilterInput): ProductCountableConnection
+  channel(slug: String): Channel
+  checkout(id: ID!): Checkout
+  "An order by id. Anyone who holds the id may read it."
+  order(id: ID!): Order
+  "Requires MANAGE_ORDERS."
+  orders(first: Int = 20, after: String, filter: OrderFilterInput): OrderCountableConnection
+  "Requires MANAGE_APPS."
+  apps: [App!]!
+}
+
+type Mutation {
+  "Staff sign-in. The token goes in the Authorization header as `Bearer <token>`."
+  tokenCreate(email: String!, password: String!): CreateToken
+  checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
+  checkoutLinesAdd(id: ID!, lines: [CheckoutLineInput!]!): CheckoutLinesAdd
+  "Sets quantities. A quantity of 0 removes the line."
+  checkoutLinesUpdate(id: ID!, lines: [CheckoutLineUpdateInput!]!): CheckoutLinesUpdate
+  checkoutEmailUpdate(id: ID!, email: String!): CheckoutEmailUpdate
+  checkoutShippingAddressUpdate(id: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
+  checkoutDeliveryMethodUpdate(id: ID!, deliveryMethodId: ID): CheckoutDeliveryMethodUpdate
+  "Starts a payment for a checkout or an order through a payment app (TRANSACTION_INITIALIZE_SESSION)."
+  transactionInitialize(id: ID!, amount: PositiveDecimal, action: TransactionFlowStrategyEnum, paymentGateway: PaymentGatewayToInitialize!, idempotencyKey: String): TransactionInitialize
+  "Turns a fully paid checkout into an order."
+  checkoutComplete(id: ID!): CheckoutComplete
+  "Requires MANAGE_ORDERS."
+  orderCancel(id: ID!): OrderCancel
+  "Requires MANAGE_ORDERS. Confirms an UNCONFIRMED order, which can then be fulfilled."
+  orderConfirm(id: ID!): OrderConfirm
+  "Requires MANAGE_ORDERS."
+  orderFulfill(order: ID!, input: OrderFulfillInput!): OrderFulfill
+  "Requires HANDLE_PAYMENTS. Asks the transaction's payment app to refund (TRANSACTION_REFUND_REQUESTED)."
+  transactionRequestAction(id: ID!, actionType: TransactionActionEnum!, amount: PositiveDecimal): TransactionRequestAction
+  "Requires MANAGE_ORDERS. An order created by staff or an app, not from a checkout."
+  draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
+  "Requires MANAGE_ORDERS."
+  draftOrderComplete(id: ID!): DraftOrderComplete
+  "Requires MANAGE_ORDERS. Sets public metadata on an order."
+  updateMetadata(id: ID!, input: [MetadataInput!]!): UpdateMetadata
+}
+
+"What an app's webhook subscribes to. The app's query selects the fields it wants; the payload is `event`."
+type Subscription {
+  event: Event
+}
+
+interface Event {
+  issuedAt: DateTime
+  version: String
+  recipient: App
+}
+
+type OrderCreated implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+"Sent when staff confirm an order (ORDER_CONFIRMED)."
+type OrderConfirmed implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+type OrderFullyPaid implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+type OrderFulfilled implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+type OrderCancelled implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+type OrderRefunded implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+type OrderFullyRefunded implements Event { issuedAt: DateTime, version: String, recipient: App, order: Order }
+
+"Synchronous. The app answers with the taxes (see contracts/webhooks/calculate-taxes-response.schema.json)."
+type CalculateTaxes implements Event { issuedAt: DateTime, version: String, recipient: App, taxBase: TaxableObject! }
+
+"Synchronous. The app answers with the payment result (contracts/webhooks/transaction-response.schema.json)."
+type TransactionInitializeSession implements Event {
+  issuedAt: DateTime
+  version: String
+  recipient: App
+  transaction: TransactionItem!
+  sourceObject: OrderOrCheckout!
+  "Whatever the storefront passed in `paymentGateway.data`."
+  data: JSON
+  merchantReference: String!
+  action: TransactionProcessAction!
+  idempotencyKey: String!
+}
+
+"Synchronous. The app answers with the refund result."
+type TransactionRefundRequested implements Event {
+  issuedAt: DateTime
+  version: String
+  recipient: App
+  transaction: TransactionItem
+  action: TransactionAction!
+  idempotencyKey: String!
+}
+
+union OrderOrCheckout = Checkout | Order
+union TaxSourceObject = Checkout | Order
+
+type TransactionProcessAction { amount: PositiveDecimal!, currency: String!, actionType: TransactionFlowStrategyEnum! }
+type TransactionAction { actionType: TransactionActionEnum!, amount: PositiveDecimal, currency: String! }
+
+type TaxableObject {
+  sourceObject: TaxSourceObject!
+  "True when the prices in this object already include tax."
+  pricesEnteredWithTax: Boolean!
+  currency: String!
+  shippingPrice: Money!
+  address: Address
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+type TaxableObjectLine {
+  quantity: Int!
+  chargeTaxes: Boolean!
+  productName: String!
+  variantName: String!
+  productSku: String
+  unitPrice: Money!
+  totalPrice: Money!
+}
+
+type Money {
+  currency: String!
+  "The amount in major units, as a decimal number."
+  amount: Float!
+  "The amount as an integer in the currency's smallest unit."
+  fractionalAmount: Int!
+  "How many decimal places the currency has."
+  fractionDigits: Int!
+}
+
+type TaxedMoney { currency: String!, gross: Money!, net: Money!, tax: Money! }
+type PageInfo { hasNextPage: Boolean!, endCursor: String }
+type MetadataItem { key: String!, value: String! }
+input MetadataInput { key: String!, value: String! }
+
+type Channel { id: ID!, slug: String!, name: String!, currencyCode: String!, taxConfiguration: TaxConfiguration! }
+
+type TaxConfiguration {
+  chargeTaxes: Boolean!
+  "True when catalogue prices include tax; false when tax is added on top."
+  pricesEnteredWithTax: Boolean!
+  "Whether shops should show gross prices to customers."
+  displayGrossPrices: Boolean!
+  "The identifier of the app that calculates taxes, if any."
+  taxAppId: String
+}
+
+type Category { id: ID!, name: String!, slug: String!, parent: Category }
+type ProductType { id: ID!, name: String!, slug: String! }
+type Product { id: ID!, name: String!, slug: String!, category: Category, productType: ProductType!, variants: [ProductVariant!] }
+"One buyable form of a product. `name` is empty when the product has only one. A variant may have no SKU."
+type ProductVariant { id: ID!, sku: String, name: String!, product: Product!, pricing: VariantPricingInfo }
+input ProductFilterInput {
+  "Matches product names."
+  search: String
+}
+type VariantPricingInfo { price: TaxedMoney }
+type ProductCountableConnection { edges: [ProductCountableEdge!]!, pageInfo: PageInfo!, totalCount: Int }
+type ProductCountableEdge { node: Product!, cursor: String! }
+
+type CountryDisplay { code: String!, country: String! }
+type Address {
+  firstName: String!
+  lastName: String!
+  streetAddress1: String!
+  city: String!
+  postalCode: String!
+  country: CountryDisplay!
+  countryArea: String!
+}
+input AddressInput {
+  firstName: String
+  lastName: String
+  streetAddress1: String
+  city: String
+  postalCode: String
+  "Two-letter country code."
+  country: String
+  countryArea: String
+}
+
+type ShippingMethod { id: ID!, name: String!, price: Money! }
+type PaymentGateway { id: ID!, name: String! }
+
+enum CheckoutChargeStatusEnum { NONE PARTIAL FULL OVERCHARGED }
+
+type Checkout {
+  id: ID!
+  email: String
+  channel: Channel!
+  lines: [CheckoutLine!]!
+  shippingAddress: Address
+  shippingMethods: [ShippingMethod!]!
+  deliveryMethod: ShippingMethod
+  subtotalPrice: TaxedMoney!
+  shippingPrice: TaxedMoney!
+  totalPrice: TaxedMoney!
+  chargeStatus: CheckoutChargeStatusEnum!
+  "Whether to show this checkout's prices to the customer with tax (gross) or without (net)."
+  displayGrossPrices: Boolean!
+  transactions: [TransactionItem!]
+  availablePaymentGateways: [PaymentGateway!]!
+  metadata: [MetadataItem!]!
+}
+
+type CheckoutLine { id: ID!, variant: ProductVariant!, quantity: Int!, unitPrice: TaxedMoney!, totalPrice: TaxedMoney! }
+
+enum OrderStatus { DRAFT UNCONFIRMED UNFULFILLED PARTIALLY_FULFILLED FULFILLED CANCELED }
+enum OrderChargeStatusEnum { NONE PARTIAL FULL OVERCHARGED }
+enum OrderOriginEnum { CHECKOUT DRAFT }
+
+type Order {
+  id: ID!
+  number: String!
+  created: DateTime!
+  updatedAt: DateTime!
+  status: OrderStatus!
+  origin: OrderOriginEnum!
+  channel: Channel!
+  userEmail: String
+  shippingAddress: Address
+  lines: [OrderLine!]!
+  subtotal: TaxedMoney!
+  shippingPrice: TaxedMoney!
+  total: TaxedMoney!
+  "Whether to show this order's prices to the customer with tax (gross) or without (net)."
+  displayGrossPrices: Boolean!
+  isPaid: Boolean!
+  chargeStatus: OrderChargeStatusEnum!
+  totalCharged: Money!
+  totalRefunded: Money!
+  "What is charged minus the order total. Negative while the order is not fully paid."
+  totalBalance: Money!
+  transactions: [TransactionItem!]!
+  fulfillments: [Fulfillment!]!
+  metadata: [MetadataItem!]!
+  "The id of the checkout the order was created from, if any."
+  checkoutId: ID
+}
+
+type OrderLine {
+  id: ID!
+  productName: String!
+  "Empty when the product has only one variant."
+  variantName: String!
+  productSku: String
+  quantity: Int!
+  quantityFulfilled: Int!
+  "The tax rate as a fraction: 0.0875 for 8.75%."
+  taxRate: Float!
+  unitPrice: TaxedMoney!
+  totalPrice: TaxedMoney!
+}
+
+type Fulfillment { id: ID!, created: DateTime!, lines: [FulfillmentLine!] }
+type FulfillmentLine { quantity: Int!, orderLine: OrderLine }
+type OrderCountableConnection { edges: [OrderCountableEdge!]!, pageInfo: PageInfo!, totalCount: Int }
+type OrderCountableEdge { node: Order!, cursor: String! }
+input OrderFilterInput {
+  "Matches the customer's email."
+  customer: String
+  status: [OrderStatus!]
+  metadata: [MetadataInput!]
+}
+
+enum TransactionFlowStrategyEnum { AUTHORIZATION CHARGE }
+enum TransactionActionEnum { CHARGE REFUND CANCEL }
+enum TransactionEventTypeEnum {
+  CHARGE_REQUEST CHARGE_SUCCESS CHARGE_FAILURE CHARGE_ACTION_REQUIRED
+  REFUND_REQUEST REFUND_SUCCESS REFUND_FAILURE
+  INFO
+}
+
+type TransactionItem {
+  id: ID!
+  createdAt: DateTime!
+  name: String!
+  message: String!
+  pspReference: String!
+  actions: [TransactionActionEnum!]!
+  chargedAmount: Money!
+  refundedAmount: Money!
+  events: [TransactionEvent!]!
+  order: Order
+  checkout: Checkout
+}
+
+type TransactionEvent {
+  id: ID!
+  createdAt: DateTime!
+  pspReference: String!
+  message: String!
+  amount: Money!
+  type: TransactionEventTypeEnum
+}
+
+type Permission { code: String!, name: String! }
+type App {
+  id: ID!
+  identifier: String
+  name: String
+  version: String
+  isActive: Boolean
+  permissions: [Permission!]
+  webhooks: [Webhook!]
+}
+type Webhook {
+  id: ID!
+  name: String
+  targetUrl: String!
+  isActive: Boolean!
+  syncEvents: [WebhookEvent!]!
+  asyncEvents: [WebhookEvent!]!
+  subscriptionQuery: String
+}
+type WebhookEvent { eventType: String!, name: String! }
+
+input CheckoutLineInput { quantity: Int!, variantId: ID! }
+input CheckoutLineUpdateInput { quantity: Int!, variantId: ID! }
+input CheckoutCreateInput {
+  channel: String
+  email: String
+  lines: [CheckoutLineInput!]
+  shippingAddress: AddressInput
+  metadata: [MetadataInput!]
+}
+input PaymentGatewayToInitialize {
+  "The payment app's identifier."
+  id: String!
+  data: JSON
+}
+input OrderFulfillInput { lines: [OrderFulfillLineInput!]! }
+input OrderFulfillLineInput { orderLineId: ID!, quantity: Int! }
+input OrderLineCreateInput {
+  quantity: Int!
+  variantId: ID!
+  "A custom net unit price for this line instead of the catalogue price."
+  price: PositiveDecimal
+}
+input DraftOrderCreateInput {
+  userEmail: String
+  channelId: ID
+  lines: [OrderLineCreateInput!]
+  shippingAddress: AddressInput
+  shippingMethod: ID
+}
+
+"Every mutation returns `errors`. An empty list means it worked."
+type CheckoutError { field: String, message: String, code: String! }
+type OrderError { field: String, message: String, code: String! }
+type TransactionInitializeError { field: String, message: String, code: String! }
+type TransactionRequestActionError { field: String, message: String, code: String! }
+type MetadataError { field: String, message: String, code: String! }
+type AccountError { field: String, message: String, code: String! }
+
+type User { email: String!, isStaff: Boolean!, userPermissions: [Permission!] }
+type CreateToken { token: String, user: User, errors: [AccountError!]! }
+type CheckoutCreate { checkout: Checkout, errors: [CheckoutError!]! }
+type CheckoutLinesAdd { checkout: Checkout, errors: [CheckoutError!]! }
+type CheckoutLinesUpdate { checkout: Checkout, errors: [CheckoutError!]! }
+type CheckoutEmailUpdate { checkout: Checkout, errors: [CheckoutError!]! }
+type CheckoutShippingAddressUpdate { checkout: Checkout, errors: [CheckoutError!]! }
+type CheckoutDeliveryMethodUpdate { checkout: Checkout, errors: [CheckoutError!]! }
+type TransactionInitialize {
+  transaction: TransactionItem
+  transactionEvent: TransactionEvent
+  "Whatever the payment app returned in `data`."
+  data: JSON
+  errors: [TransactionInitializeError!]!
+}
+type CheckoutComplete { order: Order, errors: [CheckoutError!]! }
+type OrderCancel { order: Order, errors: [OrderError!]! }
+type OrderConfirm { order: Order, errors: [OrderError!]! }
+type OrderFulfill { order: Order, fulfillments: [Fulfillment!], errors: [OrderError!]! }
+type TransactionRequestAction { transaction: TransactionItem, errors: [TransactionRequestActionError!]! }
+type DraftOrderCreate { order: Order, errors: [OrderError!]! }
+type DraftOrderComplete { order: Order, errors: [OrderError!]! }
+type UpdateMetadata { errors: [MetadataError!]! }

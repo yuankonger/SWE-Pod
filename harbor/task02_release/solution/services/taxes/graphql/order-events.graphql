@@ -1,0 +1,8 @@
+# What the tax app reads when an order is confirmed (a tax document is committed) or cancelled (it is voided).
+subscription OrderEvents {
+  event {
+    __typename
+    ... on OrderConfirmed { order { id number total { gross { amount } tax { amount } } shippingAddress { postalCode country { code } } } }
+    ... on OrderCancelled { order { id number } }
+  }
+}

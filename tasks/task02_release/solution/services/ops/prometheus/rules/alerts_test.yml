@@ -1,0 +1,80 @@
+# Unit tests for the alert rules: promtool test rules prometheus/rules/alerts_test.yml
+rule_files:
+  - alerts.rules.yml
+evaluation_interval: 1s
+tests:
+  - interval: 1s
+    input_series:
+      - series: 'up{job="seedco", service="taxes"}'
+        values: '1 1 0 0 0 0 0 0'
+      - series: 'up{job="seedco", service="core"}'
+        values: '1 1 1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 3s
+        alertname: ServiceDown
+        exp_alerts: []                 # down, but not yet for 3 seconds
+      - eval_time: 7s
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: page, job: seedco, service: taxes}
+            exp_annotations: {summary: "taxes is not answering its metrics endpoint", runbook: runbooks/service-down.md}
+
+  - interval: 1s
+    input_series:
+      - series: 'seedco_tax_errors_total'
+        values: '0 0 2 2'
+      - series: 'saleor_webhook_request_count_total{saleor_app_identifier="seedco.taxes", saleor_webhook_event_type="checkout_calculate_taxes", saleor_webhook_execution_mode="sync", outcome="failure"}'
+        values: '0 0 2 2'
+      - series: 'seedco_events_dropped_total{event_type="OrderFullyPaid"}'
+        values: '0 1 1 1'
+    alert_rule_test:
+      - eval_time: 1s
+        alertname: TaxCalculationFailing
+        exp_alerts: []
+      - eval_time: 3s
+        alertname: TaxCalculationFailing
+        exp_alerts:
+          - exp_labels: {severity: page}
+            exp_annotations: {summary: "Core could not calculate taxes 2 times", runbook: runbooks/tax-calculation-failing.md}
+      - eval_time: 3s
+        alertname: SyncWebhookFailing
+        exp_alerts:
+          - exp_labels: {severity: page, saleor_app_identifier: seedco.taxes, saleor_webhook_event_type: checkout_calculate_taxes}
+            exp_annotations: {summary: "seedco.taxes is failing checkout_calculate_taxes", runbook: runbooks/webhook-failing.md}
+      - eval_time: 3s
+        alertname: NotificationsDroppingEvents
+        exp_alerts:
+          - exp_labels: {severity: ticket, event_type: OrderFullyPaid}
+            exp_annotations: {summary: "Customers are not getting emails for OrderFullyPaid", runbook: runbooks/emails-missing.md}
+
+  - interval: 1s
+    input_series:
+      - series: 'seedco_payment_results_total{result="CHARGE_FAILURE"}'
+        values: '1 2 4 5'
+      - series: 'seedco_payment_results_total{result="CHARGE_SUCCESS"}'
+        values: '6 6 6 4'
+    alert_rule_test:
+      - eval_time: 2s
+        alertname: PaymentFailuresHigh
+        exp_alerts: []                 # four failures against six successes
+      - eval_time: 3s
+        alertname: PaymentFailuresHigh
+        exp_alerts:
+          - exp_labels: {severity: ticket}
+            exp_annotations: {summary: "More payments are failing than succeeding", runbook: runbooks/payment-failures.md}
+
+  - interval: 1s
+    input_series:
+      - series: 'seedco_renewals_total{outcome="failed"}'
+        values: '0 0 2 2'
+      - series: 'seedco_renewals_total{outcome="renewed"}'
+        values: '0 5 5 5'
+    alert_rule_test:
+      - eval_time: 1s
+        alertname: RenewalsFailing
+        exp_alerts: []                 # renewals ran and none failed
+      - eval_time: 3s
+        alertname: RenewalsFailing
+        exp_alerts:
+          - exp_labels: {severity: ticket}
+            exp_annotations: {summary: "2 subscription renewals have failed", runbook: runbooks/renewals-failing.md}

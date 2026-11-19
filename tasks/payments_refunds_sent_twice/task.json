@@ -1,0 +1,59 @@
+{
+  "title": "Incidents in the payment path: customers refunded twice, and paid orders that are never placed",
+  "company": "payments",
+  "repositories": {
+    "core": {
+      "what": "the shop's API (Saleor)",
+      "source": "saleor/saleor at 6f714faf2 (BSD-3-Clause)"
+    },
+    "payments": {
+      "what": "the payment app that connects the API to the payment provider (the Stripe app in the saleor/apps monorepo, under `apps/stripe`)",
+      "source": "saleor/apps at f001ac7e (BSD-3-Clause)"
+    }
+  },
+  "incident": "Finance and the support desk have each escalated a problem with payments. Both happen a few times an hour.\n\nRefunds. Now and then a refund that staff make in the back office comes back as failed although the customer did get the money. Staff see \"failed\", refund again, and the customer is refunded twice. We are giving money away.\n\nOrders. Now and then a customer pays, their card is authorised, and no order is placed: the customer sees an error, the back office shows the payment as failed, and the provider goes on holding their money.\n\nPlease find out why and fix both on the live shop. Orders are being placed, charged and refunded while you work, and that has to keep working.",
+  "done": "We will call it fixed when the live shop shows it. A refund that staff ask for once reaches the customer once, and the back office shows it as refunded, not as failed. Staff must still be able to refund the same order twice for the same amount when they mean to. A customer whose card the provider has authorised gets their order. Charges, ordinary refunds and declined cards should behave as they do today. The orders placed while you were working will be looked at too: every refund sent twice and every order lost in that time is money or a customer we lose. If you put older orders right, the shop's records have to survive it: no order or payment may be lost, and nothing the provider took or gave back may disappear from the books.",
+  "provider": {
+    "deliver_after": 3,
+    "faults": {
+      "slow_refunds": {
+        "share": 0.3,
+        "seconds": 13
+      },
+      "lock": {
+        "share": 0.15,
+        "seconds": 3
+      }
+    },
+    "retry_after": [
+      2,
+      10,
+      30,
+      60,
+      120,
+      240
+    ]
+  },
+  "edge": 10,
+  "deploy_migrates": true,
+  "traffic": [
+    "--every",
+    "20",
+    "--refund",
+    "0.6",
+    "--refund-twice",
+    "0.3",
+    "--decline",
+    "0.1",
+    "--settle",
+    "30"
+  ],
+  "faults": {
+    "core": "fault-core.patch",
+    "payments": "fault-payments.patch"
+  },
+  "solution": {
+    "core": "core.patch",
+    "payments": "payments.patch"
+  }
+}
