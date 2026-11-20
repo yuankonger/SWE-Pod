@@ -218,6 +218,7 @@ def copy_of(owner, name=None):
 
 
 REFERENCE = {}      # read before any of the work's code runs
+VARIANT = {}        # a task with requirement variants: {requirement, value} in force
 
 
 def shlex_quote(text):
@@ -262,6 +263,9 @@ def score_repo(owner, spec):
         os.remove(os.path.join(out, stale))
     copy = copy_of(owner)
     subprocess.run(["tar", "--no-same-owner", "--no-same-permissions", "-xzf", os.path.join(TESTS, "hidden", owner + "-tests.tar.gz"), "-C", copy], check=True)
+    over = os.path.join(TESTS, "hidden", "variants", VARIANT.get("value", ""), owner + "-tests.tar.gz")
+    if VARIANT and os.path.isfile(over):      # the tests of the requirement as it is in force in this episode
+        subprocess.run(["tar", "--no-same-owner", "--no-same-permissions", "-xzf", over, "-C", copy], check=True)
     os.chmod(copy, 0o755)      # the archive's own top folder would otherwise set the tree's mode
     for_work(copy)
     started, runs = time.time(), []
@@ -523,6 +527,15 @@ def main():
     for owner in config["owners"]:
         with open(os.path.join(TESTS, "hidden", owner + "-reference.json")) as f:
             REFERENCE[owner] = json.load(f)
+    # A task with requirement variants: which value is in force is the judge's to know (SEEDCO_VARIANT, in its
+    # container's environment), never the seat's. Each value replaces some of the feature's tests with its own.
+    if config.get("variants"):
+        value = os.environ.get("SEEDCO_VARIANT") or config["variants"]["default"]
+        if value not in config["variants"]["values"]:
+            raise SystemExit("no such variant: {}".format(value))
+        VARIANT.update(requirement=config["variants"]["requirement"], value=value)
+        for owner, change in config["variants"]["values"][value].items():
+            REFERENCE[owner]["new"] = [t for t in REFERENCE[owner]["new"] if t not in set(change.get("remove", []))] + list(change.get("add", []))
     hold = os.path.join(SCRATCH, "reference")
     os.makedirs(hold, exist_ok=True)
     for key in ("base_schema", "usage"):
@@ -533,7 +546,8 @@ def main():
     os.chmod(hold, 0o700)
     # whatever the agent left running must not answer in the scorer's place, or hold its memory
     sh("pkill -f 'manage.py runserver' ; pkill -f '[h]omeassistant -c' ; pkill -f '[d]ev-env/dist/bin' ; pkill -f jest ; pkill -f vitest ; pkill -f pytest ; true")
-    result = {"repositories": {owner: score_repo(owner, spec) for owner, spec in config["owners"].items()},
+    result = {"variant": dict(VARIANT) or None,
+              "repositories": {owner: score_repo(owner, spec) for owner, spec in config["owners"].items()},
               "contracts": [{"websocket": ws_agreement, "lexicon": lex_agreement}.get(config["contract"].get("type"), agreement)(config["contract"])]}
     contract = result["contracts"][0]
     if config["contract"].get("type") not in ("websocket", "lexicon"):

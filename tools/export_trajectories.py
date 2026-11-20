@@ -49,7 +49,7 @@ def clean(text, hidden):
     for value in hidden:
         text = text.replace(value, "<redacted>")
     text = re.sub(r"/Users/[^/\s\"']+", "~", text)
-    return re.sub(r"(OWNER|seat)-[a-z]+-(4e81b7|[0-9a-f]{12})\b", "<redacted>", text)
+    return re.sub(r"(OWNER|seat|person)-[a-z]+-(4e81b7|[0-9a-f]{12})\b", "<redacted>", text)
 
 
 def convert(seat_dir, model):
@@ -119,6 +119,28 @@ def export(job, task, review=None):
     for rel, to in (("agent/git.jsonl", "git.jsonl"), ("agent/ci.json", "ci.json"), ("agent/chat.json", "chat.json")):
         if os.path.isfile(os.path.join(trial, rel)):
             put(open(os.path.join(trial, rel)).read(), "records", to)
+    # a coworker episode: its arm and variant, and what the people were asked and said (sidecars/people.py)
+    episode, asked = {}, None
+    if os.path.isfile(os.path.join(job, "episode.json")):
+        with open(os.path.join(job, "episode.json")) as f:
+            episode = json.load(f)
+    said = os.path.join(trial, "people", "people.jsonl")
+    if os.path.isfile(said):
+        put(open(said).read(), "records", "people.jsonl")
+        entries = [json.loads(line) for line in open(said) if line.strip()]
+        messages = [e for e in entries if e.get("event") == "message"]
+        pushes = []
+        if os.path.isfile(os.path.join(trial, "agent", "git.jsonl")):
+            pushes = [json.loads(line) for line in open(os.path.join(trial, "agent", "git.jsonl")) if line.strip()]
+            pushes = sorted(e["at"] for e in pushes if e.get("action") == "push" and e.get("allowed") and e.get("agent") not in ("ci", "oracle", "verifier"))
+        first_push = pushes[0] if pushes else None
+        asked = {"messages_to_people": len(messages),
+                 "exchanges": [{"to": e["person"], "asked": e["text"], "decision": e.get("decision"), "revealed": e.get("revealed", []),
+                                "reply": e.get("reply"), "before_first_push": None if first_push is None else e["at"] < first_push,
+                                "failed": e.get("failed")} for e in messages],
+                 "revealed": sorted({i for e in messages for i in e.get("revealed", [])}),
+                 "people_sidecar_failures": sum(1 for e in messages if e.get("failed")),
+                 "variant_at_people": sorted({e.get("variant") for e in entries})}
     measures = {}
     if os.path.isfile(os.path.join(job, "measures.json")):
         with open(os.path.join(job, "measures.json")) as f:
@@ -147,6 +169,12 @@ def export(job, task, review=None):
         if not run["ran_on_current_freeze"]:
             run["note"] = ("This run was scored on an earlier freeze of the task; its reward follows that freeze's "
                            "rubric and is not comparable with runs on the current one. See the task's DATASHEET.md.")
+    if episode:
+        run.update(condition="coworker/" + episode["arm"], arm=episode["arm"], variant=episode["variant"], budget_usd=episode.get("cap_usd", run["budget_usd"]),
+                   judged_variant=(score.get("variant") or {}).get("value"), asked=asked)
+        if asked and asked["people_sidecar_failures"]:
+            run["complete"] = False
+            run["people_sidecar_failed"] = asked["people_sidecar_failures"]
     put(json.dumps(run, indent=1, default=str), "run.json")
     leaks = [v for v in hidden if any(v in open(p, errors="ignore").read() for p in glob.glob(os.path.join(out, "**", "*"), recursive=True) if os.path.isfile(p))]
     assert not leaks, "a secret is still in the export"

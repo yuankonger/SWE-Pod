@@ -1,0 +1,120 @@
+{
+  "id": "customer_attributes_coworker",
+  "title": "Customer attributes in Saleor's API, built by its owner for a requester (August 2026)",
+  "owners": {
+    "core": {
+      "task": "saleor_customer_attributes",
+      "override": {
+        "handed_over": [],
+        "api_names": true,
+        "exact": [
+          "`saleor/graphql/schema.graphql` is the public API contract and is as it is today, without the feature. Bring it up to date from the code (`python manage.py get_graphql_schema > saleor/graphql/schema.graphql`): the schema the code generates must equal it. What the feature adds to the API is listed above, under \"The API the tests call\".",
+          "At most one customer type is the default, enforced in the database by a unique constraint named `unique_default_customer_type`.",
+          "`User.customer_type` is a nullable foreign key that protects: deleting a customer type that a user has raises Django's `ProtectedError`.",
+          "`assign_default_customer_type_to_users_task` raises `NoDefaultCustomerType` when no default customer type exists.",
+          "`customerTypeCreate` with neither `name` nor `slug` returns two errors, one for `name` and one for `slug`, each with code `REQUIRED`.",
+          "Making a type the default clears the flag on whichever type holds it, including one the locking query (`customer_type_qs_select_for_update`) did not return.",
+          "`customerTypeAssignAttributes` and `customerTypeUnassignAttributes` take at most 100 ids. More gives one error on `attributeIds` with code `INVALID` and the message \"Cannot assign more than 100 attributes in a single mutation.\" (\"Cannot unassign more than ...\" for unassign).",
+          "`customerTypeAssignAttributes` with any id that does not exist assigns nothing and gives one error on `attributeIds` with code `NOT_FOUND`, the message \"Some of the attributes do not exist.\" and the missing ids in `attributes`.",
+          "A `customerType` id of another type (say a `PageType` id) gives code `GRAPHQL_ERROR` on `customerType`. In `customerBulkUpdate` the error's path is `input.customerType` and its message \"Invalid ID: <id>. Expected: CustomerType, received: PageType.\"",
+          "On `customerCreate`, an attribute that is not assigned to the customer's type gives one error on `attributes` with code `NOT_FOUND` and the message \"Could not resolve attributes: ID: <id>.\"",
+          "`customerBulkUpdate` that changes only a customer's attributes still calls the `customer_updated` webhook for that customer.",
+          "A reference value of a customer attribute is a row of its own per user (slug `<user pk>_<referenced object pk>`), never shared between users. Deleting a user deletes that user's rows and leaves the other users' rows and the referenced object.",
+          "In the shared attribute where-filter, a reference container with neither `containsAny` nor `containsAll` (for example `{pageSlugs: {}}`) matches nothing. This holds for products and variants too.",
+          "Translating a value of a customer attribute is refused with code `INVALID` and the message \"Values of customer attributes cannot be translated.\": on field `id` in `attributeValueTranslate`, on path `id` in `attributeValueBulkTranslate` (the other rows of the call still go through).",
+          "A customer type's attributes are a many-to-many `Attribute.customer_types` (to `CustomerType`, `related_name=\"customer_attributes\"`) through `AttributeCustomerType`, whose fields are `attribute` and `customer_type` (both `related_name=\"attributecustomertype\"`). So `customer_type.customer_attributes` is the attributes of a type.",
+          "`AssignedUserAttributeValue` has the fields `value` (to `AttributeValue`, `related_name=\"uservalueassignment\"`) and `user` (to `User`, `related_name=\"attributevalues\"`); `(value, user)` is unique.",
+          "`saleor.attribute.utils.associate_attribute_values_to_instance` takes a `User` as the instance too, as it takes a `Product`, `ProductVariant` or `Page`.",
+          "`PluginsManager` has `customer_type_created(customer_type)`, `customer_type_updated(customer_type)` and `customer_type_deleted(customer_type, webhooks=None)`, which the mutations call; the tests patch them.",
+          "`saleor.account.migrations.tasks.saleor3_23.ASSIGN_DEFAULT_CUSTOMER_TYPE_BATCH_SIZE` is the batch size of `assign_default_customer_type_to_users_task` (100).",
+          "The default customer type the migrations create is named \"Default\" with the slug \"default\"."
+        ]
+      }
+    },
+    "dashboard": {
+      "task": "dashboard_customer_types"
+    }
+  },
+  "contracts": [
+    {
+      "provider": "core",
+      "consumer": "dashboard",
+      "schema": "saleor/graphql/schema.graphql",
+      "copies": [
+        "schema-main.graphql",
+        "schema-staging.graphql"
+      ],
+      "regenerate": "pnpm run generate",
+      "migrate": "python manage.py migrate",
+      "print_schema": "python manage.py get_graphql_schema",
+      "serve": "python manage.py runserver 0.0.0.0:8000",
+      "url": "http://127.0.0.1:8000/graphql/",
+      "live_url": "http://core:8000/graphql/"
+    }
+  ],
+  "env": {
+    "core": {
+      "ALLOWED_HOSTS": "*"
+    }
+  },
+  "overview": "The company runs the Saleor commerce platform as two systems, each a repository of its own:\n- `core` (Python, Django): the commerce API, in GraphQL. It has the only database.\n- `dashboard` (TypeScript, React): the application staff use. It keeps no data: every screen calls core's API. It holds copies of core's GraphQL schema and generates its typed query code from them, so the copies must match the API core really serves.\nEach system runs in a container of its own. The containers can reach each other by system name: the API a core container serves on port 8000 is at `http://core:8000/graphql/` from the dashboard's container.",
+  "notes": {
+    "core": "- To serve the API to the other containers of this work: `python manage.py migrate` (two minutes), then `nohup python manage.py runserver 0.0.0.0:8000 > /tmp/server.log 2>&1 &`. It takes about half a minute to answer, at `http://core:8000/graphql/`. `python manage.py populatedb --createsuperuser` adds sample data and a staff user (`admin@example.com` / `admin`).\n",
+    "dashboard": "- The containers of this work can reach each other by name: once somebody serves core's API from the container of a `core` checkout they may push from, it is at `http://core:8000/graphql/`.\n"
+  },
+  "feature": "We would like one feature built in the API. This is what it should do.",
+  "deployed": {
+    "core": {
+      "start": "python manage.py runserver 0.0.0.0:8000 --noreload",
+      "prepare": "python manage.py migrate",
+      "first": "python manage.py populatedb --createsuperuser",
+      "where": "the API, at `http://core:8000/graphql/`, with sample data and a staff user (`admin@example.com` / `admin`). A deploy runs its database migrations."
+    },
+    "dashboard": {
+      "start": "pnpm run dev",
+      "env": {
+        "API_URL": "http://core:8000/graphql/",
+        "__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS": "dashboard"
+      },
+      "where": "the staff application, served by its development server at `http://dashboard:9000/`, calling the API above."
+    }
+  },
+  "description": "Staff can record structured details about customers, such as a tax ID, an account manager or a contract tier, as attributes. Until now attributes could be given to products and pages only.\n\n**Customer types.** Customers are grouped into customer types, the way products are grouped into product types. A customer type has a name and the set of attributes its customers share. Exactly one type is the default, and a customer created without a type, by whatever route, gets it. Staff who hold the permission for it can create, rename and delete types, make a type the default, and assign, reorder and unassign a type's attributes, with a limit on how many in one request. The default type cannot be deleted, even if it only becomes the default while the deletion is under way. Apps are told of changes to customer types through webhook events.\n\n**Attributes on customers.** Creating or updating a customer, one at a time or in bulk, can set the customer's type and values for that type's attributes. When a bulk update fails on attributes, its errors say which. The list of customers can be filtered by type and by attribute values, as products and pages can. Values that belong to one customer alone are deleted with that customer. Values of customer attributes cannot be translated. Managing customer attributes takes the customer-type permission, not the product or page one, and a request that touches attributes of several kinds needs the permission for each.",
+  "done": "It is done when it is on `main` of `core` and works there: the API starts on a fresh database, and the tests the repository has today still pass. `INTERFACE.md` lists the names the project's own tests for this feature use; keep to them.",
+  "based_on": "customer_attributes_company_v2",
+  "isolated": false,
+  "source": "Real changes to Saleor and the Saleor Dashboard (BSD-3-Clause), August 2026",
+  "unreachable": [
+    "docs.saleor.io",
+    "saleor.io"
+  ],
+  "coworker": {
+    "seat": "core",
+    "people": [
+      "maya"
+    ],
+    "model": "claude-haiku-4-5-20251001",
+    "variants": {
+      "requirement": "delete-type-with-customers",
+      "default": "reassign",
+      "values": {
+        "reassign": {
+          "tests": {}
+        },
+        "refuse": {
+          "authored": true,
+          "tests": {
+            "core": {
+              "remove": [
+                "saleor.graphql.account.tests.mutations.customer_type.test_customer_type_delete::test_delete_reassigns_users_to_default"
+              ],
+              "add": [
+                "saleor.graphql.account.tests.mutations.customer_type.test_customer_type_delete::test_delete_type_in_use_is_refused"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

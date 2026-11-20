@@ -287,6 +287,24 @@ ISOLATED_PERMISSIONS = ("Permissions: `{owner}` is the one repository you have, 
                         "Of {them_long} you can see what is deployed from `main` (your repository's `NOTES.md` says where each system runs) and what CI reports.")
 
 
+def coworker_seats(out, owners, coworker, people):
+    """<task>/seats/coworker/: the seat's note for each arm (docs/COWORKER_SPEC.md, section 8). `full-<value>` states the
+    requirement as that variant has it; the others leave it to be asked for, or not."""
+    owner, names = coworker["seat"], [p["name"].capitalize() for p in people["people"]]
+    others = ", ".join("`{}`".format(o) for o in owners if o != owner)
+    requirement = next(t for p in people["people"] for t in p["topics"] if t["kind"] == "requirement")
+    os.makedirs(os.path.join(out, "seats", "coworker"), exist_ok=True)
+    def note(arm):
+        return COWORKER_SEAT.format(owner=owner, requester=names[0], others_repos=others,
+                                    reach=COWORKER_REACH[arm].format(names=" and ".join("{} (`{}`)".format(n, n.lower()) for n in names), first=names[0]))
+    notes = {arm: note(arm) for arm in COWORKER_REACH}
+    for value, says in requirement["says"].items():
+        notes["full-" + value] = note("partial") + COWORKER_FULL.format(first=names[0], says=says)
+    for name, text in notes.items():
+        with open(os.path.join(out, "seats", "coworker", name + ".md"), "w") as f:
+            f.write(text + "\n" + ENDING + "\n")
+
+
 def seat_notes(out, owners, isolated=False):
     """Writes <task>/seats/: one note per condition and seat. The same files are in the solo and the team task.
     `isolated`: a team's seats hold their own repository only."""
@@ -316,6 +334,41 @@ def notes_for_harbor(text: str) -> str:
     for old, new in REWORDED.items():
         text = text.replace(old, new)
     return "".join(line for line in text.splitlines(keepends=True) if not any(x in line for x in NOT_HERE))
+
+
+# A coworker task (docs/COWORKER_SPEC.md): one agent at one owner's seat, and people it reaches through the chat.
+# What the seat's holder is told, per arm of the evidence gate. {says} is the requirement as the variant has it.
+COWORKER_SEAT = """# Your seat
+
+Role: you are `{owner}`, the owner of the `{owner}` repository. {requester} asked for this work.
+Permissions: `{owner}` is the one repository you have, and you may push to it. You cannot read or push to {others_repos}.
+Tools: your shell and file tools at this seat. You cannot start other agents. There is no web search or web fetch.
+{reach}
+Budget: the work has ${{total}} of model spending in all. You are stopped when it is spent.
+Time: the work ends {{hours}} hours after it starts at the latest."""
+COWORKER_REACH = {
+    "partial": "You can reach {names} with the `send_message` tool; `read_messages` shows what has reached you and `wait_for_message` waits for it.",
+    "no_interaction": "There is no way to contact anyone: work from what you have.",
+    "told": ("You can reach {names} with the `send_message` tool; `read_messages` shows what has reached you and `wait_for_message` waits for it.\n"
+             "Before you build, ask {first} for any requirements the brief leaves out."),
+}
+COWORKER_FULL = "\n\n## What {first} has also told you\n\n{says}"
+COWORKER_SOLVE = """#!/bin/bash
+# The oracle for the requirement as `{value}` has it: the feature as the real project wrote it{more}, pushed to `main`.
+set -e
+cd /work/{owner} && git apply --binary --whitespace=nowarn /solution/{owner}.patch{apply}
+git add -A -f && git commit -qm "The feature" && git push -q {oracle}/{owner}.git HEAD:main
+"""
+
+
+def coworker_people(company, tokens):
+    """mined/<company>/people.toml as the people sidecar reads it."""
+    import tomllib
+    with open(mc.company_file(company, "people.toml"), "rb") as f:
+        raw = tomllib.load(f)
+    return {"default": raw["default"], "people": [
+        {"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": tokens[p["name"]],
+         "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]} for p in raw["person"]]}
 
 
 def git_line_endings(tree: str) -> list:
@@ -441,12 +494,21 @@ def main():
     owner_token = lambda o: ("seat-{}-{}".format(o, hashlib.sha256("{}/{}/owner".format(a.company, o).encode()).hexdigest()[:12])
                              if info.get("isolated") else OWNER_TOKEN.format(o))
     tokens = dict(TOKENS, **({o: owner_token(o) for o in owners} if a.team else {}))
+    coworker = info.get("coworker")
+    if coworker:      # one seat, its owner's; the people are names on the chat, not on the git server
+        if a.team:
+            raise SystemExit("a coworker task has one seat: export it without --team")
+        hashed = lambda who: hashlib.sha256("{}/{}/coworker".format(a.company, who).encode()).hexdigest()[:12]
+        tokens[coworker["seat"]] = "seat-{}-{}".format(coworker["seat"], hashed(coworker["seat"]))
+        people = coworker_people(a.company, {p: "person-{}-{}".format(p, hashed(p)) for p in coworker["people"]})
     access = {"tokens": tokens, "access": {"ci": everything("read"), "verifier": everything("read"), "oracle": everything("write")}}
     isolated = bool(a.team and info.get("isolated"))      # each owner has its own repository and cannot read the others'
     if isolated:
         access["access"].update({o: {o: "write"} for o in owners})
     elif a.team:    # each owner pushes to its own repository and reads the others: the same rule a solo agent's reading has
         access["access"].update({o: dict(everything("read"), **{o: "write"}) for o in owners})
+    elif coworker:
+        access["access"][coworker["seat"]] = {coworker["seat"]: "write"}
     else:
         access["access"]["solo"] = everything("write")
     git_url = lambda who: "http://{}:{}@git:8080".format(who, tokens[who])
@@ -484,7 +546,23 @@ def main():
                 "environment": dict({"SEAT": who, "SEAT_TOKEN": tokens[who], "TEAM": ",".join(owners) if a.team else ""},
                                     **({"SEAT_ONLY": who} if isolated else {}))}
 
-    services["main"] = seat(owners[0] if a.team else "solo")
+    services["main"] = seat(owners[0] if a.team else coworker["seat"] if coworker else "solo")
+    if coworker:
+        variant = "${{VARIANT:-{}}}".format(coworker["variants"]["default"])      # set by whoever starts the run; the seat never has it
+        services["main"]["environment"].update(SEAT_ONLY=coworker["seat"], TEAM=",".join([coworker["seat"]] + list(coworker["people"])))
+        services["judge"]["environment"]["SEEDCO_VARIANT"] = variant
+        services["chat"] = {"build": build, "command": ["python3", "/opt/seedco/chat.py"],
+                            "environment": {"CHAT": json.dumps({"tokens": dict({coworker["seat"]: tokens[coworker["seat"]]}, **{p["name"]: p["token"] for p in people["people"]}),
+                                                                "admin": CHAT_ADMIN})}}
+        # The people's sidecar asks a model what a message is about (sidecars/people.py). Where that model is and its key
+        # come from whoever starts the run, and are in this container's environment only.
+        services["people"] = {"build": build, "command": ["python3", "/opt/seedco/people.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH}/../people:/people-out"],
+                              "depends_on": {"chat": {"condition": "service_started"}}, "extra_hosts": ["host.docker.internal:host-gateway"],
+                              "environment": {"SEEDCO_VARIANT": variant,
+                                              "PEOPLE": json.dumps({"chat": "http://chat:8080", "file": "/opt/seedco/people.json", "out": "/people-out",
+                                                                    "model": {"url": "${PEOPLE_MODEL_URL}", "key": "${PEOPLE_MODEL_KEY}", "id": coworker["model"]}})}}
+        with open(os.path.join(env_dir, "sidecars", "people.json"), "w") as f:
+            json.dump(people, f, indent=1)
     if a.team:      # the first owner sits at Harbor's own seat; every other owner gets one like it
         for owner in owners[1:]:
             services["seat-" + owner] = dict(seat(owner), build=build, command=["sleep", "infinity"], volumes=["${HOST_AGENT_LOGS_PATH}/" + owner + ":/logs/agent"],
@@ -507,10 +585,12 @@ def main():
     # ---- what the agent is told
     with open(os.path.join(out, "instruction.md"), "w") as f:
         f.write(INSTRUCTION.format(feature=info["feature"], parts=mc.statement(info, repos), done=info["done"]))
+    if coworker:
+        coworker_seats(out, owners, coworker, people)
     seat_notes(out, owners, isolated=bool(info.get("isolated")))        # role, permissions, tools and budget: apart from the brief, which is the same for every condition
     with open(os.path.join(out, "task.toml"), "w") as f:
         f.write(TASK_TOML.format(slug=a.company.replace("_", "-") + ("-team" if a.team else ""), title=json.dumps(info["title"]), repositories=len(owners),
-                                 source=json.dumps(info["source"]), memory=6144) + (MCP_TEAM if a.team else ""))
+                                 source=json.dumps(info["source"]), memory=6144) + (MCP_TEAM if a.team or coworker else ""))
 
     # ---- the verifier: the scorer, the hidden tests, the test lists, the contract check
     config = {"owners": {}, "git": git_url("verifier"), "judge_token": JUDGE_TOKEN,
@@ -555,7 +635,34 @@ def main():
         config["business"] = {"roles": info["business"]["roles"], "script": info["business"]["script"]}
     with open(os.path.join(tests, "config.json"), "w") as f:
         json.dump(config, f, indent=2)
-    for path, text in ((os.path.join(tests, "test.sh"), TEST_SH.replace("{chat_admin}", CHAT_ADMIN)), (os.path.join(solution, "solve.sh"), SOLVE_SH.format(owners=" ".join(owners), oracle=git_url("oracle")))):
+    scripts = [(os.path.join(tests, "test.sh"), TEST_SH.replace("{chat_admin}", CHAT_ADMIN)),
+               (os.path.join(solution, "solve.sh"), SOLVE_SH.format(owners=" ".join(owners), oracle=git_url("oracle")))]
+    if coworker:
+        # Each value of the requirement: the tests that judge it (laid over the feature's), which of the feature's tests
+        # they replace, and an oracle of its own. Upstream's patch is the oracle only for the value upstream built.
+        variants, seat_owner = coworker["variants"], coworker["seat"]
+        config["variants"] = {"requirement": variants["requirement"], "default": variants["default"], "values": {}}
+        scripts = scripts[:1]
+        for value, spec in variants["values"].items():
+            config["variants"]["values"][value] = {o: {k: c[k] for k in ("remove", "add") if k in c} for o, c in spec.get("tests", {}).items()}
+            source = os.path.join(REPO, "mined", a.company, "variants", value)
+            for o in spec.get("tests", {}):
+                laid = os.path.join(source, "tests", o)
+                if os.path.isdir(laid):
+                    os.makedirs(os.path.join(tests, "hidden", "variants", value), exist_ok=True)
+                    subprocess.run(["tar", "-czf", os.path.join(tests, "hidden", "variants", value, o + "-tests.tar.gz"), "-C", laid, "."], check=True,
+                                   env=dict(os.environ, COPYFILE_DISABLE="1"))
+            apply = ""
+            if os.path.isfile(os.path.join(source, seat_owner + ".patch")):
+                os.makedirs(os.path.join(solution, "variants", value), exist_ok=True)
+                shutil.copy(os.path.join(source, seat_owner + ".patch"), os.path.join(solution, "variants", value, seat_owner + ".patch"))
+                apply = " && git apply --whitespace=nowarn /solution/variants/{}/{}.patch".format(value, seat_owner)
+            scripts.append((os.path.join(solution, "solve.sh" if value == variants["default"] else "solve-{}.sh".format(value)),
+                            COWORKER_SOLVE.format(value=value, owner=seat_owner, oracle=git_url("oracle"), apply=apply,
+                                                  more=", with this value's change on top" if apply else "")))
+        with open(os.path.join(tests, "config.json"), "w") as f:
+            json.dump(config, f, indent=2)
+    for path, text in scripts:
         with open(path, "w") as f:
             f.write(text)
         os.chmod(path, 0o755)

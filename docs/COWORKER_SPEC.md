@@ -177,9 +177,11 @@ What makes a requirement usable:
 - the difference is small (tens of lines) and local, with a handful of tests;
 - it is about intended behaviour, not about how the system works today.
 
-Illustrative, for customer attributes (to be checked against the thread): deleting a customer type that still has
-customers. Upstream refuses (the foreign key protects). The authored variant moves those customers to the default
-type and deletes. The brief says only that staff can delete types.
+The first one built, for customer attributes (`mined/customer_attributes_coworker`): deleting a customer type that
+still has customers. Upstream moves those customers to the default type and deletes it (`reassign`). The authored
+variant refuses the deletion and changes nothing (`refuse`). The brief says only that staff can delete types. The
+upstream pull request (saleor/saleor#19521) did not debate the point, so `refuse` is ours and not an option the
+project weighed.
 
 Change-of-mind events are transitions between variants: the requirement in force moves from one variant's value to
 another's (3.2).
@@ -210,9 +212,9 @@ reply_after_min = [1, 5]           # virtual minutes; fixed per episode seed
   id = "delete-type-with-customers"
   topic = "what happens when a customer type that still has customers is deleted"
   [person.requirement.says]
-  refuse   = "It must be refused, with an error saying the type is in use."          # upstream
-  reassign = "Move those customers to the default type, then delete it."             # authored
-  source = "saleor/saleor#19633 review thread (to be checked); `reassign` is authored"
+  reassign = "Move those customers to the default type, then delete it."             # upstream
+  refuse   = "It must be refused, with an error; nothing changes."                    # authored
+  source = "saleor/saleor#19521: `reassign` is what the project built; `refuse` is authored"
 
   [[person.fact]]                  # the same in every variant
   id = "errors-at-attribute"
@@ -232,7 +234,7 @@ id = "change-of-mind"
 when = "after_push:1"
 latest = "submit"
 from = "maya"
-sets = { "delete-type-with-customers" = "reassign" }
+sets = { "delete-type-with-customers" = "refuse" }
 ```
 
 ### 5.3 Rules
