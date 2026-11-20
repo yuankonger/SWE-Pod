@@ -49,7 +49,7 @@ def clean(text, hidden):
     for value in hidden:
         text = text.replace(value, "<redacted>")
     text = re.sub(r"/Users/[^/\s\"']+", "~", text)
-    return re.sub(r"(OWNER|seat)-[a-z]+-4e81b7", "<redacted>", text)
+    return re.sub(r"(OWNER|seat)-[a-z]+-(4e81b7|[0-9a-f]{12})\b", "<redacted>", text)
 
 
 def convert(seat_dir, model):
@@ -139,6 +139,14 @@ def export(job, task, review=None):
            "criteria": [{k: c.get(k) for k in ("id", "kind", "score", "detail")} for c in score.get("criteria", [])],
            "seats": seats, "outcome": measures.get("outcome"), "division": measures.get("division"), "control": measures.get("control"),
            "review": "REVIEW.md" if (review or kept_review) else "not reviewed yet"}
+    now = os.path.join(task, "FROZEN.json")       # the task may have been frozen again since: say so, a reader compares runs
+    if os.path.isfile(now) and run["frozen"]:
+        with open(now) as f:
+            run["task_frozen_now"] = json.load(f)["id"]
+        run["ran_on_current_freeze"] = run["frozen"] == run["task_frozen_now"]
+        if not run["ran_on_current_freeze"]:
+            run["note"] = ("This run was scored on an earlier freeze of the task; its reward follows that freeze's "
+                           "rubric and is not comparable with runs on the current one. See the task's DATASHEET.md.")
     put(json.dumps(run, indent=1, default=str), "run.json")
     leaks = [v for v in hidden if any(v in open(p, errors="ignore").read() for p in glob.glob(os.path.join(out, "**", "*"), recursive=True) if os.path.isfile(p))]
     assert not leaks, "a secret is still in the export"

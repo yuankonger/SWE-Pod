@@ -32,7 +32,7 @@
         "deployed:/deployed"
       ],
       "environment": {
-        "CI": "{\"git\": \"http://ci:ci-2b8e6d10aa@git:8080\", \"repositories\": [\"core\", \"dashboard\"], \"contract\": {\"provider\": \"core\", \"consumer\": \"dashboard\", \"url\": \"http://core:8000/graphql/\", \"staff\": [\"admin@example.com\", \"admin\"]}}"
+        "CI": "{\"git\": \"http://ci:ci-2b8e6d10aa@git:8080\", \"repositories\": [\"core\", \"dashboard\"], \"start_timeout\": 600, \"contract\": {\"type\": \"graphql\", \"provider\": \"core\", \"consumer\": \"dashboard\", \"url\": \"http://core:8000/graphql/\", \"staff\": [\"admin@example.com\", \"admin\"]}}"
       },
       "depends_on": {
         "git": {
@@ -173,13 +173,13 @@
         "cdn.jsdelivr.net:0.0.0.0",
         "unpkg.com:0.0.0.0",
         "esm.sh:0.0.0.0",
-        "docs.saleor.io:0.0.0.0",
-        "saleor.io:0.0.0.0",
         "web.archive.org:0.0.0.0",
         "archive.org:0.0.0.0",
         "api.openai.com:0.0.0.0",
         "chatgpt.com:0.0.0.0",
-        "auth.openai.com:0.0.0.0"
+        "auth.openai.com:0.0.0.0",
+        "docs.saleor.io:0.0.0.0",
+        "saleor.io:0.0.0.0"
       ],
       "environment": {
         "SEAT": "core",
@@ -217,13 +217,13 @@
         "cdn.jsdelivr.net:0.0.0.0",
         "unpkg.com:0.0.0.0",
         "esm.sh:0.0.0.0",
-        "docs.saleor.io:0.0.0.0",
-        "saleor.io:0.0.0.0",
         "web.archive.org:0.0.0.0",
         "archive.org:0.0.0.0",
         "api.openai.com:0.0.0.0",
         "chatgpt.com:0.0.0.0",
-        "auth.openai.com:0.0.0.0"
+        "auth.openai.com:0.0.0.0",
+        "docs.saleor.io:0.0.0.0",
+        "saleor.io:0.0.0.0"
       ],
       "environment": {
         "SEAT": "dashboard",

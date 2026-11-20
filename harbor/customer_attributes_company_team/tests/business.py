@@ -91,8 +91,10 @@ def database_reads():
     }
 
 
-def check(tests, core, dashboard, out, deadline=None):
-    """`deadline`: a time.time() by which the check must be over; every wait inside it is cut to fit."""
+def check(tests, trees, out, deadline=None, script=None):
+    """`trees`: {"core": path, "dashboard": path}. `deadline`: a time.time() by which the check must be over; every
+    wait inside it is cut to fit. (`script`: this check has one script, tests/business_customer_tier.cjs.)"""
+    core, dashboard = trees["core"], trees["dashboard"]
     os.makedirs(out, exist_ok=True)
     left = lambda cap: max(30, min(cap, (deadline or float("inf")) - time.time()))
     result = {"verdict": "infrastructure", "failed_stage": None, "reason": None, "stages": [], "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
@@ -177,4 +179,4 @@ def check(tests, core, dashboard, out, deadline=None):
 
 if __name__ == "__main__":
     tests, core, dashboard, out = (os.path.abspath(p) for p in sys.argv[1:5])
-    print(json.dumps(check(tests, core, dashboard, out), indent=2))
+    print(json.dumps(check(tests, {"core": core, "dashboard": dashboard}, out), indent=2))

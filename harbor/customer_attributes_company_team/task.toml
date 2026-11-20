@@ -11,7 +11,7 @@ repositories = 2
 source = "Real changes to Saleor and the Saleor Dashboard (BSD-3-Clause), August 2026"
 
 [verifier]
-# Runs both repositories' whole test suites, one after the other, then starts the API on a fresh database.
+# Runs both repositories' test suites, one after the other, then starts the provider from nothing.
 timeout_sec = 10800.0
 environment_mode = "shared"
 

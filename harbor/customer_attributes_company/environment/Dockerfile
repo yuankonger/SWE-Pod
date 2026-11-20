@@ -27,9 +27,9 @@ FROM base-core
 COPY --from=base-dashboard /usr/local/bin/node /usr/local/bin/node
 COPY --from=base-dashboard /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN cd /usr/local/bin && ln -sf node nodejs && ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm \
-    && ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx && ln -sf ../lib/node_modules/pnpm/bin/pnpm.mjs pnpm
-COPY --from=base-dashboard /deps /deps-base-dashboard
-RUN cp -an /deps-base-dashboard/. /deps/ && rm -rf /deps-base-dashboard
+    && ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx \
+    && if [ -d ../lib/node_modules/pnpm ]; then ln -sf ../lib/node_modules/pnpm/bin/pnpm.mjs pnpm; elif command -v corepack > /dev/null; then corepack enable pnpm; fi
+RUN --mount=type=bind,from=base-dashboard,source=/deps,target=/mnt/toolchain mkdir -p /deps && cp -an /mnt/toolchain/. /deps/
 ENV CI=true pnpm_config_verify_deps_before_run=false NODE_PATH=/deps/node_modules ALLOWED_HOSTS=*
 # Codex is put in here because its own installer fetches from hosts the seat cannot reach (see UNREACHABLE).
 RUN apt-get update && apt-get install -y --no-install-recommends ripgrep && rm -rf /var/lib/apt/lists/*     && npm install -g @openai/codex@0.169.0 && codex --version

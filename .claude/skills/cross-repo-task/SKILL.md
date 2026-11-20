@@ -84,10 +84,34 @@ How to search:
 **Check:** a short table of candidates with lines and files per side, tests added per side, merge dates, licence,
 and the contract file. Agree with the user which one to build.
 
-A version 2 of a company can leave the contract to its owners: the provider defines and publishes it, and the
-consumer builds against what has been published. That tests contract negotiation and the order of the rollout,
-which a handed-over contract does not. `mined/customer_attributes_company/DATASHEET.md` describes it, and the
-tension with upstream's tests (which use upstream's names) to settle first.
+### A second version: the contract published by its owner
+
+With the target schema handed over and readable by every seat, a team's seats do not need each other (in the
+example's first team runs they sent five messages and none mattered). A second version of the same company makes
+the boundary real. `mined/customer_attributes_company_v2/` is the example; it is a `task.json` and two documents,
+and takes everything else from the first version:
+
+- `"based_on": "<company>"`: the rubric, the test fixes and the usage file are the first version's unless the new
+  folder has its own.
+- An owner's `"override"` replaces fields of its repository's task for this company alone. For the provider:
+  `"handed_over": []` (the schema file stays as it is before the feature), `"api_names": true` (its `INTERFACE.md`
+  gains "The API the tests call": what the schema gains, from `tools/mined_api_names.cjs`, without descriptions),
+  and an `exact` line saying the schema file must be regenerated from the code.
+- `"isolated": true`: in the team variant each owner's token reads and pushes its own repository only, the other
+  checkout is removed from the seat (`SEAT_ONLY`), the seat notes say so, and owners' tokens are hashes, so one
+  cannot be worked out from another.
+
+Before building one, measure how much of the API upstream's hidden tests pin down (search the changed test files
+for each name the schema gains). In the example it is nearly all of it, so the provider must be told the names and
+the version tests how the contract is published and reaches the consumer, not who designs it. Say that in the
+datasheet. The brief, the hidden tests and the solo start stay the same in kind, so solo remains the baseline.
+`tools/run_measures.py` reports how the contract travelled (`contract` in `measures.json`): first publication,
+later changes, the consumer's first push, CI runs where the consumer asked for what the API lacked, messages
+before publication.
+
+Validate it as a task of its own (Phase 6), on the solo variant: the oracle needs both checkouts in one seat.
+Also check the isolation itself: from the consumer's seat, a fetch of the provider's repository must be refused
+and its checkout must not be there.
 
 ## Phase 2: mine each repository as its own task
 

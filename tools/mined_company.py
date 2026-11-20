@@ -50,9 +50,64 @@ SCORE_TIMEOUT_S = 2400
 
 
 def load_company(company):
+    """The company and its repositories' tasks. An owner's `override` replaces fields of its repository's task for
+    this company alone (a version of a company that starts the same repositories differently)."""
     with open(os.path.join(REPO, "mined", company, "task.json")) as f:
         info = json.load(f)
-    return info, {owner: load(spec["task"])[1] for owner, spec in info["owners"].items()}
+    return info, {owner: dict(load(spec["task"])[1], **spec.get("override", {})) for owner, spec in info["owners"].items()}
+
+
+def company_file(company, name):
+    """A file of mined/<company>/, or of the company it is `based_on` when it has none of its own."""
+    path = os.path.join(REPO, "mined", company, name)
+    if os.path.isfile(path):
+        return path
+    with open(os.path.join(REPO, "mined", company, "task.json")) as f:
+        base = json.load(f).get("based_on")
+    return company_file(base, name) if base else path
+
+
+API_SECTION = """
+## The API the tests call
+
+The tests call the API by the names below, so the API must have them, spelt and typed as shown. This is all the
+feature adds to the API's schema: the new types whole, then what types that exist today gain. Descriptions are
+yours to write. `{schema}` is not updated for you: it must be what the code generates.
+
+```graphql
+{types}
+```
+
+Added to types that exist today:
+
+```graphql
+{members}
+```
+"""
+
+
+def api_section(contract, repos, clones):
+    """What the provider's schema gains with the feature, as its INTERFACE.md states it when the schema file itself
+    is not handed over (the provider's hidden tests query these names)."""
+    provider, consumer = repos[contract["provider"]], repos[contract["consumer"]]
+    holder = tempfile.mkdtemp(prefix="mined-api-")
+    _schema_at(clones[contract["provider"]], provider["base"], contract, os.path.join(holder, "base.graphql"))
+    _schema_at(clones[contract["provider"]], target_commit(clones[contract["provider"]], provider), contract, os.path.join(holder, "target.graphql"))
+    done = subprocess.run(["docker", "run", "--rm", "--network", "none", "-v", TOOLS + ":/tools:ro", "-v", holder + ":/c", "-e", "NODE_PATH=/deps/node_modules",
+                           consumer["image"], "node", "/tools/mined_api_names.cjs", "/c/base.graphql", "/c/target.graphql", "/c/api.json"], capture_output=True, text=True)
+    if done.returncode != 0:
+        raise RuntimeError("could not list what {}'s API gained: {}".format(contract["provider"], (done.stdout + done.stderr)[-800:]))
+    with open(os.path.join(holder, "api.json")) as f:
+        api = json.load(f)
+    shutil.rmtree(holder, ignore_errors=True)
+    by_type = {}
+    for m in api["members"]:
+        by_type.setdefault((m["kind"], m["type"]), []).append(m["sdl"])
+    members = "\n\n".join("{} {} {{\n  # ...what it has today, and:\n{}\n}}".format(kind, name, "\n".join("  " + line for sdl in sdls for line in sdl.splitlines()))
+                          for (kind, name), sdls in sorted(by_type.items(), key=lambda x: x[0][1]))
+    members += "".join("\n\nunion {} gains the member {}".format(u["type"], u["name"]) for u in api["unions"])
+    members += "".join("\n\n{}.{} gains the argument {}".format(a["type"], a["field"], a["sdl"]) for a in api["args"])
+    return API_SECTION.format(schema=contract["schema"], types="\n\n".join(t["sdl"] for t in api["types"]), members=members)
 
 
 def base_commit(clone, info):
@@ -211,6 +266,8 @@ def prepare(company, clones, workspace, oracle=None):
             if os.path.isfile(given):
                 with open(given) as f, open(os.path.join(dest, "INTERFACE.md"), "w") as out:
                     out.write(mined_interface.render(json.load(f), repo.get("language", "python")))
+                    if repo.get("api_names"):   # the schema file is not handed over: the API the tests call is stated here
+                        out.write(api_section(next(c for c in info["contracts"] if c["provider"] == owner), repos, clones))
                     if repo.get("exact"):       # what the tests assert to the letter and the brief cannot be expected to imply
                         out.write("\n## What the tests check to the letter\n\nBehaviour the hidden tests assert exactly, which the description of the feature does not settle.\n\n"
                                   + "".join("- {}\n".format(line) for line in repo["exact"]))
@@ -339,7 +396,7 @@ def _schema_at(clone, commit, contract, path):
 
 
 def _usage_file(company, contract):
-    return os.path.join(REPO, "mined", company, "usage-{}-{}.json".format(contract["provider"], contract["consumer"]))
+    return company_file(company, "usage-{}-{}.json".format(contract["provider"], contract["consumer"]))
 
 
 def usage(company, clones):
