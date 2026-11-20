@@ -1,0 +1,161 @@
+# The rubric of ha_child_devices_company: every criterion the work is judged by, what decides it, and why it is there.
+# tools/harbor_company_score.py (in a task: /tests/score.py) runs it. Format and reward: see that file's header.
+#
+# gate    = must pass for anything to be scored.
+# target  = what the work is to achieve. Scores 0 on the company as the work starts.
+# guard   = what must keep working. Scores 1 on the company as the work starts.
+# fit     = whether the two repositories fit each other as they would be deployed.
+# measure = reported beside the reward, never part of it.
+# reward  = 0 if a gate fails, else weighted mean of targets x product of guards x product of fits.
+#           Targets: core's hidden tests (weight 1), the frontend's hidden tests (0.5: they are upstream's unit tests
+#           of its own data helpers), and the owner switching a power strip off and on in a browser (1).
+#
+# Every score is a share from 0 to 1, so work that is partly done is partly rewarded.
+
+# ---------------------------------------------------------------- the gates
+
+[[criterion]]
+id = "core-runs-and-frontend-calls-it"
+kind = "gate"
+type = "contract"
+check = "works"
+note = """Home Assistant as it is on `main` of core starts from a fresh configuration, is onboarded and answers over its
+WebSocket API, and the frontend's commands could be found. Without this there is nothing the two sides could be held
+against each other with."""
+
+[[criterion]]
+id = "pushed-code-leaves-scoring-alone"
+kind = "gate"
+type = "scoring"
+note = """The work is scored with the tests and run configuration it started with, the hidden tests laid over them,
+its own code run unprivileged in a container of its own. Behind that, its code (not its prose or comments) must not
+be unmistakably aimed at the test runners or the scoring: importing pytest's internals, defining pytest hooks or
+vitest reporters, writing the files the scorer reads, adding interpreter start-up files. A repair that passes tests by
+changing how they are run earns nothing."""
+
+# ---------------------------------------------------------------- targets: the feature
+
+[[criterion]]
+id = "core-feature-tests"
+kind = "target"
+type = "tests"
+repository = "core"
+set = "new"
+note = """The share that pass of the tests the Home Assistant project wrote for this feature in core (717), among the
+test files the scoring runs (see core-existing-tests). Nobody on the work can see them; the names they import are in
+the repository's INTERFACE.md."""
+
+[[criterion]]
+id = "frontend-feature-tests"
+kind = "target"
+type = "tests"
+weight = 0.5
+repository = "frontend"
+set = "new"
+note = """The share that pass of the tests the Home Assistant project wrote for this feature in the frontend (10).
+They test upstream's own data helpers (resolving the device list, a device's effective area, a device's context),
+whose names are in INTERFACE.md but whose shape the brief does not settle, so they weigh half. Upstream's change to
+the screens came without tests; the screens are judged by the two browser targets and the fit criteria."""
+
+[[criterion]]
+id = "owner-switches-off-power-strip"
+kind = "target"
+type = "browser"
+weight = 1
+stages = ["frontend_builds", "core_serves", "frontend_shows_sign_in", "owner_signs_in", "devices_listed", "outlet_page_opens",
+          "owner_disables_strip", "outlets_follow_strip", "owner_enables_strip", "outlets_come_back"]
+note = """The business outcome. The frontend's production build is made from `main`, and Home Assistant from `main`
+of core is started with it from a fresh configuration with the demo integration, whose power strip has two outlets.
+The owner signs in in a browser, finds the strip and its outlets among the devices, opens an outlet's page, and turns
+the strip off in its settings. Then, asked outside the browser over the WebSocket API, the strip must read as
+disabled by the user and both outlets as disabled because of their device; turned on again, all three must read as
+enabled. The browser uses the controls the frontend had before the feature (the device page's "Edit settings", the
+"Enable device" switch, "Update"). At the start this fails: the outlets are devices of their own and stay on. With
+core done and the frontend not, the devices page lists nothing. If the check itself cannot run (no browser, a port)
+it has no score; it does not fail."""
+
+[[criterion]]
+id = "owner-sees-strip-and-outlets"
+kind = "target"
+type = "browser"
+weight = 0.5
+stages = ["frontend_builds", "core_serves", "frontend_shows_sign_in", "owner_signs_in", "devices_listed", "outlet_page_opens",
+          "strip_page_lists_outlets", "outlet_page_links_strip", "integration_nests_outlets"]
+note = """What the frontend shows of the parts, in the same browser session as owner-switches-off-power-strip, before
+the strip is touched: the strip's device page links to each outlet's device page, each outlet's page links to the
+strip's, and on the demo integration's page the outlets are listed after the strip, with none of the integration's
+other devices between, and indented from it (their names start further in than the strip's, as drawn). A link is
+anything with the device page's address as its `href`, however it is presented. Upstream's change to the screens came
+without tests, so this is what holds the brief's third and fourth frontend points; the frontend's own feature tests
+hold the first two. With core done, a frontend that resolves children but shows nothing new fails all three (the
+outlets no longer reach the strip through `via_device_id`, which drew such links before). It weighs half: the screens
+are judged by what is drawn, not by how it is built."""
+
+# ---------------------------------------------------------------- guards: what works today
+
+[[criterion]]
+id = "core-existing-tests"
+kind = "guard"
+type = "tests"
+repository = "core"
+set = "preserved"
+note = """The share that still pass of core's tests that passed as the work started (12,868). Core's whole suite takes
+hours, so the scoring runs a scope of it (739 files): the tests of everything the feature touches (tests/helpers,
+tests/auth, websocket_api, config, the loader, and every integration whose code or tests the feature changed) and
+of the integrations that use devices in other devices most (zha, deconz, heos, lcn, kitchen_sink)."""
+
+[[criterion]]
+id = "frontend-existing-tests"
+kind = "guard"
+type = "tests"
+repository = "frontend"
+set = "preserved"
+note = """The share that still pass of the frontend's tests that passed as the work started (2,001): its whole suite."""
+
+# ---------------------------------------------------------------- fit: the two repositories against each other
+
+[[criterion]]
+id = "frontend-sends-only-registered-commands"
+kind = "fit"
+type = "contract"
+check = "valid_share"
+note = """The share of the places the frontend sends a WebSocket command whose `type` core on `main` registers, read
+from core's source. Commands the real frontend sends that the real core registers in a way that cannot be read (its
+storage collections, for one) are left out, so this catches commands that do not exist."""
+
+[[criterion]]
+id = "frontend-types-fit-core-answers"
+kind = "fit"
+type = "contract"
+check = "payload_share"
+note = """The share of the devices core on `main` returns from `config/device_registry/list`, on the demo
+configuration, that have every field the frontend's own TypeScript type for that answer requires (one of its
+members, if a union). A frontend whose types still say every device has a manufacturer and connections has not
+been told that children carry only their own fields."""
+
+[[criterion]]
+id = "frontend-uses-what-core-gained"
+kind = "fit"
+type = "contract"
+check = "uses_new_api"
+note = """The share the frontend's types declare of what the real frontend declares of the fields core's answers
+gained (`parent_device_id`). A frontend that ignores the change fits core's old answers and does nothing with the
+feature."""
+
+# ---------------------------------------------------------------- measures
+
+[[criterion]]
+id = "pushed-code-review-signals"
+kind = "measure"
+type = "scoring"
+signals = "review"
+note = """Lines of the pushed code that mention the test runners or the scorer's files without being aimed at them in
+an unmistakable way: for a reviewer to look at. They decide nothing, since honest code mentions such things too."""
+
+[[criterion]]
+id = "existing-tests-untouched"
+kind = "measure"
+type = "untouched"
+note = """Most of the reward is decided by test suites that are the work's own to change. This lists every test file
+and test setting of the work's start that was changed or removed (the hidden tests replace the ones the feature
+had to change). A change here is not wrong in itself; it is what a reviewer should read first."""

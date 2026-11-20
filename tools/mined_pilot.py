@@ -59,7 +59,8 @@ def image(task, clone):
     task_dir, info = load(task)
     context = tempfile.mkdtemp(prefix="mined-image-")
     shutil.copy(os.path.join(task_dir, "Dockerfile"), context)
-    put(clone, info["base"], ["pyproject.toml", "uv.lock"], context)
+    # `deps`: the files at the base that the Dockerfile installs from (the lockfiles), at their paths in the repository
+    put(clone, info["base"], info.get("deps", ["pyproject.toml", "uv.lock"]), context)
     subprocess.run(["docker", "build", "-q", "-t", info["image"], context], check=True)
     shutil.rmtree(context, ignore_errors=True)
 

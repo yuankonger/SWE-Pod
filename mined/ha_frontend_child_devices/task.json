@@ -1,0 +1,39 @@
+{
+ "id": "ha_frontend_child_devices",
+ "title": "Home Assistant frontend: child devices (#53617, #53619, #53638)",
+ "repository": "https://github.com/home-assistant/frontend",
+ "licence": "Apache-2.0",
+ "language": "typescript",
+ "base": "ea0ceecb",
+ "picks": [
+  "a9cc4788",
+  "70bb08b1",
+  "f23c8f0e"
+ ],
+ "source": "Three merged changes of 13 and 14 August 2026, applied alone on the commit before the first: child devices in the frontend's device registry data (#53617), the child devices UI (#53619) and a fix to the device tree indicator (#53638).",
+ "image": "mined-ha-frontend-child-devices:1",
+ "directory": "frontend",
+ "deps": [
+  "package.json",
+  "yarn.lock",
+  ".yarnrc.yml",
+  ".yarn/releases/yarn-4.18.0.cjs",
+  ".yarn/patches/@material-mwc-formfield-npm-0.27.0-9528cb60f6.patch",
+  ".yarn/patches/@material-mwc-list-npm-0.27.0-5344fc9de4.patch",
+  ".yarn/patches/leaflet-draw-npm-1.0.4-0ca0ebcf65.patch",
+  ".yarn/patches/sortablejs-npm-1.15.6-3235a8f83b.patch",
+  ".yarn/patches/tinykeys-npm-4.0.0-a6ca3fd771.patch",
+  ".yarn/patches/workbox-build-npm-7.4.1-c84561662c.patch"
+ ],
+ "handed_over": [],
+ "links": {
+  "node_modules": "/deps/node_modules"
+ },
+ "test_side": [
+  "^test/",
+  "\\.test\\.ts$"
+ ],
+ "test_command": "./node_modules/.bin/gulp gen-icons-json build-translations build-locale-data > /tmp/gulp.log 2>&1 && npx vitest run --config test/vitest.config.ts --reporter=junit --outputFile=/out/report.xml",
+ "report": "junit",
+ "notes": "- Node 24, with the repository's dependencies installed (`node_modules` links to them). There is no internet: nothing can be installed.\n- Before running tests, generate what they import once: `./node_modules/.bin/gulp gen-icons-json build-translations build-locale-data`. Then `npx vitest run --config test/vitest.config.ts` (about half a minute), or give it a test file.\n- The production build, `IS_TEST=true ./node_modules/.bin/gulp build-app-modern` (about a minute), writes `hass_frontend/`. Home Assistant core serves it when its configuration has `frontend:` with `development_repo:` set to this repository's path.\n"
+}

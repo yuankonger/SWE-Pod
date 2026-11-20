@@ -1,0 +1,23 @@
+{
+ "homeassistant.helpers.device_registry": {
+  "exists_at_base": true,
+  "names": {
+   "ChildDeviceEntry": "class ChildDeviceEntry(BaseDeviceEntry)",
+   "ChildDeviceRegistryItems": "class ChildDeviceRegistryItems(BaseRegistryItems[ChildDeviceEntry])",
+   "async_get_effective_area_id": "def async_get_effective_area_id(hass: HomeAssistant, device: AnyDeviceEntry)",
+   "async_entries_for_parent_device": "def async_entries_for_parent_device(registry: DeviceRegistry, parent_device_id: str)",
+   "async_child_entries_for_config_entry": "def async_child_entries_for_config_entry(registry: DeviceRegistry, config_entry_id: str)",
+   "_CHILD_DEVICE_COMPAT_ATTRS": "_CHILD_DEVICE_COMPAT_ATTRS = ..."
+  },
+  "changed": {
+   "DeviceEntry": "class DeviceEntry(BaseDeviceEntry)"
+  }
+ },
+ "homeassistant.helpers.entity_registry": {
+  "exists_at_base": true,
+  "names": {
+   "async_get_effective_area_id": "def async_get_effective_area_id(hass: HomeAssistant, entry: RegistryEntry)"
+  },
+  "changed": {}
+ }
+}

@@ -1,0 +1,26 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/ha-child-devices-company"
+description = "Child devices across Home Assistant's core and its frontend (August 2026)"
+keywords = ["swe-pod", "multi-repository", "mined", "interface agreement"]
+
+[metadata]
+category = "software-engineering"
+repositories = 2
+source = "Real changes to Home Assistant core and the Home Assistant frontend (Apache-2.0), August 2026"
+
+[verifier]
+# Runs both repositories' test suites, one after the other, then starts the provider from nothing.
+timeout_sec = 10800.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 14400.0
+
+[environment]
+build_timeout_sec = 2400.0
+cpus = 6
+memory_mb = 6144
+storage_mb = 30720
+workdir = "/work"

@@ -1,6 +1,11 @@
 {
   "id": "customer_attributes_company",
   "title": "Customer attributes across Saleor's API and its dashboard (August 2026)",
+  "source": "Real changes to Saleor and the Saleor Dashboard (BSD-3-Clause), August 2026",
+  "unreachable": [
+    "docs.saleor.io",
+    "saleor.io"
+  ],
   "owners": {
     "core": {
       "task": "saleor_customer_attributes"

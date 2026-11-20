@@ -1,0 +1,471 @@
+{
+ "used_new": [
+  "config/device_registry/list.parent_device_id"
+ ],
+ "ignore": [
+  "application_credentials/create",
+  "application_credentials/delete",
+  "application_credentials/list",
+  "assist_pipeline/pipeline/create",
+  "assist_pipeline/pipeline/delete",
+  "assist_pipeline/pipeline/get",
+  "assist_pipeline/pipeline/list",
+  "assist_pipeline/pipeline/set_preferred",
+  "assist_pipeline/pipeline/update",
+  "assist_pipeline/run",
+  "auth/setup_mfa",
+  "config/get",
+  "connect",
+  "counter/create",
+  "counter/delete",
+  "counter/list",
+  "counter/update",
+  "entity/add_to/get_actions",
+  "get_status",
+  "hassio/update/addon",
+  "hassio/update/core",
+  "image/delete",
+  "image/list",
+  "image/update",
+  "input_boolean/create",
+  "input_boolean/delete",
+  "input_boolean/list",
+  "input_boolean/update",
+  "input_button/create",
+  "input_button/delete",
+  "input_button/list",
+  "input_button/update",
+  "input_datetime/create",
+  "input_datetime/delete",
+  "input_datetime/list",
+  "input_datetime/update",
+  "input_number/create",
+  "input_number/delete",
+  "input_number/list",
+  "input_number/update",
+  "input_select/create",
+  "input_select/delete",
+  "input_select/list",
+  "input_select/update",
+  "input_text/create",
+  "input_text/delete",
+  "input_text/list",
+  "input_text/update",
+  "lovelace/dashboards/create",
+  "lovelace/dashboards/delete",
+  "lovelace/dashboards/list",
+  "lovelace/dashboards/update",
+  "lovelace/resources",
+  "lovelace/resources/create",
+  "lovelace/resources/delete",
+  "lovelace/resources/update",
+  "person/create",
+  "person/delete",
+  "person/list",
+  "person/update",
+  "schedule/create",
+  "schedule/delete",
+  "schedule/list",
+  "schedule/update",
+  "show_demo",
+  "show_lovelace_view",
+  "supervisor/api",
+  "supervisor/subscribe",
+  "tag/create",
+  "tag/delete",
+  "tag/list",
+  "tag/update",
+  "timer/create",
+  "timer/delete",
+  "timer/list",
+  "timer/update",
+  "usage_prediction/common_control",
+  "zone/create",
+  "zone/delete",
+  "zone/list",
+  "zone/update"
+ ],
+ "base_answers": {
+  "config/device_registry/list": {
+   "success": true,
+   "result": [
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.263591,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "6c911cc3094197e6c6558509defb723c",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "2_ch_power_strip"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.263619,
+     "name_by_user": null,
+     "name": "Power strip with 2 sockets",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.264478,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "2d8b575aaa3916965eef03f3de25c21b",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "infrared"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.264492,
+     "name_by_user": null,
+     "name": "IR Blaster",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.265312,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "a3fb881f82ff0004e13e7bd4a3783ffc",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "just_notify_me"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.265324,
+     "name_by_user": null,
+     "name": "MyBox",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.265408,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "5aa7ad6ff32a4ebd24c53c6a2100b919",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "just_notify_me_title"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.265416,
+     "name_by_user": null,
+     "name": "MyBox",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.265529,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "d7a9b7113987cce8ae3df4b91ca73c53",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "rf_transmitter"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.265536,
+     "name_by_user": null,
+     "name": "RF Blaster",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.265716,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "e9bd9eaeea056cbdc2a9dbe2e911af2b",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "outlet_1"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.265724,
+     "name_by_user": null,
+     "name": "Outlet 1",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": "6c911cc3094197e6c6558509defb723c"
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.265923,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "3bc6360b881bc6debe5170353f76d170",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "outlet_2"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.265932,
+     "name_by_user": null,
+     "name": "Outlet 2",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": "6c911cc3094197e6c6558509defb723c"
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGQAHKQ5CG42SDNCSA9V7"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQAHKQ5CG42SDNCSA9V7": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.266055,
+     "disabled_by": null,
+     "entry_type": null,
+     "hw_version": null,
+     "id": "7bd9def1be6493bf95b36589f8eae09a",
+     "identifiers": [
+      [
+       "kitchen_sink",
+       "statistics_issues"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": null,
+     "model": null,
+     "model_id": null,
+     "modified_at": 1795087163.266063,
+     "name_by_user": null,
+     "name": "Statistics issues",
+     "primary_config_entry": "01M7SRGQAHKQ5CG42SDNCSA9V7",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": "homeassistant://config/backup",
+     "config_entries": [
+      "01M7SRGQXG2NRAJG72Z95A8P8M"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGQXG2NRAJG72Z95A8P8M": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGQXG2NRAJG72Z95A8P8M",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.315219,
+     "disabled_by": null,
+     "entry_type": "service",
+     "hw_version": null,
+     "id": "6772fcca98b1fb7570c3d5c302da28c1",
+     "identifiers": [
+      [
+       "backup",
+       "backup_manager"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": "Home Assistant",
+     "model": "Home Assistant Backup",
+     "model_id": null,
+     "modified_at": 1795087163.315235,
+     "name_by_user": null,
+     "name": "Backup",
+     "primary_config_entry": "01M7SRGQXG2NRAJG72Z95A8P8M",
+     "serial_number": null,
+     "sw_version": "2026.9.0.dev0",
+     "via_device_id": null
+    },
+    {
+     "area_id": null,
+     "configuration_url": null,
+     "config_entries": [
+      "01M7SRGRG17MZ4B1PK2YNMJE6Z"
+     ],
+     "config_entries_subentries": {
+      "01M7SRGRG17MZ4B1PK2YNMJE6Z": [
+       null
+      ]
+     },
+     "config_entry_id": "01M7SRGRG17MZ4B1PK2YNMJE6Z",
+     "config_subentry_id": null,
+     "connections": [],
+     "created_at": 1795087163.968867,
+     "disabled_by": null,
+     "entry_type": "service",
+     "hw_version": null,
+     "id": "62b665e691e99ded225bfa1765021174",
+     "identifiers": [
+      [
+       "google_translate",
+       "01M7SRGRG17MZ4B1PK2YNMJE6Z"
+      ]
+     ],
+     "labels": [],
+     "manufacturer": "Google",
+     "model": "Google Translate TTS",
+     "model_id": null,
+     "modified_at": 1795087163.968888,
+     "name_by_user": null,
+     "name": "Google Translate en com",
+     "primary_config_entry": "01M7SRGRG17MZ4B1PK2YNMJE6Z",
+     "serial_number": null,
+     "sw_version": null,
+     "via_device_id": null
+    }
+   ],
+   "error": null
+  }
+ },
+ "asks": [
+  {
+   "type": "config/device_registry/list"
+  }
+ ]
+}

@@ -1,0 +1,2512 @@
+diff --git a/demo/src/stubs/devices.ts b/demo/src/stubs/devices.ts
+index 5b50837..ddfe0fb 100644
+--- a/demo/src/stubs/devices.ts
++++ b/demo/src/stubs/devices.ts
+@@ -14,6 +14,7 @@ const baseDevice = {
+   name_by_user: null,
+   disabled_by: null,
+   configuration_url: null,
++  parent_device_id: null,
+   created_at: 0,
+   modified_at: 0,
+ };
+@@ -50,4 +51,39 @@ export const demoDevices: DeviceRegistryEntry[] = [
+     primary_config_entry: "mock-sonos",
+     entry_type: null,
+   },
++  {
++    ...baseDevice,
++    id: "power-strip",
++    name: "Power strip",
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    config_entries: ["mock-hue"],
++    primary_config_entry: "mock-hue",
++    entry_type: null,
++  },
++  // Child devices (logical parts of the power strip). They carry the parent's
++  // inherited hardware fields, mirroring how resolveChildDevices fills them in
++  // from the WebSocket, and reference the parent via parent_device_id.
++  {
++    ...baseDevice,
++    id: "power-strip-outlet-1",
++    name: "Outlet 1",
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    config_entries: ["mock-hue"],
++    primary_config_entry: "mock-hue",
++    entry_type: null,
++    parent_device_id: "power-strip",
++  },
++  {
++    ...baseDevice,
++    id: "power-strip-outlet-2",
++    name: "Outlet 2",
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    config_entries: ["mock-hue"],
++    primary_config_entry: "mock-hue",
++    entry_type: null,
++    parent_device_id: "power-strip",
++  },
+ ];
+diff --git a/gallery/src/pages/components/ha-form.ts b/gallery/src/pages/components/ha-form.ts
+index b14a2aa..bae8c71 100644
+--- a/gallery/src/pages/components/ha-form.ts
++++ b/gallery/src/pages/components/ha-form.ts
+@@ -87,6 +87,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+   {
+     area_id: "backyard",
+@@ -111,6 +112,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+   {
+     area_id: null,
+@@ -135,6 +137,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+ ];
+ 
+diff --git a/gallery/src/pages/components/ha-selector-replaced-device.ts b/gallery/src/pages/components/ha-selector-replaced-device.ts
+index ac7aa8c..be601b3 100644
+--- a/gallery/src/pages/components/ha-selector-replaced-device.ts
++++ b/gallery/src/pages/components/ha-selector-replaced-device.ts
+@@ -50,6 +50,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+   {
+     area_id: "backyard",
+@@ -74,6 +75,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+ ];
+ 
+diff --git a/gallery/src/pages/components/ha-selector.ts b/gallery/src/pages/components/ha-selector.ts
+index 7e6696a..8d9db0e 100644
+--- a/gallery/src/pages/components/ha-selector.ts
++++ b/gallery/src/pages/components/ha-selector.ts
+@@ -100,6 +100,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+   {
+     area_id: "backyard",
+@@ -124,6 +125,7 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+   {
+     area_id: null,
+@@ -148,6 +150,85 @@ const DEVICES: DeviceRegistryEntry[] = [
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
++  },
++  {
++    area_id: "livingroom",
++    configuration_url: null,
++    config_entries: ["config_entry_1"],
++    config_entries_subentries: {},
++    connections: [],
++    disabled_by: null,
++    entry_type: null,
++    id: "device_power_strip",
++    identifiers: [["demo", "strip1"] as [string, string]],
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    model_id: null,
++    name_by_user: null,
++    name: "Power strip",
++    sw_version: null,
++    hw_version: null,
++    via_device_id: null,
++    serial_number: null,
++    labels: [],
++    created_at: 0,
++    modified_at: 0,
++    primary_config_entry: null,
++    parent_device_id: null,
++  },
++  // Child devices of the power strip. They have no area of their own and
++  // inherit the parent's area ("Livingroom"); the picker renders them indented
++  // under the parent with a tree connector.
++  {
++    area_id: null,
++    configuration_url: null,
++    config_entries: ["config_entry_1"],
++    config_entries_subentries: {},
++    connections: [],
++    disabled_by: null,
++    entry_type: null,
++    id: "device_outlet_1",
++    identifiers: [["demo", "outlet1"] as [string, string]],
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    model_id: null,
++    name_by_user: null,
++    name: "Outlet 1",
++    sw_version: null,
++    hw_version: null,
++    via_device_id: null,
++    serial_number: null,
++    labels: [],
++    created_at: 0,
++    modified_at: 0,
++    primary_config_entry: null,
++    parent_device_id: "device_power_strip",
++  },
++  {
++    area_id: null,
++    configuration_url: null,
++    config_entries: ["config_entry_1"],
++    config_entries_subentries: {},
++    connections: [],
++    disabled_by: null,
++    entry_type: null,
++    id: "device_outlet_2",
++    identifiers: [["demo", "outlet2"] as [string, string]],
++    manufacturer: "Acme",
++    model: "Smart Power Strip",
++    model_id: null,
++    name_by_user: null,
++    name: "Outlet 2",
++    sw_version: null,
++    hw_version: null,
++    via_device_id: null,
++    serial_number: null,
++    labels: [],
++    created_at: 0,
++    modified_at: 0,
++    primary_config_entry: null,
++    parent_device_id: "device_power_strip",
+   },
+ ];
+ 
+diff --git a/gallery/src/pages/misc/integration-card.ts b/gallery/src/pages/misc/integration-card.ts
+index 5762968..c9c8397 100644
+--- a/gallery/src/pages/misc/integration-card.ts
++++ b/gallery/src/pages/misc/integration-card.ts
+@@ -238,6 +238,7 @@ const createDeviceRegistryEntries = (
+     created_at: 0,
+     modified_at: 0,
+     primary_config_entry: null,
++    parent_device_id: null,
+   },
+ ];
+ 
+diff --git a/src/common/entity/context/get_device_context.ts b/src/common/entity/context/get_device_context.ts
+index ed46699..fc4e43e 100644
+--- a/src/common/entity/context/get_device_context.ts
++++ b/src/common/entity/context/get_device_context.ts
+@@ -2,10 +2,31 @@ import type { AreaRegistryEntry } from "../../../data/area/area_registry";
+ import type { DeviceRegistryEntry } from "../../../data/device/device_registry";
+ import type { HomeAssistant } from "../../../types";
+ 
++/**
++ * Return the effective area id of a device: a child device without an area of
++ * its own inherits its parent's area (mirrors core's
++ * async_get_effective_area_id). Nesting is single-level, so no recursion.
++ */
++export const getDeviceAreaId = (
++  device: DeviceRegistryEntry,
++  devices: HomeAssistant["devices"]
++): string | undefined => {
++  if (device.area_id) {
++    return device.area_id;
++  }
++  if (device.parent_device_id) {
++    return devices[device.parent_device_id]?.area_id ?? undefined;
++  }
++  return undefined;
++};
++
+ export const getDeviceArea = (
+   device: DeviceRegistryEntry,
+-  areas: HomeAssistant["areas"]
++  areas: HomeAssistant["areas"],
++  // Required so every caller resolves a child device's effective area
++  // consistently, see getDeviceAreaId.
++  devices: HomeAssistant["devices"]
+ ): AreaRegistryEntry | undefined => {
+-  const areaId = device.area_id;
++  const areaId = getDeviceAreaId(device, devices);
+   return areaId ? areas[areaId] : undefined;
+ };
+diff --git a/src/common/entity/context/get_entity_context.ts b/src/common/entity/context/get_entity_context.ts
+index 572ab54..5f5f4d0 100644
+--- a/src/common/entity/context/get_entity_context.ts
++++ b/src/common/entity/context/get_entity_context.ts
+@@ -8,6 +8,7 @@ import type {
+ } from "../../../data/entity/entity_registry";
+ import type { FloorRegistryEntry } from "../../../data/floor_registry";
+ import type { HomeAssistant } from "../../../types";
++import { getDeviceAreaId } from "./get_device_context";
+ 
+ interface EntityContext {
+   entity: EntityRegistryDisplayEntry | null;
+@@ -46,7 +47,11 @@ export const getEntityAreaId = (
+   if (!entry) return undefined;
+   const deviceId = entry.device_id;
+   const device = deviceId ? devices[deviceId] : undefined;
+-  return entry.area_id || device?.area_id || undefined;
++  return (
++    entry.area_id ||
++    (device ? getDeviceAreaId(device, devices) : undefined) ||
++    undefined
++  );
+ };
+ 
+ export const getEntityEntryContext = (
+@@ -60,7 +65,8 @@ export const getEntityEntryContext = (
+   const entity = entities[entry.entity_id];
+   const deviceId = entry?.device_id;
+   const device = deviceId ? devices[deviceId] : undefined;
+-  const areaId = entry?.area_id || device?.area_id;
++  const areaId =
++    entry?.area_id || (device ? getDeviceAreaId(device, devices) : undefined);
+   const area = areaId ? areas[areaId] : undefined;
+   const floorId = area?.floor_id;
+   const floor = floorId ? floors[floorId] : undefined;
+diff --git a/src/components/device/dialog-device-replaced.ts b/src/components/device/dialog-device-replaced.ts
+index d83ce97..954423f 100644
+--- a/src/components/device/dialog-device-replaced.ts
++++ b/src/components/device/dialog-device-replaced.ts
+@@ -73,7 +73,7 @@ export class DialogDeviceReplaced
+     ) =>
+       candidates.map((deviceId) => {
+         const device = devices[deviceId];
+-        const area = device ? getDeviceArea(device, areas) : undefined;
++        const area = device ? getDeviceArea(device, areas, devices) : undefined;
+         const configEntry = device?.primary_config_entry
+           ? configEntryLookup?.[device.primary_config_entry]
+           : undefined;
+diff --git a/src/components/device/ha-device-picker.ts b/src/components/device/ha-device-picker.ts
+index 9508d8b..eda5a35 100644
+--- a/src/components/device/ha-device-picker.ts
++++ b/src/components/device/ha-device-picker.ts
+@@ -3,11 +3,13 @@ import type { RenderItemFunction } from "@lit-labs/virtualizer/virtualize";
+ import type { HassEntity } from "home-assistant-js-websocket";
+ import { css, html, LitElement, nothing, type PropertyValues } from "lit";
+ import { customElement, property, query, state } from "lit/decorators";
++import { styleMap } from "lit/directives/style-map";
+ import memoizeOne from "memoize-one";
+ import { fireEvent } from "../../common/dom/fire_event";
+ import { computeAreaName } from "../../common/entity/compute_area_name";
+ import { computeDeviceName } from "../../common/entity/compute_device_name";
+ import { getDeviceArea } from "../../common/entity/context/get_device_context";
++import { computeRTL } from "../../common/util/compute_rtl";
+ import { getConfigEntries, type ConfigEntry } from "../../data/config_entries";
+ import {
+   deviceComboBoxKeys,
+@@ -26,7 +28,9 @@ import "../ha-alert";
+ import "../ha-button";
+ import "../ha-generic-picker";
+ import type { HaGenericPicker } from "../ha-generic-picker";
++import type { PickerComboBoxSearchFn } from "../ha-picker-combo-box";
+ import "../ha-svg-icon";
++import "../ha-tree-indicator";
+ import { showDeviceReplacedDialog } from "./show-dialog-device-replaced";
+ 
+ export type HaDevicePickerDeviceFilterFunc = (
+@@ -128,6 +132,7 @@ export class HaDevicePicker extends LitElement {
+         entityFilter,
+         excludeDevices,
+         value,
++        nested: true,
+       })
+   );
+ 
+@@ -216,6 +221,34 @@ export class HaDevicePicker extends LitElement {
+       this.value
+     );
+ 
++  // The fuzzy search ranks matches by relevance, which would pull a child device
++  // above its parent (the parent often only matches through the lower-weighted
++  // child names). Restore the nested order from the full item list and recompute
++  // which child is last, so the tree connectors stay correct while searching.
++  private _searchFn: PickerComboBoxSearchFn<DevicePickerItem> = (
++    _search,
++    filteredItems,
++    allItems
++  ) => {
++    const matchedIds = new Set(filteredItems.map((item) => item.id));
++    const ordered = allItems.filter((item) => matchedIds.has(item.id));
++    // Keep any items the search added that are not part of the nested list
++    // (for example the "no items available" placeholder or additional items).
++    const orderedIds = new Set(ordered.map((item) => item.id));
++    const extras = filteredItems.filter((item) => !orderedIds.has(item.id));
++
++    return [
++      ...ordered.map((item, index) => {
++        if (!item.is_child) {
++          return item;
++        }
++        const nextItem = ordered[index + 1];
++        return { ...item, last: !nextItem || !nextItem.is_child };
++      }),
++      ...extras,
++    ];
++  };
++
+   private _valueRenderer = memoizeOne(
+     (
+       configEntriesLookup: Record<string, ConfigEntry>,
+@@ -242,7 +275,7 @@ export class HaDevicePicker extends LitElement {
+           return html`<span slot="headline">${deviceId}</span>`;
+         }
+ 
+-        const area = getDeviceArea(device, this.hass.areas);
++        const area = getDeviceArea(device, this.hass.areas, this.hass.devices);
+ 
+         const deviceName = device ? computeDeviceName(device) : undefined;
+         const areaName = area ? computeAreaName(area) : undefined;
+@@ -279,46 +312,76 @@ export class HaDevicePicker extends LitElement {
+       }
+   );
+ 
+-  private _rowRenderer: RenderItemFunction<DevicePickerItem> = (item) => html`
+-    <ha-combo-box-item type="button">
+-      ${
+-        item.domain
+-          ? html`
+-              <img
++  private _rowRenderer: RenderItemFunction<DevicePickerItem> = (item) => {
++    const rtl = computeRTL(
++      this.hass.language,
++      this.hass.translationMetadata.translations
++    );
++    return html`
++      <ha-combo-box-item
++        type="button"
++        style=${
++          item.is_child
++            ? "--md-list-item-leading-space: var(--ha-space-12);"
++            : ""
++        }
++      >
++        ${
++          item.is_child
++            ? html`<ha-tree-indicator
++                style=${styleMap({
++                  width: "var(--ha-space-12)",
++                  position: "absolute",
++                  top: "0",
++                  height: "100%",
++                  left: rtl ? undefined : "var(--ha-space-1)",
++                  right: rtl ? "var(--ha-space-1)" : undefined,
++                  transform: rtl ? "scaleX(-1)" : "",
++                })}
++                .end=${item.last}
+                 slot="start"
+-                alt=""
+-                crossorigin="anonymous"
+-                referrerpolicy="no-referrer"
+-                src=${brandsUrl(
+-                  {
+-                    domain: item.domain,
+-                    type: "icon",
+-                    darkOptimized: this.hass.themes.darkMode,
+-                  },
+-                  this.hass.auth.data.hassUrl
+-                )}
+-              />
+-            `
+-          : nothing
+-      }
++              ></ha-tree-indicator>`
++            : nothing
++        }
++        ${
++          item.domain
++            ? html`
++                <img
++                  slot="start"
++                  alt=""
++                  crossorigin="anonymous"
++                  referrerpolicy="no-referrer"
++                  src=${brandsUrl(
++                    {
++                      domain: item.domain,
++                      type: "icon",
++                      darkOptimized: this.hass.themes.darkMode,
++                    },
++                    this.hass.auth.data.hassUrl
++                  )}
++                />
++              `
++            : nothing
++        }
+ 
+-      <span slot="headline">${item.primary}</span>
+-      ${
+-        item.secondary
+-          ? html`<span slot="supporting-text">${item.secondary}</span>`
+-          : nothing
+-      }
+-      ${
+-        item.domain_name
+-          ? html`
+-              <div slot="trailing-supporting-text" class="domain">
+-                ${item.domain_name}
+-              </div>
+-            `
+-          : nothing
+-      }
+-    </ha-combo-box-item>
+-  `;
++        <span slot="headline">${item.primary}</span>
++        ${
++          item.secondary
++            ? html`<span slot="supporting-text">${item.secondary}</span>`
++            : nothing
++        }
++        ${
++          item.domain_name
++            ? html`
++                <div slot="trailing-supporting-text" class="domain">
++                  ${item.domain_name}
++                </div>
++              `
++            : nothing
++        }
++      </ha-combo-box-item>
++    `;
++  };
+ 
+   protected render() {
+     const placeholder =
+@@ -375,6 +438,8 @@ export class HaDevicePicker extends LitElement {
+         .value=${this.value}
+         .rowRenderer=${this._rowRenderer}
+         .getItems=${this._getItems}
++        .searchFn=${this._searchFn}
++        no-sort
+         .hideClearIcon=${this.hideClearIcon}
+         .valueRenderer=${valueRenderer}
+         .searchKeys=${deviceComboBoxKeys}
+diff --git a/src/components/ha-target-picker.ts b/src/components/ha-target-picker.ts
+index d31296b..1330c30 100644
+--- a/src/components/ha-target-picker.ts
++++ b/src/components/ha-target-picker.ts
+@@ -28,6 +28,7 @@ import {
+   type DevicePickerItem,
+ } from "../data/device/device_picker";
+ import {
++  devicesInEffectiveArea,
+   fetchDeviceCompositeSplits,
+   type DeviceCompositeSplits,
+ } from "../data/device/device_registry";
+@@ -158,6 +159,7 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+         excludeDevices,
+         value,
+         idPrefix,
++        nested: true,
+       })
+   );
+ 
+@@ -682,9 +684,10 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+         }
+       });
+     } else if (type === "area") {
+-      Object.values(this.hass.devices).forEach((device) => {
++      // Splitting an area yields its effective-area devices, so a child device
++      // that belongs to a different area is not pulled into this area.
++      devicesInEffectiveArea(this.hass.devices, itemId).forEach((device) => {
+         if (
+-          device.area_id === itemId &&
+           !this.value!.device_id?.includes(device.id) &&
+           deviceMeetsFilter(
+             device,
+@@ -716,9 +719,18 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+         }
+       });
+     } else if (type === "device") {
++      // Splitting a device into entities includes its child devices' entities,
++      // since targeting the device would target its children too.
++      const deviceIds = new Set([
++        itemId,
++        ...Object.values(this.hass.devices)
++          .filter((device) => device.parent_device_id === itemId)
++          .map((device) => device.id),
++      ]);
+       Object.values(this.hass.entities).forEach((entity) => {
+         if (
+-          entity.device_id === itemId &&
++          entity.device_id &&
++          deviceIds.has(entity.device_id) &&
+           !this.value!.entity_id?.includes(entity.entity_id) &&
+           entityRegMeetsFilter(
+             entity,
+@@ -1001,6 +1013,28 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+       }
+ 
+       if (!filterType || filterType === "device") {
++        const selectedDeviceIds = targetValue?.device_id
++          ? replacingDeviceId
++            ? ensureArray(targetValue.device_id).filter(
++                (deviceId) => deviceId !== replacingDeviceId
++              )
++            : ensureArray(targetValue.device_id)
++          : undefined;
++        // A selected parent device already targets its children, so exclude
++        // those children from the picker too (mirrors selecting a floor
++        // removing its areas from the list).
++        const excludeDeviceIds = selectedDeviceIds
++          ? [
++              ...selectedDeviceIds,
++              ...Object.values(this.hass.devices)
++                .filter(
++                  (device) =>
++                    device.parent_device_id !== null &&
++                    selectedDeviceIds.includes(device.parent_device_id)
++                )
++                .map((device) => device.id),
++            ]
++          : undefined;
+         let deviceItems = this._getDevicesMemoized(
+           this.hass,
+           configEntryLookup,
+@@ -1008,26 +1042,41 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+           includeDeviceClasses,
+           deviceFilter,
+           entityFilter,
+-          targetValue?.device_id
+-            ? replacingDeviceId
+-              ? ensureArray(targetValue.device_id).filter(
+-                  (deviceId) => deviceId !== replacingDeviceId
+-                )
+-              : ensureArray(targetValue.device_id)
+-            : undefined,
++          excludeDeviceIds,
+           replacingDeviceId,
+           `device${SEPARATOR}`
+-        ).sort(this._sortBySortingLabel);
++        );
++        // getDevices already returns child devices nested under their parent
++        // with the top-level devices sorted; keep that order rather than
++        // re-sorting by label, which would separate children from their parent.
+ 
+         if (searchTerm) {
++          // Keep the nested parent-then-children order (sort=false), matching
++          // the areas group; the default sorted search would reorder matches by
++          // relevance and pull children above their parent.
+           deviceItems = this._filterGroup(
+             "device",
+             deviceItems,
+             searchTerm,
+-            deviceComboBoxKeys
++            deviceComboBoxKeys,
++            false
+           );
+         }
+ 
++        // Recompute the tree "last child" flag over the (possibly filtered)
++        // list so the last visible child of each parent draws its end connector.
++        deviceItems = deviceItems.map((item, index) => {
++          if (!(item as DevicePickerItem).is_child) {
++            return item;
++          }
++          const nextItem = deviceItems[index + 1] as
++            DevicePickerItem | undefined;
++          return {
++            ...item,
++            last: !nextItem || !nextItem.is_child,
++          };
++        });
++
+         if (!filterType && deviceItems.length) {
+           // show group title
+           items.push(localize("ui.components.target-picker.type.devices"));
+@@ -1245,7 +1294,9 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+     let hasFloor = false;
+     let rtl = false;
+     let showEntityId = false;
+-    if (type === "area" || type === "floor") {
++    const isChildDeviceRow =
++      type === "device" && !!(item as DevicePickerItem).is_child;
++    if (type === "area" || type === "floor" || isChildDeviceRow) {
+       rtl = computeRTL(
+         this.hass.language,
+         this.hass.translationMetadata.translations
+@@ -1265,27 +1316,27 @@ export class HaTargetPicker extends SubscribeMixin(LitElement) {
+         .type=${type === "empty" ? "text" : "button"}
+         class=${type === "empty" ? "empty" : ""}
+         style=${
+-          (item as FloorComboBoxItem).type === "area" && hasFloor
++          ((item as FloorComboBoxItem).type === "area" && hasFloor) ||
++          isChildDeviceRow
+             ? "--md-list-item-leading-space: var(--ha-space-12);"
+             : ""
+         }
+       >
+         ${
+-          (item as FloorComboBoxItem).type === "area" && hasFloor
++          ((item as FloorComboBoxItem).type === "area" && hasFloor) ||
++          isChildDeviceRow
+             ? html`
+                 <ha-tree-indicator
+                   style=${styleMap({
+                     width: "var(--ha-space-12)",
+                     position: "absolute",
+                     top: "0",
++                    height: "100%",
+                     left: rtl ? undefined : "var(--ha-space-1)",
+                     right: rtl ? "var(--ha-space-1)" : undefined,
+                     transform: rtl ? "scaleX(-1)" : "",
+                   })}
+-                  .end=${
+-                    (item as FloorComboBoxItem & { last?: boolean | undefined })
+-                      .last
+-                  }
++                  .end=${(item as { last?: boolean }).last}
+                   slot="start"
+                 ></ha-tree-indicator>
+               `
+diff --git a/src/components/ha-tree-indicator.ts b/src/components/ha-tree-indicator.ts
+index a0a10ce..6cc6c24 100644
+--- a/src/components/ha-tree-indicator.ts
++++ b/src/components/ha-tree-indicator.ts
+@@ -8,10 +8,31 @@ export class HaTreeIndicator extends LitElement {
+   public end?: boolean = false;
+ 
+   protected render(): TemplateResult {
++    // preserveAspectRatio="none" lets the connector stretch to the host box, so
++    // it can span the full height of a taller row instead of being letterboxed
++    // to a square in the middle. non-scaling-stroke keeps the line width and
++    // dash pattern identical no matter how far it is stretched.
+     return html`
+-      <svg width="100%" height="100%" viewBox="0 0 48 48">
+-        <line x1="24" y1="0" x2="24" y2=${this.end ? "24" : "48"}></line>
+-        <line x1="24" y1="24" x2="36" y2="24"></line>
++      <svg
++        width="100%"
++        height="100%"
++        viewBox="0 0 48 48"
++        preserveAspectRatio="none"
++      >
++        <line
++          x1="24"
++          y1="0"
++          x2="24"
++          y2=${this.end ? "24" : "48"}
++          vector-effect="non-scaling-stroke"
++        ></line>
++        <line
++          x1="24"
++          y1="24"
++          x2="36"
++          y2="24"
++          vector-effect="non-scaling-stroke"
++        ></line>
+       </svg>
+     `;
+   }
+diff --git a/src/data/device/device_picker.ts b/src/data/device/device_picker.ts
+index fd26b74..eae8a24 100644
+--- a/src/data/device/device_picker.ts
++++ b/src/data/device/device_picker.ts
+@@ -3,6 +3,7 @@ import { computeDeviceNameDisplay } from "../../common/entity/compute_device_nam
+ import { computeDomain } from "../../common/entity/compute_domain";
+ import { getDeviceArea } from "../../common/entity/context/get_device_context";
+ import type { LocalizeFunc } from "../../common/translations/localize";
++import { caseInsensitiveStringCompare } from "../../common/string/compare";
+ import { computeRTL } from "../../common/util/compute_rtl";
+ import type { HaDevicePickerDeviceFilterFunc } from "../../components/device/ha-device-picker";
+ import type { PickerComboBoxItem } from "../../components/ha-picker-combo-box";
+@@ -24,12 +25,17 @@ import {
+ export interface DevicePickerItem extends PickerComboBoxItem {
+   domain?: string;
+   domain_name?: string;
++  // Set when this device is a child rendered indented under its parent.
++  is_child?: boolean;
++  // Set on the last child of a parent so the tree connector draws its end.
++  last?: boolean;
+ }
+ 
+ export interface DeviceAreaLabel {
+   areaName?: string;
+   viaDeviceName?: string;
+   viaDeviceAreaName?: string;
++  parentDeviceName?: string;
+ }
+ 
+ export interface GetDevicesOptions {
+@@ -41,6 +47,10 @@ export interface GetDevicesOptions {
+   excludeDevices?: string[];
+   value?: string;
+   idPrefix?: string;
++  // When set, order the result so children directly follow their parent and
++  // flag them for indented rendering. Requires the picker to disable its own
++  // sorting (no-sort) so this order is preserved.
++  nested?: boolean;
+ }
+ 
+ export const computeDeviceAreaLabel = (
+@@ -53,7 +63,8 @@ export const computeDeviceAreaLabel = (
+   translationMetadata: HomeAssistant["translationMetadata"],
+   viaDeviceEntities?: EntityRegistryEntry[] | EntityRegistryDisplayEntry[]
+ ): DeviceAreaLabel => {
+-  const area = getDeviceArea(device, areas);
++  // Pass devices so a child device inherits its parent's area.
++  const area = getDeviceArea(device, areas, devices);
+ 
+   const viaDevice = device.via_device_id
+     ? devices[device.via_device_id]
+@@ -61,11 +72,23 @@ export const computeDeviceAreaLabel = (
+   const viaDeviceName = viaDevice
+     ? computeDeviceNameDisplay(viaDevice, localize, states, viaDeviceEntities)
+     : undefined;
+-  const viaDeviceArea = viaDevice ? getDeviceArea(viaDevice, areas) : undefined;
++  const viaDeviceArea = viaDevice
++    ? getDeviceArea(viaDevice, areas, devices)
++    : undefined;
+   const viaDeviceAreaName = viaDeviceArea
+     ? computeAreaName(viaDeviceArea)
+     : undefined;
+ 
++  // A child device is a logical part of its parent. We surface the parent name
++  // only as a search term (below) — not in the area label, which stays the pure
++  // (inherited) area. The nested tree rendering communicates the relationship.
++  const parentDevice = device.parent_device_id
++    ? devices[device.parent_device_id]
++    : undefined;
++  const parentDeviceName = parentDevice
++    ? computeDeviceNameDisplay(parentDevice, localize, states)
++    : undefined;
++
+   const isRTL = computeRTL(language, translationMetadata.translations);
+ 
+   const areaName = area
+@@ -74,7 +97,7 @@ export const computeDeviceAreaLabel = (
+       ? `${viaDeviceAreaName}${isRTL ? " ◂ " : " ▸ "}${viaDeviceName}`
+       : viaDeviceName || undefined;
+ 
+-  return { areaName, viaDeviceName, viaDeviceAreaName };
++  return { areaName, viaDeviceName, viaDeviceAreaName, parentDeviceName };
+ };
+ 
+ export const deviceComboBoxKeys: FuseWeightedKey[] = [
+@@ -102,6 +125,14 @@ export const deviceComboBoxKeys: FuseWeightedKey[] = [
+     name: "search_labels.viaDeviceArea",
+     weight: 3,
+   },
++  {
++    name: "search_labels.parentDeviceName",
++    weight: 3,
++  },
++  {
++    name: "search_labels.childDeviceNames",
++    weight: 3,
++  },
+ ];
+ 
+ export const getDevices = (
+@@ -118,6 +149,7 @@ export const getDevices = (
+     excludeDevices,
+     value,
+     idPrefix = "",
++    nested,
+   } = options ?? {};
+ 
+   const devices = Object.values(hass.devices);
+@@ -125,26 +157,60 @@ export const getDevices = (
+ 
+   let deviceEntityLookup: DeviceEntityDisplayLookup = {};
+ 
+-  if (
+-    includeDomains ||
+-    excludeDomains ||
+-    includeDeviceClasses ||
+-    entityFilter
+-  ) {
++  const filtersEntities =
++    includeDomains || excludeDomains || includeDeviceClasses || entityFilter;
++
++  if (filtersEntities) {
+     deviceEntityLookup = getDeviceEntityDisplayLookup(entities);
+   }
+ 
++  // Targeting a device also targets its child devices (a parent inherits its
++  // children's entities), so a device should match an entity-based filter when
++  // it OR any of its children has a matching entity. Build a parent -> children
++  // map and resolve each device's effective entity set accordingly. Nesting is
++  // single-level, so one hop covers it.
++  const filterChildrenByParent = new Map<string, DeviceRegistryEntry[]>();
++  if (filtersEntities) {
++    for (const device of devices) {
++      if (device.parent_device_id) {
++        const siblings = filterChildrenByParent.get(device.parent_device_id);
++        if (siblings) {
++          siblings.push(device);
++        } else {
++          filterChildrenByParent.set(device.parent_device_id, [device]);
++        }
++      }
++    }
++  }
++  const effectiveEntities = (
++    deviceId: string
++  ): EntityRegistryDisplayEntry[] => {
++    const own = deviceEntityLookup[deviceId] ?? [];
++    const children = filterChildrenByParent.get(deviceId);
++    if (!children) {
++      return own;
++    }
++    const combined = [...own];
++    for (const child of children) {
++      const childEntities = deviceEntityLookup[child.id];
++      if (childEntities) {
++        combined.push(...childEntities);
++      }
++    }
++    return combined;
++  };
++
+   let inputDevices = devices.filter(
+     (device) => device.id === value || !device.disabled_by
+   );
+ 
+   if (includeDomains) {
+     inputDevices = inputDevices.filter((device) => {
+-      const devEntities = deviceEntityLookup[device.id];
+-      if (!devEntities || !devEntities.length) {
++      const devEntities = effectiveEntities(device.id);
++      if (!devEntities.length) {
+         return false;
+       }
+-      return deviceEntityLookup[device.id].some((entity) =>
++      return devEntities.some((entity) =>
+         includeDomains.includes(computeDomain(entity.entity_id))
+       );
+     });
+@@ -152,11 +218,11 @@ export const getDevices = (
+ 
+   if (excludeDomains) {
+     inputDevices = inputDevices.filter((device) => {
+-      const devEntities = deviceEntityLookup[device.id];
+-      if (!devEntities || !devEntities.length) {
++      const devEntities = effectiveEntities(device.id);
++      if (!devEntities.length) {
+         return true;
+       }
+-      return entities.every(
++      return devEntities.every(
+         (entity) => !excludeDomains.includes(computeDomain(entity.entity_id))
+       );
+     });
+@@ -170,11 +236,11 @@ export const getDevices = (
+ 
+   if (includeDeviceClasses) {
+     inputDevices = inputDevices.filter((device) => {
+-      const devEntities = deviceEntityLookup[device.id];
+-      if (!devEntities || !devEntities.length) {
++      const devEntities = effectiveEntities(device.id);
++      if (!devEntities.length) {
+         return false;
+       }
+-      return deviceEntityLookup[device.id].some((entity) => {
++      return devEntities.some((entity) => {
+         const stateObj = hass.states[entity.entity_id];
+         if (!stateObj) {
+           return false;
+@@ -189,8 +255,8 @@ export const getDevices = (
+ 
+   if (entityFilter) {
+     inputDevices = inputDevices.filter((device) => {
+-      const devEntities = deviceEntityLookup[device.id];
+-      if (!devEntities || !devEntities.length) {
++      const devEntities = effectiveEntities(device.id);
++      if (!devEntities.length) {
+         return false;
+       }
+       return devEntities.some((entity) => {
+@@ -219,7 +285,7 @@ export const getDevices = (
+       deviceEntityLookup[device.id]
+     );
+ 
+-    const { areaName, viaDeviceName, viaDeviceAreaName } =
++    const { areaName, viaDeviceName, viaDeviceAreaName, parentDeviceName } =
+       computeDeviceAreaLabel(
+         device,
+         hass.areas,
+@@ -256,10 +322,79 @@ export const getDevices = (
+         domainName: domainName || null,
+         viaDeviceName: viaDeviceName || null,
+         viaDeviceArea: viaDeviceAreaName || null,
++        parentDeviceName: parentDeviceName || null,
+       },
+       sorting_label: [primary, areaName, domainName].filter(Boolean).join("_"),
+     };
+   });
+ 
+-  return outputDevices;
++  if (!nested) {
++    return outputDevices;
++  }
++
++  // Order children directly after their parent and flag them for indented
++  // rendering. outputDevices is 1:1 with inputDevices, so we can pair them up.
++  const itemByDeviceId = new Map<string, DevicePickerItem>();
++  inputDevices.forEach((device, index) => {
++    itemByDeviceId.set(device.id, outputDevices[index]);
++  });
++  const presentIds = new Set(inputDevices.map((device) => device.id));
++
++  const childrenByParent = new Map<string, DeviceRegistryEntry[]>();
++  const topLevel: DeviceRegistryEntry[] = [];
++  for (const device of inputDevices) {
++    const parentId = device.parent_device_id;
++    // A child whose parent was filtered out is shown as a top-level row.
++    if (parentId && presentIds.has(parentId)) {
++      const siblings = childrenByParent.get(parentId);
++      if (siblings) {
++        siblings.push(device);
++      } else {
++        childrenByParent.set(parentId, [device]);
++      }
++    } else {
++      topLevel.push(device);
++    }
++  }
++
++  const compareByName = (a: DeviceRegistryEntry, b: DeviceRegistryEntry) =>
++    caseInsensitiveStringCompare(
++      itemByDeviceId.get(a.id)!.primary,
++      itemByDeviceId.get(b.id)!.primary,
++      hass.locale.language
++    );
++
++  topLevel.sort(compareByName);
++
++  const ordered: DevicePickerItem[] = [];
++  for (const device of topLevel) {
++    const parentItem = itemByDeviceId.get(device.id)!;
++    const children = childrenByParent.get(device.id);
++    if (children) {
++      children.sort(compareByName);
++      // Add the children's names to the parent's search terms so a search that
++      // matches a child keeps the parent visible (mirrors how a floor stays
++      // visible when one of its areas matches).
++      ordered.push({
++        ...parentItem,
++        search_labels: {
++          ...parentItem.search_labels,
++          childDeviceNames: children
++            .map((child) => itemByDeviceId.get(child.id)!.primary)
++            .join(" "),
++        },
++      });
++      children.forEach((child, index) => {
++        ordered.push({
++          ...itemByDeviceId.get(child.id)!,
++          is_child: true,
++          last: index === children.length - 1,
++        });
++      });
++    } else {
++      ordered.push(parentItem);
++    }
++  }
++
++  return ordered;
+ };
+diff --git a/src/data/device/device_registry.ts b/src/data/device/device_registry.ts
+index f9c9f01..d5bdf7d 100644
+--- a/src/data/device/device_registry.ts
++++ b/src/data/device/device_registry.ts
+@@ -15,6 +15,13 @@ export {
+   subscribeDeviceRegistry,
+ } from "../ws-device_registry";
+ 
++export type DeviceDisabler =
++  | "user"
++  | "integration"
++  | "config_entry"
++  // The device's parent device is disabled (child devices only).
++  | "device";
++
+ export interface DeviceRegistryEntry extends RegistryEntry {
+   id: string;
+   config_entries: string[];
+@@ -33,11 +40,116 @@ export interface DeviceRegistryEntry extends RegistryEntry {
+   area_id: string | null;
+   name_by_user: string | null;
+   entry_type: "service" | null;
+-  disabled_by: "user" | "integration" | "config_entry" | null;
++  disabled_by: DeviceDisabler | null;
+   configuration_url: string | null;
+   primary_config_entry: string | null;
++  // Set when this device is a child (logical part) of another device.
++  // null for regular top-level devices.
++  parent_device_id: string | null;
++}
++
++/**
++ * A child device as it arrives over the wire from
++ * `config/device_registry/list`. A child is a lightweight logical part of a
++ * parent device (e.g. an outlet of a power strip); it only carries its own
++ * fields and inherits the rest from its parent. It is never stored in
++ * `hass.devices` in this shape — {@link resolveChildDevices} turns every child
++ * into a complete {@link DeviceRegistryEntry} at ingestion, so downstream code
++ * only ever sees full device entries.
++ */
++export interface ChildDeviceRegistryEntry extends RegistryEntry {
++  id: string;
++  config_entry_id: string;
++  config_subentry_id: string | null;
++  identifiers: [string, string][];
++  name: string | null;
++  name_by_user: string | null;
++  labels: string[];
++  area_id: string | null;
++  disabled_by: DeviceDisabler | null;
++  parent_device_id: string;
++}
++
++/**
++ * The raw, mixed list returned by `config/device_registry/list`: full devices
++ * and stripped children, discriminated by the presence of full-device fields.
++ */
++export type DeviceRegistryListEntry =
++  DeviceRegistryEntry | ChildDeviceRegistryEntry;
++
++/** Whether a resolved device entry is a child (logical part) of another device. */
++export const isChildDevice = (device: DeviceRegistryEntry): boolean =>
++  device.parent_device_id !== null;
++
++/**
++ * Devices whose effective area is the given area: devices with that area, and
++ * child devices that inherit it because they have no area of their own. Mirrors
++ * core's dr.async_entries_for_area, so a child device with a different explicit
++ * area is not part of its parent's area.
++ */
++export const devicesInEffectiveArea = (
++  devices: Record<string, DeviceRegistryEntry>,
++  areaId: string
++): DeviceRegistryEntry[] =>
++  Object.values(devices).filter((device) => {
++    if (device.area_id) {
++      return device.area_id === areaId;
++    }
++    if (device.parent_device_id) {
++      return devices[device.parent_device_id]?.area_id === areaId;
++    }
++    return false;
++  });
++
++export interface DeviceRowItem {
++  device: DeviceRegistryEntry;
++  isChild: boolean;
++  // True for the last child of a parent, so the tree connector draws its end.
++  isLastChild: boolean;
+ }
+ 
++/**
++ * Order a flat device list so each child directly follows its parent, flagging
++ * children for indented rendering. The incoming order of the top-level devices
++ * (and of the children within each parent) is preserved. A child whose parent
++ * is not in the list is treated as a top-level device.
++ */
++export const groupDevicesByParent = (
++  devices: DeviceRegistryEntry[]
++): DeviceRowItem[] => {
++  const presentIds = new Set(devices.map((device) => device.id));
++  const childrenByParent = new Map<string, DeviceRegistryEntry[]>();
++  const topLevel: DeviceRegistryEntry[] = [];
++
++  for (const device of devices) {
++    const parentId = device.parent_device_id;
++    if (parentId && presentIds.has(parentId)) {
++      const siblings = childrenByParent.get(parentId);
++      if (siblings) {
++        siblings.push(device);
++      } else {
++        childrenByParent.set(parentId, [device]);
++      }
++    } else {
++      topLevel.push(device);
++    }
++  }
++
++  const result: DeviceRowItem[] = [];
++  for (const device of topLevel) {
++    result.push({ device, isChild: false, isLastChild: false });
++    const children = childrenByParent.get(device.id) ?? [];
++    children.forEach((child, index) => {
++      result.push({
++        device: child,
++        isChild: true,
++        isLastChild: index === children.length - 1,
++      });
++    });
++  }
++  return result;
++};
++
+ export type DeviceEntityDisplayLookup = Record<
+   string,
+   EntityRegistryDisplayEntry[]
+diff --git a/src/data/selector.ts b/src/data/selector.ts
+index d30229b..898b589 100644
+--- a/src/data/selector.ts
++++ b/src/data/selector.ts
+@@ -14,6 +14,7 @@ import type {
+ import type { HomeAssistant } from "../types";
+ import {
+   type DeviceRegistryEntry,
++  devicesInEffectiveArea,
+   getDeviceIntegrationLookup,
+ } from "./device/device_registry";
+ import type {
+@@ -726,9 +727,10 @@ export const expandAreaTarget = (
+ ) => {
+   const newEntities: string[] = [];
+   const newDevices: string[] = [];
+-  Object.values(devices).forEach((device) => {
++  // Devices of an area are its effective-area members: a child device inheriting
++  // this area counts, a child with a different explicit area does not.
++  devicesInEffectiveArea(devices, areaId).forEach((device) => {
+     if (
+-      device.area_id === areaId &&
+       deviceMeetsTargetSelector(
+         hass.states,
+         Object.values(entities),
+@@ -790,9 +792,8 @@ export const areaMeetsTargetSelector = (
+   targetSelector: TargetSelector,
+   entitySources?: EntitySources
+ ): boolean => {
+-  const hasMatchingdevice = Object.values(devices).some((device) => {
+-    if (
+-      device.area_id === areaId &&
++  const hasMatchingdevice = devicesInEffectiveArea(devices, areaId).some(
++    (device) =>
+       deviceMeetsTargetSelector(
+         hass.states,
+         Object.values(entities),
+@@ -800,11 +801,7 @@ export const areaMeetsTargetSelector = (
+         targetSelector,
+         entitySources
+       )
+-    ) {
+-      return true;
+-    }
+-    return false;
+-  });
++  );
+   if (hasMatchingdevice) {
+     return true;
+   }
+@@ -846,6 +843,8 @@ export const deviceMeetsTargetSelector = (
+     }
+   }
+   if (targetSelector.target?.entity) {
++    // Only the device's own entities: a child device is reached through the
++    // device target itself, so a parent must not match on a child's behalf.
+     const entities = entityRegistry.filter(
+       (reg) => reg.device_id === device.id
+     );
+@@ -1112,6 +1111,11 @@ export const resolveEntityIDs = (
+   const targetFloors = new Set(ensureArray(targetPickerValue.floor_id));
+   const targetLabels = new Set(ensureArray(targetPickerValue.label_id));
+ 
++  // Only a directly targeted device pulls in its child devices. Devices that are
++  // only reached through a label or an area must not, because core does not
++  // inherit labels to children and resolves areas by effective area membership.
++  const directDevices = new Set(targetDevices);
++
+   targetLabels.forEach((labelId) => {
+     const expanded = expandLabelTarget(
+       hass,
+@@ -1143,6 +1147,15 @@ export const resolveEntityIDs = (
+     expanded.entities.forEach((id) => targetEntities.add(id));
+   });
+ 
++  // Targeting a device also targets its child devices, matching core's
++  // server-side target resolution. Only direct device targets expand this way;
++  // nesting is single-level, so one pass is enough.
++  Object.values(devices).forEach((device) => {
++    if (device.parent_device_id && directDevices.has(device.parent_device_id)) {
++      targetDevices.add(device.id);
++    }
++  });
++
+   targetDevices.forEach((deviceId) => {
+     const expanded = expandDeviceTarget(
+       hass,
+diff --git a/src/data/target.ts b/src/data/target.ts
+index 2c3776f..027b675 100644
+--- a/src/data/target.ts
++++ b/src/data/target.ts
+@@ -7,7 +7,10 @@ import type { CallWS, HomeAssistant } from "../types";
+ import type { AreaRegistryEntry } from "./area/area_registry";
+ import type { FloorComboBoxItem } from "./area_floor_picker";
+ import type { DevicePickerItem } from "./device/device_picker";
+-import type { DeviceRegistryEntry } from "./device/device_registry";
++import {
++  devicesInEffectiveArea,
++  type DeviceRegistryEntry,
++} from "./device/device_registry";
+ import type { HaEntityPickerEntityFilterFunc } from "./entity/entity";
+ import type { EntityComboBoxItem } from "./entity/entity_picker";
+ import type { EntityRegistryDisplayEntry } from "./entity/entity_registry";
+@@ -125,9 +128,7 @@ export const areaMeetsFilter = (
+   entityFilter?: HaEntityPickerEntityFilterFunc,
+   includeSecondary = false
+ ): boolean => {
+-  const areaDevices = Object.values(devices).filter(
+-    (device) => device.area_id === area.area_id
+-  );
++  const areaDevices = devicesInEffectiveArea(devices, area.area_id);
+ 
+   if (
+     areaDevices.some((device) =>
+@@ -178,6 +179,9 @@ export const deviceMeetsFilter = (
+   entityFilter?: HaEntityPickerEntityFilterFunc,
+   includeSecondary = false
+ ): boolean => {
++  // Only the device's own entities: child devices are targeted through the
++  // device itself (see core's target resolution), not by making a parent match
++  // on behalf of a child.
+   const devEntities = Object.values(entities).filter(
+     (entity) => entity.device_id === device.id
+   );
+diff --git a/src/data/ws-device_registry.ts b/src/data/ws-device_registry.ts
+index 20f17c0..497299a 100644
+--- a/src/data/ws-device_registry.ts
++++ b/src/data/ws-device_registry.ts
+@@ -2,12 +2,87 @@ import type { Connection } from "home-assistant-js-websocket";
+ import { createCollection } from "home-assistant-js-websocket";
+ import type { Store } from "home-assistant-js-websocket/dist/store";
+ import { debounce } from "../common/util/debounce";
+-import type { DeviceRegistryEntry } from "./device/device_registry";
++import type {
++  ChildDeviceRegistryEntry,
++  DeviceRegistryEntry,
++  DeviceRegistryListEntry,
++} from "./device/device_registry";
+ 
+-export const fetchDeviceRegistry = (conn: Connection) =>
+-  conn.sendMessagePromise<DeviceRegistryEntry[]>({
+-    type: "config/device_registry/list",
++// A full device carries fields that stripped children never do; use one of
++// those as the discriminant. This keeps "is a stripped child" decoupled from
++// "has a parent", so a hypothetical full-featured sub-device would still be
++// treated as a complete entry. We key off `connections` rather than
++// `config_entries` because the latter is a deprecated compatibility field core
++// plans to drop; `connections` is present on every full device and never on a
++// stripped child.
++const isChildEntry = (
++  entry: DeviceRegistryListEntry
++): entry is ChildDeviceRegistryEntry => !("connections" in entry);
++
++/**
++ * Resolve the mixed device list from `config/device_registry/list` into a flat
++ * list of complete {@link DeviceRegistryEntry} objects.
++ *
++ * Children are stripped over the wire and inherit the rest from their parent:
++ * - config-entry association comes from the child's own `config_entry_id`, so
++ *   children still show up under their integration;
++ * - hardware/display fields (manufacturer, model, versions, ...) are inherited
++ *   from the parent, since a child is a logical part of the same hardware;
++ * - identity fields (`connections`, `via_device_id`) are NOT inherited — a
++ *   child is not the parent and has no connections of its own.
++ *
++ * Nesting is a single level (core rejects a child as another child's parent),
++ * so no recursion is needed.
++ */
++export const resolveChildDevices = (
++  entries: DeviceRegistryListEntry[]
++): DeviceRegistryEntry[] => {
++  const parents = new Map<string, DeviceRegistryEntry>();
++  for (const entry of entries) {
++    if (!isChildEntry(entry)) {
++      parents.set(entry.id, entry);
++    }
++  }
++
++  return entries.map((entry) => {
++    if (!isChildEntry(entry)) {
++      return entry;
++    }
++
++    const parent = parents.get(entry.parent_device_id);
++
++    return {
++      // Structural fields derived from the child's own config entry.
++      config_entries: [entry.config_entry_id],
++      config_entries_subentries: {
++        [entry.config_entry_id]: [entry.config_subentry_id],
++      },
++      primary_config_entry: entry.config_entry_id,
++      // Hardware/display fields inherited from the parent.
++      manufacturer: parent?.manufacturer ?? null,
++      model: parent?.model ?? null,
++      model_id: parent?.model_id ?? null,
++      sw_version: parent?.sw_version ?? null,
++      hw_version: parent?.hw_version ?? null,
++      serial_number: parent?.serial_number ?? null,
++      entry_type: parent?.entry_type ?? null,
++      configuration_url: parent?.configuration_url ?? null,
++      // Identity fields — a child has none of its own.
++      connections: [],
++      via_device_id: null,
++      // The child's own fields (id, name, area_id, labels, identifiers,
++      // parent_device_id, ...) win over everything above.
++      ...entry,
++    };
+   });
++};
++
++export const fetchDeviceRegistry = (conn: Connection) =>
++  conn
++    .sendMessagePromise<DeviceRegistryListEntry[]>({
++      type: "config/device_registry/list",
++    })
++    .then(resolveChildDevices);
+ 
+ const subscribeDeviceRegistryUpdates = (
+   conn: Connection,
+diff --git a/src/panels/config/automation/add-automation-element/ha-automation-add-search.ts b/src/panels/config/automation/add-automation-element/ha-automation-add-search.ts
+index 4629155..ddd5b29 100644
+--- a/src/panels/config/automation/add-automation-element/ha-automation-add-search.ts
++++ b/src/panels/config/automation/add-automation-element/ha-automation-add-search.ts
+@@ -370,6 +370,7 @@ export class HaAutomationAddSearch extends LitElement {
+                     width: "var(--ha-space-12)",
+                     position: "absolute",
+                     top: "0",
++                    height: "100%",
+                     left: rtl ? undefined : "var(--ha-space-1)",
+                     right: rtl ? "var(--ha-space-1)" : undefined,
+                     transform: rtl ? "scaleX(-1)" : "",
+diff --git a/src/panels/config/dashboard/ha-config-updates.ts b/src/panels/config/dashboard/ha-config-updates.ts
+index e32f9ba..58c404a 100644
+--- a/src/panels/config/dashboard/ha-config-updates.ts
++++ b/src/panels/config/dashboard/ha-config-updates.ts
+@@ -88,7 +88,7 @@ class HaConfigUpdates extends LitElement {
+ 
+           const areaName =
+             deviceEntry && deviceEntry.entry_type !== "service"
+-              ? getDeviceArea(deviceEntry, this._areas)?.name ||
++              ? getDeviceArea(deviceEntry, this._areas, this._devices)?.name ||
+                 this._localize("ui.panel.config.updates.no_area")
+               : undefined;
+ 
+diff --git a/src/panels/config/devices/device-detail/ha-device-child-devices-card.ts b/src/panels/config/devices/device-detail/ha-device-child-devices-card.ts
+new file mode 100644
+index 0000000..a4033a4
+--- /dev/null
++++ b/src/panels/config/devices/device-detail/ha-device-child-devices-card.ts
+@@ -0,0 +1,168 @@
++import { consume } from "@lit/context";
++import { css, html, LitElement, nothing } from "lit";
++import { customElement, property, state } from "lit/decorators";
++import memoizeOne from "memoize-one";
++import { computeDeviceNameDisplay } from "../../../../common/entity/compute_device_name";
++import { getDeviceArea } from "../../../../common/entity/context/get_device_context";
++import { caseInsensitiveStringCompare } from "../../../../common/string/compare";
++import "../../../../components/ha-card";
++import "../../../../components/ha-icon-next";
++import "../../../../components/ha-list-item";
++import { fullEntitiesContext } from "../../../../data/context";
++import type { DeviceRegistryEntry } from "../../../../data/device/device_registry";
++import type { EntityRegistryEntry } from "../../../../data/entity/entity_registry";
++import type { HomeAssistant } from "../../../../types";
++
++const MAX_VISIBLE_CHILD_DEVICES = 10;
++
++@customElement("ha-device-child-devices-card")
++export class HaDeviceChildDevicesCard extends LitElement {
++  @property({ attribute: false }) public hass!: HomeAssistant;
++
++  @property({ attribute: false }) public deviceId!: string;
++
++  @state() public _showAll = false;
++
++  @state()
++  @consume({ context: fullEntitiesContext, subscribe: true })
++  _entityReg: EntityRegistryEntry[] = [];
++
++  private _entityCounts = memoizeOne(
++    (entities: EntityRegistryEntry[]): Record<string, number> => {
++      const counts: Record<string, number> = {};
++      for (const entity of entities) {
++        if (entity.device_id) {
++          counts[entity.device_id] = (counts[entity.device_id] ?? 0) + 1;
++        }
++      }
++      return counts;
++    }
++  );
++
++  private _childDevices = memoizeOne(
++    (
++      deviceId: string,
++      devices: Record<string, DeviceRegistryEntry>
++    ): DeviceRegistryEntry[] =>
++      Object.values(devices)
++        .filter((device) => device.parent_device_id === deviceId)
++        .sort((d1, d2) =>
++          caseInsensitiveStringCompare(
++            computeDeviceNameDisplay(d1, this.hass.localize, this.hass.states),
++            computeDeviceNameDisplay(d2, this.hass.localize, this.hass.states),
++            this.hass.locale.language
++          )
++        )
++  );
++
++  protected render() {
++    const childDevices = this._childDevices(this.deviceId, this.hass.devices);
++
++    if (childDevices.length === 0) {
++      return nothing;
++    }
++
++    const entityCounts = this._entityCounts(this._entityReg);
++
++    return html`
++      <ha-card>
++        <h1 class="card-header">
++          ${this.hass.localize("ui.panel.config.devices.child_devices.heading")}
++        </h1>
++        ${(this._showAll
++          ? childDevices
++          : childDevices.slice(0, MAX_VISIBLE_CHILD_DEVICES)
++        ).map((childDevice) => {
++          const area = getDeviceArea(
++            childDevice,
++            this.hass.areas,
++            this.hass.devices
++          );
++          const entityCount = entityCounts[childDevice.id] ?? 0;
++          const secondary = [
++            area?.name,
++            entityCount
++              ? this.hass.localize(
++                  "ui.panel.config.common.quick_links.entities",
++                  { count: entityCount }
++                )
++              : undefined,
++          ]
++            .filter(Boolean)
++            .join(" • ");
++          return html`
++            <a href=${`/config/devices/device/${childDevice.id}`}>
++              <ha-list-item hasMeta .twoline=${!!secondary}>
++                ${computeDeviceNameDisplay(
++                  childDevice,
++                  this.hass.localize,
++                  this.hass.states
++                )}
++                ${
++                  secondary
++                    ? html`<span slot="secondary">${secondary}</span>`
++                    : nothing
++                }
++                <ha-icon-next slot="meta"></ha-icon-next>
++              </ha-list-item>
++            </a>
++          `;
++        })}
++        ${
++          !this._showAll && childDevices.length > MAX_VISIBLE_CHILD_DEVICES
++            ? html`
++                <button class="show-more" @click=${this._toggleShowAll}>
++                  ${this.hass.localize(
++                    "ui.panel.config.devices.child_devices.show_more",
++                    { count: childDevices.length - MAX_VISIBLE_CHILD_DEVICES }
++                  )}
++                </button>
++              `
++            : ""
++        }
++      </ha-card>
++    `;
++  }
++
++  private _toggleShowAll() {
++    this._showAll = !this._showAll;
++  }
++
++  static styles = css`
++    :host {
++      display: block;
++    }
++
++    .card-header {
++      padding-bottom: 0;
++    }
++
++    a {
++      text-decoration: none;
++      color: var(--primary-text-color);
++    }
++
++    button.show-more {
++      color: var(--primary-color);
++      text-align: left;
++      cursor: pointer;
++      background: none;
++      border-width: initial;
++      border-style: none;
++      border-color: initial;
++      border-image: initial;
++      padding: 16px;
++      font: inherit;
++    }
++    button.show-more:focus {
++      outline: none;
++      text-decoration: underline;
++    }
++  `;
++}
++
++declare global {
++  interface HTMLElementTagNameMap {
++    "ha-device-child-devices-card": HaDeviceChildDevicesCard;
++  }
++}
+diff --git a/src/panels/config/devices/device-detail/ha-device-info-card.ts b/src/panels/config/devices/device-detail/ha-device-info-card.ts
+index 8ba5261..23d2636 100644
+--- a/src/panels/config/devices/device-detail/ha-device-info-card.ts
++++ b/src/panels/config/devices/device-detail/ha-device-info-card.ts
+@@ -93,6 +93,27 @@ export class HaDeviceCard extends LitElement {
+                 `
+               : ""
+           }
++          ${
++            this.device.parent_device_id
++              ? html`
++                  <div class="extra-info">
++                    ${this.hass.localize(
++                      "ui.panel.config.integrations.config_entry.part_of"
++                    )}
++                    <span class="hub"
++                      ><a
++                        href="/config/devices/device/${
++                          this.device.parent_device_id
++                        }"
++                        >${this._computeDeviceNameDisplay(
++                          this.device.parent_device_id
++                        )}</a
++                      ></span
++                    >
++                  </div>
++                `
++              : ""
++          }
+           ${
+             this.device.via_device_id
+               ? html`
+diff --git a/src/panels/config/devices/device-detail/ha-device-via-devices-card.ts b/src/panels/config/devices/device-detail/ha-device-via-devices-card.ts
+index 7385d73..c7be11a 100644
+--- a/src/panels/config/devices/device-detail/ha-device-via-devices-card.ts
++++ b/src/panels/config/devices/device-detail/ha-device-via-devices-card.ts
+@@ -75,7 +75,11 @@ export class HaDeviceViaDevicesCard extends LitElement {
+           ? viaDevices
+           : viaDevices.slice(0, MAX_VISIBLE_VIA_DEVICES)
+         ).map((viaDevice) => {
+-          const area = getDeviceArea(viaDevice, this.hass.areas);
++          const area = getDeviceArea(
++            viaDevice,
++            this.hass.areas,
++            this.hass.devices
++          );
+           const entityCount = entityCounts[viaDevice.id] ?? 0;
+           const secondary = [
+             area?.name,
+diff --git a/src/panels/config/devices/device-registry-detail/dialog-device-registry-detail.ts b/src/panels/config/devices/device-registry-detail/dialog-device-registry-detail.ts
+index e3bf493..62a4e24 100644
+--- a/src/panels/config/devices/device-registry-detail/dialog-device-registry-detail.ts
++++ b/src/panels/config/devices/device-registry-detail/dialog-device-registry-detail.ts
+@@ -125,7 +125,10 @@ class DialogDeviceRegistryDetail extends DirtyStateProviderMixin<DeviceFormState
+             <div class="row">
+               <ha-switch
+                 .checked=${!this._disabledBy}
+-                .disabled=${this._params.device.disabled_by === "config_entry"}
++                .disabled=${
++                  this._params.device.disabled_by === "config_entry" ||
++                  this._params.device.disabled_by === "device"
++                }
+                 @change=${this._disabledByChanged}
+               >
+               </ha-switch>
+diff --git a/src/panels/config/devices/ha-config-device-page.ts b/src/panels/config/devices/ha-config-device-page.ts
+index a58c4b8..a9bffc8 100644
+--- a/src/panels/config/devices/ha-config-device-page.ts
++++ b/src/panels/config/devices/ha-config-device-page.ts
+@@ -33,6 +33,7 @@ import { computeDomain } from "../../../common/entity/compute_domain";
+ import { computeEntityEntryName } from "../../../common/entity/compute_entity_name";
+ import { computeStateDomain } from "../../../common/entity/compute_state_domain";
+ import { computeStateName } from "../../../common/entity/compute_state_name";
++import { getDeviceArea } from "../../../common/entity/context/get_device_context";
+ import { navigate } from "../../../common/navigate";
+ import { stringCompare } from "../../../common/string/compare";
+ import { slugify } from "../../../common/string/slugify";
+@@ -106,6 +107,7 @@ import { createSearchParam } from "../../../common/url/search-params";
+ import { brandsUrl } from "../../../util/brands-url";
+ import { fileDownload } from "../../../util/file_download";
+ import "../../logbook/ha-logbook";
++import "./device-detail/ha-device-child-devices-card";
+ import "./device-detail/ha-device-entities-card";
+ import "./device-detail/ha-device-info-card";
+ import "./device-detail/ha-device-linked-devices-card";
+@@ -442,7 +444,7 @@ export class HaConfigDevicePage extends LitElement {
+     const batteryChargingState = batteryChargingEntity
+       ? this.hass.states[batteryChargingEntity.entity_id]
+       : undefined;
+-    const area = device.area_id ? this.hass.areas[device.area_id] : undefined;
++    const area = getDeviceArea(device, this.hass.areas, this.hass.devices);
+ 
+     const deviceInfo: TemplateResult[] = integrations.length
+       ? [
+@@ -899,6 +901,10 @@ export class HaConfigDevicePage extends LitElement {
+             : ""
+         }
+       </ha-device-info-card>
++      <ha-device-child-devices-card
++        .hass=${this.hass}
++        .deviceId=${this.deviceId}
++      ></ha-device-child-devices-card>
+       <ha-device-linked-devices-card
+         .hass=${this.hass}
+         .deviceId=${this.deviceId}
+diff --git a/src/panels/config/devices/ha-config-devices-dashboard.ts b/src/panels/config/devices/ha-config-devices-dashboard.ts
+index b1811e9..47bda15 100644
+--- a/src/panels/config/devices/ha-config-devices-dashboard.ts
++++ b/src/panels/config/devices/ha-config-devices-dashboard.ts
+@@ -459,6 +459,15 @@ export class HaConfigDeviceDashboard extends LitElement {
+         ? new Map(labelReg.map((label) => [label.label_id, label]))
+         : undefined;
+ 
++      // Ids of devices that have at least one child device, so a parent can be
++      // grouped together with its children.
++      const deviceIdsWithChildren = new Set<string>();
++      for (const dev of Object.values(devices)) {
++        if (dev.parent_device_id) {
++          deviceIdsWithChildren.add(dev.parent_device_id);
++        }
++      }
++
+       const formattedOutputDevices = outputDevices.map((device) => {
+         const deviceEntries = sortConfigEntries(
+           device.config_entries
+@@ -472,6 +481,15 @@ export class HaConfigDeviceDashboard extends LitElement {
+           .map((lbl) => labelLookup!.get(lbl))
+           .filter((entry): entry is LabelRegistryEntry => entry !== undefined);
+ 
++        const parentDevice = device.parent_device_id
++          ? this.hass.devices[device.parent_device_id]
++          : undefined;
++        // The device that identifies this device's family: its parent for a
++        // child device, itself for a device that has children.
++        const familyParentDevice =
++          parentDevice ??
++          (deviceIdsWithChildren.has(device.id) ? device : undefined);
++
+         const { areaName } = computeDeviceAreaLabel(
+           device,
+           this.hass.areas,
+@@ -486,9 +504,13 @@ export class HaConfigDeviceDashboard extends LitElement {
+         );
+ 
+         const floorArea =
+-          getDeviceArea(device, areas) ??
++          getDeviceArea(device, areas, this.hass.devices) ??
+           (device.via_device_id && this.hass.devices[device.via_device_id]
+-            ? getDeviceArea(this.hass.devices[device.via_device_id], areas)
++            ? getDeviceArea(
++                this.hass.devices[device.via_device_id],
++                areas,
++                this.hass.devices
++              )
+             : undefined);
+         const floorId = floorArea?.floor_id;
+         const floorName =
+@@ -523,6 +545,29 @@ export class HaConfigDeviceDashboard extends LitElement {
+                 "ui.panel.config.devices.data_table.no_integration"
+               ),
+           domains: deviceEntries.map((entry) => entry.domain),
++          parent_device_name: parentDevice
++            ? computeDeviceNameDisplay(
++                parentDevice,
++                this.hass.localize,
++                this.hass.states,
++                deviceEntityLookup[parentDevice.id]
++              )
++            : "",
++          // Grouping key that keeps a device with its family: children group
++          // under their parent's name, a parent groups under its own name, and
++          // standalone devices stay ungrouped. The name is always computed from
++          // the family's parent device with the same arguments, so a parent and
++          // its children can never end up in different groups. Like the area and
++          // floor columns, this groups on the display name rather than the id,
++          // because the data table renders the raw group value as its header.
++          device_family_name: familyParentDevice
++            ? computeDeviceNameDisplay(
++                familyParentDevice,
++                this.hass.localize,
++                this.hass.states,
++                deviceEntityLookup[familyParentDevice.id]
++              )
++            : undefined,
+           firmware_version: device.sw_version || undefined,
+           battery_entity: [
+             this._batteryEntity(device.id, deviceEntityLookup),
+@@ -583,6 +628,16 @@ export class HaConfigDeviceDashboard extends LitElement {
+         flex: 2,
+         minWidth: "150px",
+         extraTemplate: (device) => html`
++          ${
++            device.parent_device_name
++              ? html`<div style="color: var(--secondary-text-color);">
++                  ${localize(
++                    "ui.panel.config.devices.data_table.part_of_device",
++                    { name: device.parent_device_name }
++                  )}
++                </div>`
++              : nothing
++          }
+           ${
+             device.label_entries.length
+               ? html`
+@@ -603,6 +658,19 @@ export class HaConfigDeviceDashboard extends LitElement {
+         groupable: true,
+         minWidth: "120px",
+       },
++      device_family_name: {
++        title: localize("ui.panel.config.devices.data_table.parent_device"),
++        // Keyed on the family name so grouping/sorting keeps a parent together
++        // with its children (grouping uses the column key directly). The cell
++        // only shows the parent name for child devices. Filterable stays on
++        // even when hidden, so searching a parent's name surfaces its children.
++        sortable: true,
++        filterable: true,
++        groupable: true,
++        defaultHidden: true,
++        minWidth: "120px",
++        template: (device) => device.parent_device_name || "",
++      },
+       manufacturer: {
+         title: localize("ui.panel.config.devices.data_table.manufacturer"),
+         sortable: true,
+diff --git a/src/panels/config/integrations/ha-config-entry-device-row.ts b/src/panels/config/integrations/ha-config-entry-device-row.ts
+index 753096a..e61d2a0 100644
+--- a/src/panels/config/integrations/ha-config-entry-device-row.ts
++++ b/src/panels/config/integrations/ha-config-entry-device-row.ts
+@@ -10,12 +10,15 @@ import {
+ import { css, html, LitElement, nothing } from "lit";
+ import { customElement, property } from "lit/decorators";
+ import { classMap } from "lit/directives/class-map";
++import { styleMap } from "lit/directives/style-map";
+ import { stopPropagation } from "../../../common/dom/stop_propagation";
+ import { computeDeviceNameDisplay } from "../../../common/entity/compute_device_name";
+ import { getDeviceArea } from "../../../common/entity/context/get_device_context";
+ import { navigate } from "../../../common/navigate";
++import { computeRTL } from "../../../common/util/compute_rtl";
+ import "../../../components/ha-dropdown";
+ import "../../../components/ha-dropdown-item";
++import "../../../components/ha-tree-indicator";
+ import {
+   disableConfigEntry,
+   type ConfigEntry,
+@@ -48,12 +51,24 @@ class HaConfigEntryDeviceRow extends LitElement {
+ 
+   @property({ attribute: false }) public entities!: EntityRegistryEntry[];
+ 
++  // Rendered indented under its parent device.
++  @property({ type: Boolean, reflect: true, attribute: "is-child" })
++  public isChild = false;
++
++  // The last child of its parent, so the tree connector draws its end.
++  @property({ attribute: false }) public isLastChild = false;
++
+   protected render() {
+     const device = this.device;
+ 
+     const entities = this._getEntities();
+ 
+-    const area = getDeviceArea(device, this.hass.areas);
++    const area = getDeviceArea(device, this.hass.areas, this.hass.devices);
++
++    const rtl = computeRTL(
++      this.hass.language,
++      this.hass.translationMetadata.translations
++    );
+ 
+     const supportingText = [
+       device.model || device.sw_version || device.manufacturer,
+@@ -65,6 +80,25 @@ class HaConfigEntryDeviceRow extends LitElement {
+       @click=${this._handleNavigateToDevice}
+       class=${classMap({ disabled: Boolean(device.disabled_by) })}
+     >
++      ${
++        this.isChild
++          ? html`<ha-tree-indicator
++              style=${styleMap({
++                position: "absolute",
++                // Span the full row height so consecutive children form one
++                // continuous line; the elbow sits at the vertical centre.
++                top: "0",
++                // Align the connector under the parent device icon; the leading
++                // space (and thus the icon column) is smaller in narrow mode.
++                left: rtl ? undefined : this.narrow ? "4px" : "44px",
++                right: rtl ? (this.narrow ? "4px" : "44px") : undefined,
++                transform: rtl ? "scaleX(-1)" : "",
++              })}
++              .end=${this.isLastChild}
++              slot="start"
++            ></ha-tree-indicator>`
++          : nothing
++      }
+       <ha-svg-icon
+         .path=${
+           device.entry_type === "service"
+@@ -351,12 +385,22 @@ class HaConfigEntryDeviceRow extends LitElement {
+         --md-ripple-hover-color: transparent;
+         --md-ripple-pressed-color: transparent;
+       }
++      :host([is-child]) ha-md-list-item {
++        --md-list-item-leading-space: 88px;
++      }
+       .disabled {
+         opacity: 0.5;
+       }
+       :host([narrow]) ha-md-list-item {
+         --md-list-item-leading-space: 16px;
+       }
++      :host([narrow][is-child]) ha-md-list-item {
++        --md-list-item-leading-space: 48px;
++      }
++      ha-tree-indicator {
++        width: 48px;
++        height: 100%;
++      }
+       .vertical-divider {
+         height: 100%;
+         width: 1px;
+diff --git a/src/panels/config/integrations/ha-config-entry-row.ts b/src/panels/config/integrations/ha-config-entry-row.ts
+index 6deae39..6de6de4 100644
+--- a/src/panels/config/integrations/ha-config-entry-row.ts
++++ b/src/panels/config/integrations/ha-config-entry-row.ts
+@@ -45,6 +45,7 @@ import {
+ } from "../../../data/config_entries";
+ import type { DiagnosticInfo } from "../../../data/diagnostics";
+ import { getConfigEntryDiagnosticsDownloadUrl } from "../../../data/diagnostics";
++import { groupDevicesByParent } from "../../../data/device/device_registry";
+ import type { EntityRegistryEntry } from "../../../data/entity/entity_registry";
+ import type { IntegrationManifest } from "../../../data/integration";
+ import {
+@@ -479,14 +480,16 @@ export class HaConfigEntryRow extends LitElement {
+                       </ha-md-list-item>
+                       ${
+                         this._devicesExpanded
+-                          ? ownDevices.map(
+-                              (device) =>
++                          ? groupDevicesByParent(ownDevices).map(
++                              ({ device, isChild, isLastChild }) =>
+                                 html`<ha-config-entry-device-row
+                                   .hass=${this.hass}
+                                   .narrow=${this.narrow}
+                                   .entry=${item}
+                                   .device=${device}
+                                   .entities=${entities}
++                                  .isChild=${isChild}
++                                  .isLastChild=${isLastChild}
+                                 ></ha-config-entry-device-row>`
+                             )
+                           : nothing
+@@ -509,14 +512,16 @@ export class HaConfigEntryRow extends LitElement {
+                 `
+               )}`
+             : html`
+-                ${ownDevices.map(
+-                  (device) =>
++                ${groupDevicesByParent(ownDevices).map(
++                  ({ device, isChild, isLastChild }) =>
+                     html`<ha-config-entry-device-row
+                       .hass=${this.hass}
+                       .narrow=${this.narrow}
+                       .entry=${item}
+                       .device=${device}
+                       .entities=${entities}
++                      .isChild=${isChild}
++                      .isLastChild=${isLastChild}
+                     ></ha-config-entry-device-row>`
+                 )}
+               `
+diff --git a/src/panels/config/integrations/ha-config-sub-entry-row.ts b/src/panels/config/integrations/ha-config-sub-entry-row.ts
+index 07f07c9..cb4847d 100644
+--- a/src/panels/config/integrations/ha-config-sub-entry-row.ts
++++ b/src/panels/config/integrations/ha-config-sub-entry-row.ts
+@@ -15,6 +15,7 @@ import "../../../components/ha-dropdown";
+ import "../../../components/ha-dropdown-item";
+ import type { ConfigEntry } from "../../../data/config_entries";
+ import { deleteSubEntry, updateSubEntry } from "../../../data/config_entries";
++import { groupDevicesByParent } from "../../../data/device/device_registry";
+ import type { DiagnosticInfo } from "../../../data/diagnostics";
+ import type { EntityRegistryEntry } from "../../../data/entity/entity_registry";
+ import type { IntegrationManifest } from "../../../data/integration";
+@@ -191,14 +192,16 @@ class HaConfigSubEntryRow extends LitElement {
+       ${
+         this._expanded
+           ? html`
+-              ${devices.map(
+-                (device) =>
++              ${groupDevicesByParent(devices).map(
++                ({ device, isChild, isLastChild }) =>
+                   html`<ha-config-entry-device-row
+                     .hass=${this.hass}
+                     .narrow=${this.narrow}
+                     .entry=${this.entry}
+                     .device=${device}
+                     .entities=${this.entities}
++                    .isChild=${isChild}
++                    .isLastChild=${isLastChild}
+                   ></ha-config-entry-device-row>`
+               )}
+               ${services.map(
+diff --git a/src/panels/config/integrations/integration-panels/bluetooth/bluetooth-network-visualization.ts b/src/panels/config/integrations/integration-panels/bluetooth/bluetooth-network-visualization.ts
+index 92cf9eb..2be6979 100644
+--- a/src/panels/config/integrations/integration-panels/bluetooth/bluetooth-network-visualization.ts
++++ b/src/panels/config/integrations/integration-panels/bluetooth/bluetooth-network-visualization.ts
+@@ -240,7 +240,7 @@ export class BluetoothNetworkVisualization extends LitElement {
+         const scannerDevice = this._sourceDevices[scanner.source] as
+           DeviceRegistryEntry | undefined;
+         const area = scannerDevice
+-          ? getDeviceArea(scannerDevice, this.hass.areas)
++          ? getDeviceArea(scannerDevice, this.hass.areas, this.hass.devices)
+           : undefined;
+         nodes.push({
+           id: scanner.source,
+@@ -282,7 +282,7 @@ export class BluetoothNetworkVisualization extends LitElement {
+         const device = this._sourceDevices[node.address] as
+           DeviceRegistryEntry | undefined;
+         const area = device
+-          ? getDeviceArea(device, this.hass.areas)
++          ? getDeviceArea(device, this.hass.areas, this.hass.devices)
+           : undefined;
+         nodes.push({
+           id: node.address,
+@@ -350,7 +350,9 @@ export class BluetoothNetworkVisualization extends LitElement {
+     const name = this._getBluetoothDeviceName(address);
+     const btDevice = this._data.find((d) => d.address === address);
+     const device = this._sourceDevices[address];
+-    const area = device ? getDeviceArea(device, this.hass.areas) : undefined;
++    const area = device
++      ? getDeviceArea(device, this.hass.areas, this.hass.devices)
++      : undefined;
+     const areaLine = area
+       ? html`<br /><b
+             >${this.hass.localize("ui.panel.config.bluetooth.area")}: </b
+diff --git a/src/panels/config/integrations/integration-panels/zha/zha-network-data.ts b/src/panels/config/integrations/integration-panels/zha/zha-network-data.ts
+index 087bb66..f5b135d 100644
+--- a/src/panels/config/integrations/integration-panels/zha/zha-network-data.ts
++++ b/src/panels/config/integrations/integration-panels/zha/zha-network-data.ts
+@@ -64,7 +64,9 @@ export function createZHANetworkChartData(
+ 
+     const haDevice = hass.devices[device.device_reg_id] as
+       DeviceRegistryEntry | undefined;
+-    const area = haDevice ? getDeviceArea(haDevice, hass.areas) : undefined;
++    const area = haDevice
++      ? getDeviceArea(haDevice, hass.areas, hass.devices)
++      : undefined;
+     // Create node
+     nodes.push({
+       id: device.ieee,
+diff --git a/src/panels/config/integrations/integration-panels/zha/zha-network-visualization-page.ts b/src/panels/config/integrations/integration-panels/zha/zha-network-visualization-page.ts
+index fca0273..df3f6a7 100644
+--- a/src/panels/config/integrations/integration-panels/zha/zha-network-visualization-page.ts
++++ b/src/panels/config/integrations/integration-panels/zha/zha-network-visualization-page.ts
+@@ -162,7 +162,7 @@ export class ZHANetworkVisualizationPage extends LitElement {
+     const haDevice = this.hass.devices[device.device_reg_id] as
+       DeviceRegistryEntry | undefined;
+     const area = haDevice
+-      ? getDeviceArea(haDevice, this.hass.areas)
++      ? getDeviceArea(haDevice, this.hass.areas, this.hass.devices)
+       : undefined;
+     return html`<b>IEEE: </b>${device.ieee}<br /><b
+         >${this.hass.localize("ui.panel.config.zha.visualization.device_type")}: </b
+diff --git a/src/panels/config/integrations/integration-panels/zwave_js/dialog-zwave_js-rebuild-network-routes/dialog-zwave_js-rebuild-network-routes-detail.ts b/src/panels/config/integrations/integration-panels/zwave_js/dialog-zwave_js-rebuild-network-routes/dialog-zwave_js-rebuild-network-routes-detail.ts
+index 5c8ce87..f047b3c 100644
+--- a/src/panels/config/integrations/integration-panels/zwave_js/dialog-zwave_js-rebuild-network-routes/dialog-zwave_js-rebuild-network-routes-detail.ts
++++ b/src/panels/config/integrations/integration-panels/zwave_js/dialog-zwave_js-rebuild-network-routes/dialog-zwave_js-rebuild-network-routes-detail.ts
+@@ -177,7 +177,11 @@ class DialogZWaveJSRebuildNetworkRoutesDetail extends DialogMixin<ZWaveJSRebuild
+             ) ||
+             this._i18n.localize("ui.components.device-picker.unnamed_device");
+ 
+-          const area = getDeviceArea(device, this._registries.areas);
++          const area = getDeviceArea(
++            device,
++            this._registries.areas,
++            this._registries.devices
++          );
+ 
+           const areaName = area ? computeAreaName(area) : undefined;
+ 
+diff --git a/src/panels/config/integrations/integration-panels/zwave_js/zwave_js-network-visualization.ts b/src/panels/config/integrations/integration-panels/zwave_js/zwave_js-network-visualization.ts
+index c95c3c0..1c71391 100644
+--- a/src/panels/config/integrations/integration-panels/zwave_js/zwave_js-network-visualization.ts
++++ b/src/panels/config/integrations/integration-panels/zwave_js/zwave_js-network-visualization.ts
+@@ -183,7 +183,9 @@ export class ZWaveJSNetworkVisualization extends SubscribeMixin(LitElement) {
+     const { id, name } = data as any;
+     const device = this._devices[id] as DeviceRegistryEntry | undefined;
+     const nodeStatus = this._nodeStatuses[id];
+-    const area = device ? getDeviceArea(device, this.hass.areas) : undefined;
++    const area = device
++      ? getDeviceArea(device, this.hass.areas, this.hass.devices)
++      : undefined;
+     return html`<ha-chart-tooltip-marker
+         .color=${String((params as CallbackDataParams).color ?? "")}
+       ></ha-chart-tooltip-marker>
+@@ -295,7 +297,7 @@ export class ZWaveJSNetworkVisualization extends SubscribeMixin(LitElement) {
+         const device = this._devices[node.node_id] as
+           DeviceRegistryEntry | undefined;
+         const area = device
+-          ? getDeviceArea(device, this.hass.areas)
++          ? getDeviceArea(device, this.hass.areas, this.hass.devices)
+           : undefined;
+         nodes.push({
+           id: String(node.node_id),
+diff --git a/src/translations/en.json b/src/translations/en.json
+index 87a912e..109c956 100644
+--- a/src/translations/en.json
++++ b/src/translations/en.json
+@@ -6794,7 +6794,8 @@
+           "disabled_by": {
+             "user": "user",
+             "integration": "integration",
+-            "config_entry": "config entry"
++            "config_entry": "config entry",
++            "device": "parent device"
+           },
+           "enabled_description": "Disabled devices and services will not be shown and entities belonging to them will be disabled, too.",
+           "open_configuration_url": "Visit",
+@@ -6807,6 +6808,10 @@
+             "heading": "Connected devices",
+             "show_more": "+{count} devices not shown"
+           },
++          "child_devices": {
++            "heading": "Sub-devices",
++            "show_more": "+{count} devices not shown"
++          },
+           "linked_devices": {
+             "heading": "Linked devices",
+             "description": "These devices share hardware with this device and are managed by other integrations."
+@@ -6888,6 +6893,8 @@
+             "manufacturer": "Manufacturer",
+             "model": "Model",
+             "integration": "Integration",
++            "parent_device": "Parent device",
++            "part_of_device": "Part of {name}",
+             "firmware_version": "Firmware",
+             "battery": "Battery",
+             "disabled_by": "Disabled",
+@@ -7180,6 +7187,7 @@
+             "disable_error": "Enabling or disabling of the integration failed",
+             "manuf": "by {manufacturer}",
+             "via": "Connected via",
++            "part_of": "Part of",
+             "firmware": "Firmware: {version}",
+             "hardware": "Hardware: {version}",
+             "version": "Version {version}",
+diff --git a/test/common/entity/context/context-mock.ts b/test/common/entity/context/context-mock.ts
+index 7180c04..a52504b 100644
+--- a/test/common/entity/context/context-mock.ts
++++ b/test/common/entity/context/context-mock.ts
+@@ -77,6 +77,7 @@ export const mockDevice = (
+   disabled_by: null,
+   configuration_url: null,
+   primary_config_entry: null,
++  parent_device_id: null,
+   created_at: 0,
+   modified_at: 0,
+   ...partial,
+diff --git a/test/common/entity/context/get_device_context.test.ts b/test/common/entity/context/get_device_context.test.ts
+index 4c80d8e..e8c00cf 100644
+--- a/test/common/entity/context/get_device_context.test.ts
++++ b/test/common/entity/context/get_device_context.test.ts
+@@ -1,43 +1,65 @@
+-import { describe, expect, it } from "vitest";
++import { assert, describe, it } from "vitest";
+ import { getDeviceArea } from "../../../../src/common/entity/context/get_device_context";
+-import { mockArea, mockDevice } from "./context-mock";
++import type { AreaRegistryEntry } from "../../../../src/data/area/area_registry";
++import type { DeviceRegistryEntry } from "../../../../src/data/device/device_registry";
++import type { HomeAssistant } from "../../../../src/types";
+ 
+-describe("getDeviceArea", () => {
+-  it("returns undefined when the device has no area", () => {
+-    const device = mockDevice({
+-      id: "device_1",
+-    });
++const area = (id: string): AreaRegistryEntry =>
++  ({ area_id: id, name: id }) as AreaRegistryEntry;
+ 
+-    const result = getDeviceArea(device, {});
++const device = (
++  partial: Partial<DeviceRegistryEntry> & { id: string }
++): DeviceRegistryEntry =>
++  ({
++    area_id: null,
++    parent_device_id: null,
++    ...partial,
++  }) as DeviceRegistryEntry;
+ 
+-    expect(result).toBeUndefined();
+-  });
++const AREAS: HomeAssistant["areas"] = {
++  kitchen: area("kitchen"),
++  living_room: area("living_room"),
++};
+ 
+-  it("returns the area when the device area exists", () => {
+-    const device = mockDevice({
+-      id: "device_2",
+-      area_id: "area_1",
+-    });
+-
+-    const area = mockArea({
+-      area_id: "area_1",
+-    });
++describe("getDeviceArea", () => {
++  it("returns the device's own area", () => {
++    const dev = device({ id: "d1", area_id: "kitchen" });
++    assert.strictEqual(getDeviceArea(dev, AREAS, {})?.area_id, "kitchen");
++  });
+ 
+-    const result = getDeviceArea(device, {
+-      area_1: area,
+-    });
++  it("returns undefined when the device has no area", () => {
++    const dev = device({ id: "d1" });
++    assert.strictEqual(getDeviceArea(dev, AREAS, {}), undefined);
++  });
+ 
+-    expect(result).toEqual(area);
++  it("inherits the parent's area for a child without its own area", () => {
++    const parent = device({ id: "parent", area_id: "living_room" });
++    const child = device({ id: "child", parent_device_id: "parent" });
++    const devices = { parent, child };
++    assert.strictEqual(
++      getDeviceArea(child, AREAS, devices)?.area_id,
++      "living_room"
++    );
+   });
+ 
+-  it("returns undefined when the device area is missing", () => {
+-    const device = mockDevice({
+-      id: "device_3",
+-      area_id: "area_2",
++  it("prefers the child's own area over the parent's", () => {
++    const parent = device({ id: "parent", area_id: "living_room" });
++    const child = device({
++      id: "child",
++      area_id: "kitchen",
++      parent_device_id: "parent",
+     });
++    const devices = { parent, child };
++    assert.strictEqual(
++      getDeviceArea(child, AREAS, devices)?.area_id,
++      "kitchen"
++    );
++  });
+ 
+-    const result = getDeviceArea(device, {});
+-
+-    expect(result).toBeUndefined();
++  it("returns undefined when the parent also has no area", () => {
++    const parent = device({ id: "parent" });
++    const child = device({ id: "child", parent_device_id: "parent" });
++    const devices = { parent, child };
++    assert.strictEqual(getDeviceArea(child, AREAS, devices), undefined);
+   });
+ });
+diff --git a/test/common/entity/context/get_entity_context.test.ts b/test/common/entity/context/get_entity_context.test.ts
+index 487981b..0e64bca 100644
+--- a/test/common/entity/context/get_entity_context.test.ts
++++ b/test/common/entity/context/get_entity_context.test.ts
+@@ -93,6 +93,62 @@ describe("getEntityContext", () => {
+     });
+   });
+ 
++  it("should inherit the parent device's area for an entity on a child device", () => {
++    const entity = mockEntity({
++      entity_id: "switch.outlet_1",
++      device_id: "child_1",
++    });
++    const childDevice = mockDevice({
++      id: "child_1",
++      parent_device_id: "parent_1",
++    });
++    const parentDevice = mockDevice({
++      id: "parent_1",
++      area_id: "area_1",
++    });
++    const area = mockArea({
++      area_id: "area_1",
++      floor_id: "floor_1",
++    });
++    const floor = mockFloor({
++      floor_id: "floor_1",
++    });
++    const stateObj = mockStateObj({
++      entity_id: "switch.outlet_1",
++    });
++
++    const hass = {
++      entities: {
++        "switch.outlet_1": entity,
++      },
++      devices: {
++        child_1: childDevice,
++        parent_1: parentDevice,
++      },
++      areas: {
++        area_1: area,
++      },
++      floors: {
++        floor_1: floor,
++      },
++    } as unknown as HomeAssistant;
++
++    const result = getEntityContext(
++      stateObj,
++      hass.entities,
++      hass.devices,
++      hass.areas,
++      hass.floors
++    );
++
++    expect(result).toEqual({
++      entity,
++      device: childDevice,
++      area,
++      floor,
++    });
++  });
++
+   it("should return the correct context when the entity has an area but no device", () => {
+     const entity = mockEntity({
+       entity_id: "sensor.kitchen",
+diff --git a/test/data/device_registry_effective_area.test.ts b/test/data/device_registry_effective_area.test.ts
+new file mode 100644
+index 0000000..0902271
+--- /dev/null
++++ b/test/data/device_registry_effective_area.test.ts
+@@ -0,0 +1,66 @@
++import { assert, describe, it } from "vitest";
++import { devicesInEffectiveArea } from "../../src/data/device/device_registry";
++import type { DeviceRegistryEntry } from "../../src/data/device/device_registry";
++
++const device = (
++  partial: Partial<DeviceRegistryEntry> & { id: string }
++): DeviceRegistryEntry =>
++  ({
++    area_id: null,
++    parent_device_id: null,
++    ...partial,
++  }) as DeviceRegistryEntry;
++
++describe("devicesInEffectiveArea", () => {
++  it("includes devices with the area set", () => {
++    const devices = {
++      a: device({ id: "a", area_id: "kitchen" }),
++      b: device({ id: "b", area_id: "bedroom" }),
++    };
++    assert.deepEqual(
++      devicesInEffectiveArea(devices, "kitchen").map((d) => d.id),
++      ["a"]
++    );
++  });
++
++  it("includes a child device inheriting its parent's area", () => {
++    const devices = {
++      parent: device({ id: "parent", area_id: "kitchen" }),
++      child: device({ id: "child", parent_device_id: "parent" }),
++    };
++    assert.deepEqual(
++      devicesInEffectiveArea(devices, "kitchen")
++        .map((d) => d.id)
++        .sort(),
++      ["child", "parent"]
++    );
++  });
++
++  it("excludes a child device with a different explicit area", () => {
++    const devices = {
++      parent: device({ id: "parent", area_id: "kitchen" }),
++      child: device({
++        id: "child",
++        area_id: "bedroom",
++        parent_device_id: "parent",
++      }),
++    };
++    assert.deepEqual(
++      devicesInEffectiveArea(devices, "kitchen").map((d) => d.id),
++      ["parent"]
++    );
++    // ...and the child belongs to its own area instead.
++    assert.deepEqual(
++      devicesInEffectiveArea(devices, "bedroom").map((d) => d.id),
++      ["child"]
++    );
++  });
++
++  it("excludes a child whose parent has no area", () => {
++    const devices = {
++      parent: device({ id: "parent" }),
++      child: device({ id: "child", parent_device_id: "parent" }),
++    };
++    assert.deepEqual(devicesInEffectiveArea(devices, "kitchen"), []);
++  });
++});
+diff --git a/test/data/ws-device_registry.test.ts b/test/data/ws-device_registry.test.ts
+new file mode 100644
+index 0000000..5158572
+--- /dev/null
++++ b/test/data/ws-device_registry.test.ts
+@@ -0,0 +1,110 @@
++import { assert, describe, it } from "vitest";
++import { resolveChildDevices } from "../../src/data/ws-device_registry";
++import type {
++  ChildDeviceRegistryEntry,
++  DeviceRegistryEntry,
++} from "../../src/data/device/device_registry";
++
++const parent: DeviceRegistryEntry = {
++  id: "parent",
++  config_entries: ["entry-1"],
++  config_entries_subentries: { "entry-1": [null] },
++  connections: [["mac", "aa:bb:cc:dd:ee:ff"]],
++  identifiers: [["hue", "strip-1"]],
++  manufacturer: "Acme",
++  model: "Power Strip",
++  model_id: "PS-1",
++  name: "Power strip",
++  labels: ["strip"],
++  sw_version: "1.0",
++  hw_version: "2.0",
++  serial_number: "SN-1",
++  via_device_id: "bridge",
++  area_id: "living_room",
++  name_by_user: null,
++  entry_type: null,
++  disabled_by: null,
++  configuration_url: "http://strip.local",
++  primary_config_entry: "entry-1",
++  parent_device_id: null,
++  created_at: 0,
++  modified_at: 0,
++};
++
++const child: ChildDeviceRegistryEntry = {
++  id: "child",
++  config_entry_id: "entry-1",
++  config_subentry_id: "sub-1",
++  identifiers: [["hue", "outlet-1"]],
++  name: "Outlet 1",
++  name_by_user: "Coffee machine",
++  labels: ["outlet"],
++  area_id: "kitchen",
++  disabled_by: null,
++  parent_device_id: "parent",
++  created_at: 5,
++  modified_at: 6,
++};
++
++describe("resolveChildDevices", () => {
++  it("leaves full devices untouched", () => {
++    const [resolved] = resolveChildDevices([parent]);
++    assert.strictEqual(resolved, parent);
++  });
++
++  it("resolves a child into a complete device entry", () => {
++    const result = resolveChildDevices([parent, child]);
++    const resolved = result.find((d) => d.id === "child")!;
++
++    // Config-entry association comes from the child's own config entry.
++    assert.deepEqual(resolved.config_entries, ["entry-1"]);
++    assert.deepEqual(resolved.config_entries_subentries, {
++      "entry-1": ["sub-1"],
++    });
++    assert.strictEqual(resolved.primary_config_entry, "entry-1");
++
++    // Hardware/display fields are inherited from the parent.
++    assert.strictEqual(resolved.manufacturer, "Acme");
++    assert.strictEqual(resolved.model, "Power Strip");
++    assert.strictEqual(resolved.model_id, "PS-1");
++    assert.strictEqual(resolved.sw_version, "1.0");
++    assert.strictEqual(resolved.hw_version, "2.0");
++    assert.strictEqual(resolved.serial_number, "SN-1");
++    assert.strictEqual(resolved.configuration_url, "http://strip.local");
++    assert.strictEqual(resolved.entry_type, null);
++
++    // Identity fields are NOT inherited — a child is not the parent.
++    assert.deepEqual(resolved.connections, []);
++    assert.strictEqual(resolved.via_device_id, null);
++
++    // The child's own fields win.
++    assert.strictEqual(resolved.id, "child");
++    assert.strictEqual(resolved.name, "Outlet 1");
++    assert.strictEqual(resolved.name_by_user, "Coffee machine");
++    assert.strictEqual(resolved.area_id, "kitchen");
++    assert.deepEqual(resolved.labels, ["outlet"]);
++    assert.deepEqual(resolved.identifiers, [["hue", "outlet-1"]]);
++    assert.strictEqual(resolved.parent_device_id, "parent");
++    assert.strictEqual(resolved.created_at, 5);
++    assert.strictEqual(resolved.modified_at, 6);
++  });
++
++  it("falls back to null display fields when the parent is missing", () => {
++    const [resolved] = resolveChildDevices([child]);
++
++    assert.deepEqual(resolved.config_entries, ["entry-1"]);
++    assert.strictEqual(resolved.manufacturer, null);
++    assert.strictEqual(resolved.model, null);
++    assert.deepEqual(resolved.connections, []);
++    assert.strictEqual(resolved.via_device_id, null);
++    assert.strictEqual(resolved.parent_device_id, "parent");
++  });
++
++  it("preserves ordering of the mixed list", () => {
++    const result = resolveChildDevices([child, parent]);
++    assert.deepEqual(
++      result.map((d) => d.id),
++      ["child", "parent"]
++    );
++  });
++});
+diff --git a/test/panels/lovelace/editor/card-editor/entity-tree-builder.test.ts b/test/panels/lovelace/editor/card-editor/entity-tree-builder.test.ts
+index 6ac0329..0a66889 100644
+--- a/test/panels/lovelace/editor/card-editor/entity-tree-builder.test.ts
++++ b/test/panels/lovelace/editor/card-editor/entity-tree-builder.test.ts
+@@ -52,6 +52,7 @@ const device = (id: string, overrides: Record<string, unknown> = {}) =>
+     area_id: null,
+     entry_type: null,
+     primary_config_entry: null,
++    parent_device_id: null,
+     config_entries: [],
+     config_entries_subentries: {},
+     connections: [],

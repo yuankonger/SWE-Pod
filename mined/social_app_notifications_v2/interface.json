@@ -1,0 +1,140 @@
+{
+ "src/state/queries/notifications/grouped/types.ts": {
+  "exists_at_base": false,
+  "names": {
+   "NotificationView": "export type NotificationView = | (Base & ActorGroup & {type: 'like'; post: PostView}) | (Base & { type: 'multiPostLike' actor: ProfileView posts: NonEmptyArray<PostView> }) | (Base & { type: 'multiPostRepost' actor: ProfileView posts: NonEmptyArray<PostView> }) | (Base & { type: 'multiPostLikeViaRepost' actor: ProfileView posts: NonEmptyArray<PostView> }) | (Base & { type: 'multiPostRepostViaRepost' actor: ProfileView posts: NonEmptyArray<PostView> }) | (Base & ActorGroup & {type: 'repost'; post: PostView}) | (Base & ActorGroup & { type: 'likeViaRepost' post: PostView viaRepost: string }) | (Base & ActorGroup & { type: 'repostViaRepost' post: PostView viaRepost: string }) | (Base & ActorGroup & { type: 'follow' starterPack?: StarterPackView }) | (Base & { type: 'subscribedPost' items: NonEmptyArray<{ actor: ProfileView post: PostView parent?: ParentPost }> }) | (Base & ActorGroup & {type: 'generatorLike'; generator: GeneratorView}) | (Base & {type: 'reply'; post: PostView; parent: ParentPost}) | (Base & {type: 'quote'; post: PostView; parent?: ParentPost}) | (Base & {type: 'mention'; post: PostView; parent?: ParentPost}) | (Base & { type: 'followBack' actor: ProfileView starterPack?: StarterPackView }) | (Base & {type: 'verified'; actor: ProfileView}) | (Base & {type: 'unverified'; actor: ProfileView}) | (Base & { type: 'starterPackJoined' actor: ProfileView starterPack: StarterPackView }) | (Base & {type: 'contactMatch'; actor: ProfileView})",
+   "GroupedNotificationsPage": "export type GroupedNotificationsPage = { cursor?: string seenAt?: string notifications: NotificationView[] newestAt: number | undefined }",
+   "NotificationViewType": "export type NotificationViewType = NotificationView['type']",
+   "GroupedNotificationsFeed": "export type GroupedNotificationsFeed = 'all' | 'people-i-follow' | 'conversations' | 'followers' | 'activity'"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/components/PageList.tsx": {
+  "exists_at_base": false,
+  "names": {
+   "buildRows": "export function buildRows( notifications: NotificationView[], feed: GroupedNotificationsFeed, ): Row[] ; type NotificationView, ; type GroupedNotificationsFeed, ; type Row = | {type: 'section'; key: string; section: 'today' | 'earlier'} | {type: 'notification'; key: string; notification: NotificationView} | {type: 'followersHeader'; key: string} | { type: 'follower' key: string notification: FollowerNotificationView profile: bsky.profile.AnyProfileView } | {type: 'loading'; key: string} | {type: 'empty'; key: string} | {type: 'error'; key: string} | {type: 'loadMoreError'; key: string}",
+   "getPlaceholderRow": "export function getPlaceholderRow({ isError, isEmpty, }: { isError: boolean isEmpty: boolean }): Row ; type Row = | {type: 'section'; key: string; section: 'today' | 'earlier'} | {type: 'notification'; key: string; notification: NotificationView} | {type: 'followersHeader'; key: string} | { type: 'follower' key: string notification: FollowerNotificationView profile: bsky.profile.AnyProfileView } | {type: 'loading'; key: string} | {type: 'empty'; key: string} | {type: 'error'; key: string} | {type: 'loadMoreError'; key: string}"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/index.ts": {
+  "exists_at_base": false,
+  "names": {
+   "findAllPostsInQueryData": "export function* findAllPostsInQueryData( queryClient: QueryClient, uri: string, ): Generator<PostView, void> ; type QueryClient, ; type PostView = app.bsky.feed.defs.PostView"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/components/NotificationItem/index.tsx": {
+  "exists_at_base": false,
+  "names": {},
+  "changed": {}
+ },
+ "src/screens/Notifications/components/PagerView/index.ts": {
+  "exists_at_base": false,
+  "names": {},
+  "changed": {}
+ },
+ "src/screens/Notifications/components/RefreshPill.tsx": {
+  "exists_at_base": false,
+  "names": {},
+  "changed": {}
+ },
+ "src/screens/Notifications/components/NotificationItem/Item/avatarRow.ts": {
+  "exists_at_base": false,
+  "names": {
+   "fitAvatarCount": "export function fitAvatarCount({ width, resolved, total, hasToggle, }: { width: number resolved: number total: number hasToggle: boolean })"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/refreshPillMetrics.ts": {
+  "exists_at_base": false,
+  "names": {
+   "IMPRESSION_DELAY_MS": "export const IMPRESSION_DELAY_MS = 250",
+   "refreshPillHideReason": "export function refreshPillHideReason({ isInView, isFetchingTop, topRequestedAt, shownTopRequestedAt, }: { isInView: boolean isFetchingTop: boolean topRequestedAt: number | undefined shownTopRequestedAt: number }): RefreshPillHideReason ; export type RefreshPillHideReason = Metrics['notifications:refreshPill:hide']['reason']",
+   "useRefreshPillMetrics": "export function useRefreshPillMetrics({ metric, tab, isInView, visible, top, isFetchingTop, onPress, }: { metric: AnalyticsContextType['metric'] tab: GroupedNotificationsFeed isInView: boolean visible: boolean top: Pick<LoadedGroupedNotificationsPage, 'requestedAt'> | undefined isFetchingTop: boolean onPress: () => void }): () => void { const isForeground = useAppState() !== 'background' const isShown = visible && isForeground const showing = useRef<Showing>(undefined) const topRequestedAt = top?.requestedAt const count = (current: Showing) => { if (current.isCounted) return clearTimeout(current.timer) current.isCounted = true metric('notifications:refreshPill:impression', {tab}) } const end = (current: Showing, reason: RefreshPillHideReason) => { showing.current = undefined clearTimeout(current.timer) if (!current.isCounted) return metric('notifications:refreshPill:hide', { tab, reason: current.isPressed ? 'pressed' : reason, shownMs: Date.now() - current.shownAt, }) } useEffect(() => { const current = showing.current if (isShown && !current && topRequestedAt !== undefined) { const next: Showing = { shownAt: Date.now(), topRequestedAt, isPressed: false, isCounted: false, timer: setTimeout(() => count(next), IMPRESSION_DELAY_MS), } showing.current = next } else if (!isShown && current) { end( current, refreshPillHideReason({ isInView: isInView && isForeground, isFetchingTop, topRequestedAt, shownTopRequestedAt: current.topRequestedAt, }), ) } }, [ count, end, isShown, isInVie ... ; type GroupedNotificationsFeed, ; type LoadedGroupedNotificationsPage, ; type Showing = { shownAt: number topRequestedAt: number isPressed: boolean isCounted: boolean timer: ReturnType<typeof setTimeout> } ; export type RefreshPillHideReason = Metrics['notifications:refreshPill:hide']['reason']"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/tabTaps.ts": {
+  "exists_at_base": false,
+  "names": {
+   "createTabTaps": "export function createTabTaps()"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/types.ts": {
+  "exists_at_base": true,
+  "names": {
+   "UnreadCheck": "export interface UnreadCheck { requestedAt: number newestUnreadAt: Record<GroupedNotificationsFeed, number | undefined> }"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/unread.ts": {
+  "exists_at_base": false,
+  "names": {
+   "FeedLoad": "export type FeedLoad = Pick<",
+   "getMarkReadAt": "export function getMarkReadAt(load: FeedLoad): Date | undefined ; export type FeedLoad = Pick<",
+   "isRefreshPillVisible": "export function isRefreshPillVisible({ feed, isActive, check, peek, top, isFetchingTop, }: { feed: GroupedNotificationsFeed isActive: boolean check: UnreadCheck | undefined peek?: GroupedNotificationsPeek top: Pick<LoadedGroupedNotificationsPage, 'requestedAt' | 'newestAt'> | undefined isFetchingTop: boolean }): boolean ; type GroupedNotificationsFeed, ; type GroupedNotificationsPeek, ; type LoadedGroupedNotificationsPage,",
+   "nextSeenAt": "export function nextSeenAt({ load, isRefresh, snapshot, }: { load: FeedLoad isRefresh: boolean snapshot: Date | undefined }): Date | undefined ; export type FeedLoad = Pick<"
+  },
+  "changed": {}
+ },
+ "src/screens/Notifications/components/PagerView/Content.web.tsx": {
+  "exists_at_base": false,
+  "names": {
+   "useWindowScrollPerPage": "export function useWindowScrollPerPage(selectedPage: number)"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/util.ts": {
+  "exists_at_base": true,
+  "names": {
+   "markUnreadCheckSeen": "export function markUnreadCheckSeen( check: UnreadCheck | undefined, seenAt: number, ): UnreadCheck | undefined ; type UnreadCheck,",
+   "summarizeUnreadCheck": "export function summarizeUnreadCheck( page: FeedPage, requestedAt: number, ): UnreadCheck ; type FeedPage, ; type UnreadCheck,"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/cursor.ts": {
+  "exists_at_base": false,
+  "names": {
+   "getNextCursor": "export function getNextCursor( pages: Pick<GroupedNotificationsPage, 'cursor' | 'notifications'>[], )"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/group-actors.ts": {
+  "exists_at_base": false,
+  "names": {
+   "createGroupActorsPage": "export function createGroupActorsPage( dids: DidString[], profiles: ProfileView[], ): GroupActorsPage ; type ProfileView = app.bsky.actor.defs.ProfileViewDetailed ; export type GroupActorsPage = { dids: DidString[] profiles: ProfileView[] }",
+   "getNextActorDids": "export function getNextActorDids( unresolvedDids: DidString[], pages: GroupActorsPage[], ): DidString[] ; export type GroupActorsPage = { dids: DidString[] profiles: ProfileView[] }",
+   "getNotificationGroup": "export function getNotificationGroup( notification: GroupNotificationView, ): NotificationGroup ; export type GroupNotificationView = Extract< ; export type NotificationGroup = ActorGroup & { count: number }",
+   "getUnresolvedActorDids": "export function getUnresolvedActorDids(group: ActorGroup): DidString[] ; type ActorGroup,",
+   "GROUP_ACTORS_PAGE_SIZE": "export const GROUP_ACTORS_PAGE_SIZE = 25",
+   "GroupActorsPage": "export type GroupActorsPage = { dids: DidString[] profiles: ProfileView[] }",
+   "GroupNotificationView": "export type GroupNotificationView = Extract<",
+   "selectLoadedActors": "export function selectLoadedActors( pages: GroupActorsPage[], unresolvedDids: DidString[], moderationOpts: ModerationOpts | undefined, ): ProfileView[] ; export type GroupActorsPage = { dids: DidString[] profiles: ProfileView[] } ; type ProfileView = app.bsky.actor.defs.ProfileViewDetailed"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/hydrate.ts": {
+  "exists_at_base": false,
+  "names": {
+   "hydratePage": "export function hydratePage( res: OutputBody, {viewerDid}: {viewerDid?: string}, ): GroupedNotificationsPage ; type OutputBody = app.bsky.notification.getGroupedNotifications.$OutputBody ; type GroupedNotificationsPage,"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/moderate.ts": {
+  "exists_at_base": false,
+  "names": {
+   "moderateNotification": "export function moderateNotification( notification: NotificationView, {moderationOpts, hiddenReplyUris}: NotificationModerationArgs, ): NotificationView | undefined ; type NotificationView, ; export type NotificationModerationArgs = { moderationOpts: ModerationOpts | undefined hiddenReplyUris: ReadonlySet<string> }",
+   "NotificationModerationArgs": "export type NotificationModerationArgs = { moderationOpts: ModerationOpts | undefined hiddenReplyUris: ReadonlySet<string> }"
+  },
+  "changed": {}
+ },
+ "src/state/queries/notifications/grouped/membership.ts": {
+  "exists_at_base": false,
+  "names": {
+   "isInGroupedFeed": "export function isInGroupedFeed( feed: GroupedNotificationsFeed, notification: Notification, ): boolean ; type Notification = app.bsky.notification.listNotifications.Notification"
+  },
+  "changed": {}
+ }
+}
