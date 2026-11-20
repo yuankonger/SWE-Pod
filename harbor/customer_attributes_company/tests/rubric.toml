@@ -9,7 +9,9 @@
 # measure = reported beside the reward, never part of it.
 # reward  = 0 if a gate fails, else weighted mean of targets x product of guards x product of fits.
 #           Targets: the API's hidden tests (weight 1), the staff application's hidden tests (0.5: they are upstream's
-#           unit tests, tied to how upstream built it), and staff setting a customer's tier in a browser (1).
+#           unit tests, tied to how upstream built it), staff setting a customer's tier in a browser (1), and the share
+#           the staff application uses of what the API gained (0.5). Fits: it asks only what the API serves, and its
+#           schema copies state the API; either failing breaks it.
 #
 # Every score is a share from 0 to 1, so work that is partly done is partly rewarded.
 
@@ -73,6 +75,17 @@ that customer, and no other, among customers whose tier is Gold. The browser fin
 nearest control to choose a value with, and saves with the page's save bar, as it is before the feature. If the check
 itself cannot run (no browser, no database) it has no score; it does not fail."""
 
+[[criterion]]
+id = "dashboard-uses-what-api-gained"
+kind = "target"
+type = "contract"
+check = "uses_new_api"
+weight = 0.5
+note = """The share the staff application uses of what the real staff application uses of what the API gained. A
+staff application that sends only what was valid before fits the API and does nothing with the feature. A target
+and not a fit: each field counts the same, and a field left unused can cost a whole feature or only where an error
+is shown, so it is weighed with the other targets instead of multiplying the reward."""
+
 # ---------------------------------------------------------------- guards: what works today
 
 [[criterion]]
@@ -100,14 +113,6 @@ type = "contract"
 check = "valid_share"
 note = """The share of the GraphQL operations the staff application sends that are valid against the schema the API
 on `main` really has. Each side's own tests pass against its own idea of the other; this is the two held together."""
-
-[[criterion]]
-id = "dashboard-uses-what-api-gained"
-kind = "fit"
-type = "contract"
-check = "uses_new_api"
-note = """The share the staff application uses of what the real staff application uses of what the API gained. A
-staff application that sends only what was valid before fits the API and does nothing with the feature."""
 
 [[criterion]]
 id = "dashboard-schema-copies-current"

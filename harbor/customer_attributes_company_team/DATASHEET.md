@@ -64,14 +64,19 @@ passing a low score off as a judgement of the work. The scored criteria are writ
 | target (weight 0.5) | the dashboard's hidden feature tests, but those of upstream's own helpers, four of upstream's own choices, and four that pass on the start's code (97 of 184) | upstream's tests, five fixed in how they check (below) |
 | target (weight 1) | staff set a customer's tier on the customer's page in a browser, and the API keeps it | a browser, then the API |
 | guard | the API's existing tests (17,535) and the dashboard's (5,568) still pass | the start's tests |
-| fit | the dashboard asks only what the API serves; uses what it gained; its schema copies state it | the served schema |
+| target (weight 0.5) | the dashboard uses what the API gained (the share of what upstream's dashboard uses) | the served schema |
+| fit | the dashboard asks only what the API serves; its schema copies state it | the served schema |
 | measure | staff find that customer by filtering the customer list by tier | a browser |
 | measure | the dashboard's tests of upstream's own helpers (79) | upstream's tests |
 | measure | the dashboard's tests of upstream's own choices (4): where delete sits, hidden or disabled, the order of the configuration groups, a legacy filter path left as a no-op | upstream's tests |
 | measure | the start's tests and test settings were left as they were | git |
 | measure | lines of pushed code that mention the test runners, for a reviewer | the same scan |
 
-Reward = 0 if a gate fails, else weighted mean of targets × product of guards × product of fits. The dashboard's
+Reward = 0 if a gate fails, else weighted mean of targets × product of guards × product of fits. Using what the API
+gained is a target, not a fit: every field counts the same, and a field left unused may cost a whole feature or
+only where an error is shown, so it is weighed with the rest instead of multiplying the reward. (As a fit, one
+unused error field cost both Fable 5.2 v3 runs 9%.) The fits that stay are the ones whose failure breaks the
+dashboard. The dashboard's
 unit tests weigh half: they are tied to how upstream built it, where the API's tests go mostly through its public API
 and the browser check through what staff do. Every score is a share, so
 partial work earns partial credit.
