@@ -15,6 +15,14 @@ checkouts are not looked at. It runs the task's rubric, <tests dir>/rubric.toml 
                  valid_share     the share of the operations the consumer sends that are valid against that schema
                  uses_new_api    the share the consumer uses of what the real consumer uses of what the API gained
                  copies_current  the share of what the API gained that the consumer's own copies of the schema state
+               A `websocket` contract (Home Assistant) starts the provider from a fresh configuration (ha_seed.py),
+               asks it the contract's `ask` commands, reads the commands it registers from its source
+               (mined_ws_contract.py), and holds the consumer's source against both (mined_ws_agreement.cjs):
+                 works           the provider starts, is onboarded and answers, and the consumer's commands were found
+                 valid_share     the share of the places the consumer sends a command whose type the provider registers
+                 payload_share   the share of the provider's answers that have every field the consumer's types require
+                 uses_new_api    the share the consumer declares of what the real consumer declares of the fields
+                                 the provider's answers gained
     browser    the task's business check (tests/business.py): the systems started together from nothing and a piece
                of real work done on them in a browser. `stages`: the stages of it the criterion is decided by (all of
                them by default); it passes if every one of them did, fails if one failed or was never reached because
@@ -135,8 +143,11 @@ OWNERS = {}      # the config's owners
 # the tests (pytest reads core's addopts, Django settings and socket rules from pyproject.toml; @swc/jest reads .swcrc).
 # Nothing of these files matters to the work once its toolchain is installed, and nothing can be installed here.
 RUN_CONFIG = re.compile(r"^(pyproject\.toml|setup\.cfg|tox\.ini|pytest\.ini|\.swcrc|babel\.config\.[cm]?js|\.babelrc(\.[a-z]+)?)$")
-TEST_INFRA = re.compile(r"(^|/)(tests?|__tests__|testUtils|fixtures|__snapshots__|__mocks__)/|(^|/)conftest\.py$|\.(test|spec)\.[jt]sx?$"
-                        r"|(^|/)(jest|vitest|playwright)\.config\.|(^|/)(pytest\.ini|setup\.cfg|tox\.ini|\.coveragerc)$|(^|/)setupTests?\.")
+TEST_INFRA = re.compile(r"(^|/)(tests?|__tests__|testUtils|fixtures|__fixtures__|__snapshots__|__mocks__)/|(^|/)conftest\.py$|\.(test|spec)\.[jt]sx?$"
+                        r"|(^|/)(jest|vitest|playwright)\.config\.|(^|/)vitest\.workspace\.|^jest/|(^|/)(pytest\.ini|setup\.cfg|tox\.ini|\.coveragerc)$|(^|/)setupTests?\.")
+# Test configuration kept inside a file that holds other things too: the key is put back from the start, the rest of
+# the file is the work's (social-app configures Jest under `jest` in package.json, beside its dependencies).
+CONFIG_KEYS = {"package.json": ("jest",)}
 
 
 def git(at, *args):
@@ -172,6 +183,25 @@ def copy_of(owner, name=None):
         restore = [f for f in then if not (f in removed and f not in now)]
         for i in range(0, len(restore), 200):
             git(copy, "checkout", start, "--", *restore[i:i + 200])
+        for name, keys in CONFIG_KEYS.items():
+            then_text = git(copy, "show", "{}:{}".format(start, name))
+            path = os.path.join(copy, name)
+            if then_text.returncode != 0 or not os.path.isfile(path):
+                continue
+            try:
+                then_doc, now_doc = json.loads(then_text.stdout), json.load(open(path))
+            except ValueError:
+                continue
+            if all(then_doc.get(k) == now_doc.get(k) for k in keys):
+                continue
+            for k in keys:
+                if k in then_doc:
+                    now_doc[k] = then_doc[k]
+                else:
+                    now_doc.pop(k, None)
+            with open(path, "w") as f:
+                json.dump(now_doc, f, indent=2, ensure_ascii=False)
+                f.write("\n")
         shutil.rmtree(os.path.join(copy, ".git"))
     else:
         shutil.copytree(os.path.join(WORK, owner), copy, symlinks=True, ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache"))
@@ -190,12 +220,28 @@ def copy_of(owner, name=None):
 REFERENCE = {}      # read before any of the work's code runs
 
 
-def run_outcome(code, seconds, cap, reported):
+def shlex_quote(text):
+    return "'" + text.replace("'", "'\\''") + "'"
+
+
+def crashed_workers(log):
+    """pytest-xdist's lines for a test worker that died under it (killed for memory, as a rule). Its tests never ran,
+    and the snapshot plugin then fails the session before the report is written: the run says nothing of the work."""
+    try:
+        with open(log, errors="replace") as f:
+            return [line.strip() for line in f if "node down: Not properly terminated" in line or "crashed while running" in line][:5]
+    except OSError:
+        return []
+
+
+def run_outcome(code, seconds, cap, reported, crashed=()):
     """How one run of a suite ended. `ran`: the runner ran to an end of its own, with a report (its tests may have
     failed) or without one (the tests could not be loaded against the work's code: none of them passed). Anything
     else (a timeout, a kill, a runner that could not start) is a run the scorer could not complete, which the score
     says, whatever the work's part in it."""
-    if reported and code not in (124, 137):
+    if crashed:
+        cause = "a test worker was killed (out of memory, most likely): " + crashed[0][:200]
+    elif reported and code not in (124, 137):
         cause = "ran"
     elif code in (124, 137) and seconds >= cap - 5:
         cause = "timed out"
@@ -219,11 +265,18 @@ def score_repo(owner, spec):
     os.chmod(copy, 0o755)      # the archive's own top folder would otherwise set the tree's mode
     for_work(copy)
     started, runs = time.time(), []
+    if spec.get("setup"):
+        # What has to be done to a fresh tree before any test can run (linking the locked dependencies, generating
+        # code, building), once, as the work's code. Its outcome is a run of its own: a setup that cannot finish
+        # leaves the suite without a report, and none of its tests passed.
+        cap, began = int(left(owner) / 2), time.time()
+        done = sh("timeout -s KILL {} bash -c {} > {}/setup.log 2>&1".format(cap, shlex_quote(spec["setup"]), out), cwd=copy, work=True)
+        runs.append(dict(run_outcome(done.returncode, time.time() - began, cap, done.returncode == 0), phase="setup"))
     if spec["report"] == "jest":
         # A seat has a memory limit, and Jest with four workers on this project goes past six gigabytes (compiling
         # the sources for the first time most of all). A worker killed for it leaves Jest waiting for ever, with no
         # report. So the suite is run in parts, each a new process, and with two workers.
-        listed = sh("npx jest --listTests 2>/dev/null", cwd=copy, timeout=300, work=True).stdout.split()
+        listed = sh("{} 2>/dev/null".format(spec.get("list_tests", "npx jest --listTests")), cwd=copy, timeout=300, work=True).stdout.split()
         files = sorted(f for f in listed if f.startswith(copy))
         parts = max(1, int(spec.get("parts", 4)))
         ran, budget = set(), left(owner)
@@ -239,8 +292,10 @@ def score_repo(owner, spec):
     else:
         report = os.path.join(out, "junit.xml")
         cap, began = int(left(owner)), time.time()
-        done = sh("timeout -s KILL {} {} --junitxml={} > {}/tests.log 2>&1".format(cap, spec["test_command"], report, out), cwd=copy, work=True)
-        runs.append(run_outcome(done.returncode, time.time() - began, cap, os.path.isfile(report)))
+        # a runner told where to write its report (vitest's --outputFile=/out/report.xml) writes it here; pytest is told
+        command = spec["test_command"].replace("/out/report.xml", report) if "/out/report.xml" in spec["test_command"] else spec["test_command"] + " --junitxml=" + report
+        done = sh("timeout -s KILL {} {} > {}/tests.log 2>&1".format(cap, command, out), cwd=copy, work=True)
+        runs.append(run_outcome(done.returncode, time.time() - began, cap, os.path.isfile(report), crashed_workers(os.path.join(out, "tests.log"))))
         ran = passed(report, copy) if os.path.isfile(report) else set()
     new, kept = [t for t in sets["new"] if t in ran], [t for t in sets["preserved"] if t in ran]
     shutil.rmtree(copy, ignore_errors=True)
@@ -291,6 +346,84 @@ def agreement(contract):
     works = result["api_migrates"] and result["api_serves"] and result["operations"] > 0
     result["valid_share"] = round(result["valid"] / result["operations"], 4) if result["operations"] else 0.0
     result["agreement"] = round(result["valid_share"] * result["uses_new_api"] * result["copies_current"], 4) if works else 0.0
+    shutil.rmtree(copy, ignore_errors=True)
+    shutil.rmtree(consumer, ignore_errors=True)
+    return dict(result, provider=contract["provider"], consumer=contract["consumer"])
+
+
+def ws_agreement(contract):
+    """A websocket contract: the provider (Home Assistant) from the clone, started on a configuration of its own,
+    onboarded and asked the contract's commands; the commands it registers read from its source; the consumer's
+    source held against both."""
+    out = for_work(os.path.join(OUT, "agreement"))
+    copy = copy_of(contract["provider"])
+    consumer = copy_of(contract["consumer"])
+    config, token, url = os.path.join(SCRATCH, "ha-config"), os.path.join(SCRATCH, "ha-token"), "http://127.0.0.1:8123"
+    shutil.rmtree(config, ignore_errors=True)
+    sh("python3 {}/ha_seed.py config {}".format(TESTS, config))
+    for_work(config)
+    sh("(python3 -m script.translations develop --all) > {}/translations.log 2>&1".format(out), cwd=copy, timeout=left("contract"), work=True)
+    server = subprocess.Popen(as_work("exec python3 -m homeassistant -c {} --skip-pip > {}/hass.log 2>&1".format(config, out)), cwd=copy, start_new_session=True)
+    serves = sh("python3 {}/ha_seed.py onboard {} {} > {}/onboard.log 2>&1".format(TESTS, url, token, out), timeout=left("contract")).returncode == 0
+    asks = " ".join("'{}'".format(json.dumps(a)) for a in contract["ask"])
+    answered = serves and sh("python3 {}/ha_seed.py ask {} {} {}/answers.json {} > {}/ask.log 2>&1".format(TESTS, url, token, out, asks, out), timeout=300).returncode == 0
+    sh("pkill -s {} || true".format(server.pid))
+    server.kill()
+    end_work()
+    # the provider's commands are read from its source, never run; the consumer's types by the image's own TypeScript
+    registered = sh("python3 -I {}/mined_ws_contract.py {} {}/commands.json > {}/commands.log 2>&1".format(TESTS, copy, out, out), timeout=600).returncode == 0
+    result = {"core_serves": serves, "answered": answered, "commands_read": registered, "operations": 0, "valid": 0, "invalid": {},
+              "valid_share": 0.0, "payload_share": 0.0, "uses_new_api": 0.0}
+    if answered and registered:
+        sh("node {t}/mined_ws_agreement.cjs {c} {o}/commands.json {o}/answers.json {o}/agreement.json --reference {u} > {o}/agreement.log 2>&1".format(
+            t=TESTS, c=consumer, o=out, u=REFERENCE["usage"]), timeout=900)
+        if os.path.isfile(os.path.join(out, "agreement.json")):
+            with open(os.path.join(out, "agreement.json")) as f:
+                found = json.load(f)
+            result.update(operations=found["operations"], valid=found["valid"], invalid=found["invalid"], valid_share=round(found["valid_share"], 4),
+                          payload_share=round(found["payload_share"], 4), payloads=found["payloads"], uses_new_api=round(found["uses_new_api"], 4),
+                          new_api_not_used=found["new_api_not_used"], gained=found["gained"])
+    result["works"] = bool(serves and answered and result["operations"] > 0)
+    result["agreement"] = round(result["valid_share"] * result["payload_share"] * result["uses_new_api"], 4) if result["works"] else 0.0
+    shutil.rmtree(copy, ignore_errors=True)
+    shutil.rmtree(consumer, ignore_errors=True)
+    return dict(result, provider=contract["provider"], consumer=contract["consumer"])
+
+
+def lex_agreement(contract):
+    """A lexicon contract (Bluesky): both sides read from their sources by mined_lexicon_contract.py, nothing of the
+    work's run. The AppView's served methods are the `server.add(<nsid>)` calls under packages/bsky/src/api; the app's
+    calls are its `.call(<nsid>)`s outside tests; the lexicons are each side's `lexicons/`, compared by their defs."""
+    out = for_work(os.path.join(OUT, "agreement"))
+    copy, consumer = copy_of(contract["provider"]), copy_of(contract["consumer"])
+    with open(REFERENCE["usage"]) as f:
+        usage = json.load(f)
+    tool = os.path.join(TESTS, "mined_lexicon_contract.py")
+    read = all(sh("python3 -I {} {} {} {}/{}.json > {}/{}.log 2>&1".format(tool, side, tree, out, side, out, side), timeout=600).returncode == 0
+               for side, tree in (("provider", copy), ("consumer", consumer)))
+    result = {"sources_read": read, "operations": 0, "valid": 0, "invalid": {}, "valid_share": 0.0, "copies_current": 0.0, "uses_new_api": 0.0}
+    if read:
+        with open(os.path.join(out, "provider.json")) as f:
+            provider = json.load(f)
+        with open(os.path.join(out, "consumer.json")) as f:
+            app = json.load(f)
+        served, ignore = set(provider["served"]), set(usage["ignore"])
+        # a place is a file calling a method; methods the AppView never serves (the PDS's, chat's, video's) are left out
+        places = [(n, f) for n, files in app["calls"].items() if n not in ignore for f in files]
+        invalid = {}
+        for n, f in places:
+            if n not in served:
+                invalid.setdefault(n, []).append(f)
+        valid = sum(1 for n, _ in places if n in served)
+        lexicons = usage["lexicons"]["vendored"]
+        copies = {n: bool(provider["schemas"].get(n)) and app["schemas"].get(n) == provider["schemas"].get(n) and n in app["manifest"] for n in lexicons}
+        used = usage["used_new"]
+        result.update(operations=len(places), valid=valid, invalid=invalid, valid_share=round(valid / len(places), 4) if places else 0.0,
+                      copies=copies, copies_current=round(sum(copies.values()) / len(copies), 4) if copies else 1.0,
+                      uses_new_api=round(sum(1 for n in used if n in app["calls"] and n in served) / len(used), 4) if used else 1.0,
+                      new_api_not_used=[n for n in used if n not in app["calls"] or n not in served], served=len(served))
+    result["works"] = bool(read and result.get("served") and result["operations"] > 0)
+    result["agreement"] = round(result["valid_share"] * result["copies_current"] * result["uses_new_api"], 4) if result["works"] else 0.0
     shutil.rmtree(copy, ignore_errors=True)
     shutil.rmtree(consumer, ignore_errors=True)
     return dict(result, provider=contract["provider"], consumer=contract["consumer"])
@@ -393,15 +526,18 @@ def main():
     hold = os.path.join(SCRATCH, "reference")
     os.makedirs(hold, exist_ok=True)
     for key in ("base_schema", "usage"):
+        if key not in config["contract"]:      # a websocket contract has no schema
+            continue
         REFERENCE[key] = os.path.join(hold, os.path.basename(config["contract"][key]))
         shutil.copy(os.path.join(TESTS, config["contract"][key]), REFERENCE[key])
     os.chmod(hold, 0o700)
     # whatever the agent left running must not answer in the scorer's place, or hold its memory
-    sh("pkill -f 'manage.py runserver' ; pkill -f jest ; pkill -f pytest ; true")
+    sh("pkill -f 'manage.py runserver' ; pkill -f '[h]omeassistant -c' ; pkill -f '[d]ev-env/dist/bin' ; pkill -f jest ; pkill -f vitest ; pkill -f pytest ; true")
     result = {"repositories": {owner: score_repo(owner, spec) for owner, spec in config["owners"].items()},
-              "contracts": [agreement(config["contract"])]}
+              "contracts": [{"websocket": ws_agreement, "lexicon": lex_agreement}.get(config["contract"].get("type"), agreement)(config["contract"])]}
     contract = result["contracts"][0]
-    contract["works"] = bool(contract["api_migrates"] and contract["api_serves"] and contract["operations"] > 0)
+    if config["contract"].get("type") not in ("websocket", "lexicon"):
+        contract["works"] = bool(contract["api_migrates"] and contract["api_serves"] and contract["operations"] > 0)
     rows, change = [], None
 
     def write(final):
@@ -450,7 +586,14 @@ def main():
             detail = "{} of {} pass{}".format(got, len(chosen), "" if r["suite_started"] else "; the suite gave no report")
         elif c["type"] == "contract":
             score = contract[c["check"]]
-            detail = {"works": "migrates {}, serves {}, operations found {}".format(contract["api_migrates"], contract["api_serves"], contract["operations"]),
+            detail = {"works": "migrates {}, serves {}, operations found {}".format(contract.get("api_migrates"), contract.get("api_serves"), contract["operations"])
+                      if "api_migrates" in contract else "sources read {}, methods the AppView serves {}, call places found {}".format(
+                          contract.get("sources_read"), contract.get("served"), contract["operations"]) if "sources_read" in contract
+                      else "starts and is onboarded {}, answers {}, command places found {}".format(
+                          contract.get("core_serves"), contract.get("answered"), contract["operations"]),
+                      "payload_share": "; ".join("{}: {} of {} entries fit{}".format(k, v.get("matched"), v.get("entries"),
+                                                 " ({})".format(json.dumps(v.get("unmatched") or v.get("error"))[:200]) if v.get("unmatched") or v.get("error") else "")
+                                                 for k, v in (contract.get("payloads") or {}).items()),
                       "valid_share": "{} of {} valid (documents that could not be read and fragments defined twice count as not valid); invalid: {}{}{}".format(
                           contract["valid"], contract["operations"], json.dumps(contract["invalid"])[:240],
                           "; unreadable: " + ", ".join(sorted(contract.get("unreadable") or {}))[:200] if contract.get("unreadable") else "",
@@ -461,8 +604,8 @@ def main():
             if "business" not in result:      # run once, for every browser criterion
                 try:
                     import business
-                    trees = {role: copy_of(owner, "business-" + owner) for role, owner in config["business"].items()}
-                    found = business.check(TESTS, trees["core"], trees["dashboard"], os.path.join(OUT, "business"), deadline=time.time() + left("browser"))
+                    trees = {role: copy_of(owner, "business-" + owner) for role, owner in config["business"]["roles"].items()}
+                    found = business.check(TESTS, trees, os.path.join(OUT, "business"), deadline=time.time() + left("browser"), script=config["business"].get("script"))
                     for tree in trees.values():
                         shutil.rmtree(tree, ignore_errors=True)
                 except Exception as e:      # the check's own trouble: it says nothing about the work

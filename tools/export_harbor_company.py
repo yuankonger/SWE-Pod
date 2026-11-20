@@ -64,7 +64,7 @@ REWORDED = {"- There is no network and no git history.\n": "",
 UNREACHABLE = ("github.com", "www.github.com", "api.github.com", "raw.githubusercontent.com", "codeload.github.com", "objects.githubusercontent.com",
                "gist.github.com", "github.githubassets.com", "ghcr.io", "gitlab.com", "bitbucket.org", "sourcegraph.com", "grep.app",
                "pypi.org", "files.pythonhosted.org", "registry.npmjs.org", "registry.yarnpkg.com", "cdn.jsdelivr.net", "unpkg.com", "esm.sh",
-               "docs.saleor.io", "saleor.io", "web.archive.org", "archive.org",
+               "web.archive.org", "archive.org",
                # The model is reached through the gateway alone. A harness that falls back to its vendor's own
                # servers would send them the gateway's key, so those are unreachable too.
                "api.openai.com", "chatgpt.com", "auth.openai.com")
@@ -144,9 +144,13 @@ def base_stage(owner, repo):
 NODE_COPIES = """COPY --from={stage} /usr/local/bin/node /usr/local/bin/node
 COPY --from={stage} /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN cd /usr/local/bin && ln -sf node nodejs && ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm \\
-    && ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx && ln -sf ../lib/node_modules/pnpm/bin/pnpm.mjs pnpm
-COPY --from={stage} /deps /deps-{stage}
-RUN cp -an /deps-{stage}/. /deps/ && rm -rf /deps-{stage}
+    && ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx \\
+    && if [ -d ../lib/node_modules/pnpm ]; then ln -sf ../lib/node_modules/pnpm/bin/pnpm.mjs pnpm; elif command -v corepack > /dev/null; then corepack enable pnpm; fi
+"""
+# What of a toolchain's image is merged into the seat's, beside Node: `/deps` (installed dependencies) by default, or
+# the paths its task names in `toolchain_paths` (a pnpm store, corepack's prepared versions).
+TOOLCHAIN_COPY = """COPY --from={stage} {path} {path}-{stage}
+RUN mkdir -p {path} && cp -an {path}-{stage}/. {path}/ && rm -rf {path}-{stage}
 """
 
 TEST_SH = """#!/bin/bash
@@ -191,10 +195,10 @@ keywords = ["swe-pod", "multi-repository", "mined", "interface agreement"]
 [metadata]
 category = "software-engineering"
 repositories = {repositories}
-source = "Real changes to Saleor and the Saleor Dashboard (BSD-3-Clause), August 2026"
+source = {source}
 
 [verifier]
-# Runs both repositories' whole test suites, one after the other, then starts the API on a fresh database.
+# Runs both repositories' test suites, one after the other, then starts the provider from nothing.
 timeout_sec = 10800.0
 environment_mode = "shared"
 
@@ -222,8 +226,20 @@ RUNNING = """
 
 - This repository is a clone of the company's git server (`origin`), which decides who may push where. `main` there is what is deployed and what is judged.
 - It runs as {where}
-- CI and deploy are at `http://ci:8080/`. Whenever `main` of a repository moves it deploys that repository, then tests the systems together as they run: that each started, that the API answers, that every GraphQL operation the dashboard sends is valid against the schema the running API really has, and that the API, asked as staff for the fields it gained since the work started, answers them without an error in a resolver. `curl http://ci:8080/` shows the latest run and `curl http://ci:8080/runs` every run.
+- CI and deploy are at `http://ci:8080/`. Whenever `main` of a repository moves it deploys that repository, then tests the systems together as they run: {checks} `curl http://ci:8080/` shows the latest run and `curl http://ci:8080/runs` every run.
 {others}"""
+# What CI checks of the running systems, by the contract's type (sidecars/ci.py).
+CI_CHECKS = {
+    "graphql": "that each started, that the API answers, that every GraphQL operation the dashboard sends is valid against the schema the running API really has, and that the API, asked as staff for the fields it gained since the work started, answers them without an error in a resolver.",
+    "lexicon": "that each started, that the AppView answers `getGroupedNotifications` for a seeded account through the PDS, that every AppView method the app calls is one the AppView serves, and that the app's vendored copies of the lexicons the AppView gained state what the AppView has.",
+    "websocket": "that each started, that Home Assistant answers over its WebSocket API as its owner, that every command the frontend sends is one core registers, and that the devices core lists have every field the frontend's own types for that answer require.",
+}
+# What each type of contract needs beside the scorer: in the task's tests/, and in the sidecars for CI.
+CONTRACT_TOOLS = {
+    "graphql": [("tools", "mined_graphql_agreement.cjs"), ("sidecars", "fetch_schema.cjs")],
+    "websocket": [("tools", "ha_seed.py"), ("tools", "mined_ws_contract.py"), ("tools", "mined_ws_agreement.cjs")],
+    "lexicon": [("tools", "mined_lexicon_contract.py"), ("tools", "bsky_seed.mjs")],
+}
 ENDING = ("Ending: when you stop, the work stops. Anything you left running is ended with you, and only what is on `main` "
           "by then counts.")
 
@@ -344,7 +360,7 @@ def main():
             notes = notes_for_harbor(f.read())
         where = info.get("deployed", {})
         if owner in where:
-            notes = notes.rstrip("\n") + "\n" + RUNNING.format(where=where[owner]["where"], others="".join(
+            notes = notes.rstrip("\n") + "\n" + RUNNING.format(where=where[owner]["where"], checks=CI_CHECKS[mc.contract_type(info["contracts"][0])], others="".join(
                 "- The other system, `{}`: {}\n".format(o, w["where"]) for o, w in where.items() if o != owner))
         with open(os.path.join(tree, "NOTES.md"), "w") as f:
             f.write(notes)
@@ -357,14 +373,15 @@ def main():
     for owner in owners[1:]:
         if repos[owner].get("language") != "typescript":
             raise SystemExit("only a Node toolchain can be added to the seat's image so far ({})".format(owner))
-        copies += NODE_COPIES.format(stage="base-" + owner)
+        copies += NODE_COPIES.format(stage="base-" + owner) + "".join(
+            TOOLCHAIN_COPY.format(stage="base-" + owner, path=path) for path in repos[owner].get("toolchain_paths", ["/deps"]))
     variables = {"CI": "true", "pnpm_config_verify_deps_before_run": "false", "NODE_PATH": "/deps/node_modules"}
     for owner in owners:
         variables.update(info.get("env", {}).get(owner, {}))
     with open(os.path.join(env_dir, "Dockerfile"), "w") as f:
         f.write(DOCKERFILE.format(stages=stages, first="base-" + owners[0], copies=copies, owners=" ".join(owners),
                                   env=" ".join("{}={}".format(k, v) for k, v in variables.items()), codex=CODEX_VERSION,
-                                  browser=BROWSER if info.get("business") else ""))
+                                  browser=(info["business"].get("browser_install", BROWSER) if info.get("business") else "")))
 
     # ---- the sidecars: the git server, CI and deploy, and each system as last deployed from `main`
     shutil.copytree(os.path.join(REPO, "sidecars"), os.path.join(env_dir, "sidecars"), ignore=shutil.ignore_patterns("__pycache__"))
@@ -375,8 +392,10 @@ def main():
     for doc in ("RUNNING.md", "DATASHEET.md"):      # how to run it, and what it is (mined/<company>/)
         if os.path.isfile(os.path.join(REPO, "mined", a.company, doc)):
             shutil.copy(os.path.join(REPO, "mined", a.company, doc), os.path.join(out, doc))
-    shutil.copy(os.path.join(REPO, "tools", "mined_graphql_agreement.cjs"), os.path.join(env_dir, "sidecars"))
     contract = info["contracts"][0]
+    kind = mc.contract_type(contract)
+    for where, name in CONTRACT_TOOLS[kind]:
+        shutil.copy(os.path.join(REPO, where, name), os.path.join(env_dir, "sidecars"))
     deploy = info.get("deployed", {})
     everything = lambda level: {o: level for o in owners}
     tokens = dict(TOKENS, **({o: OWNER_TOKEN.format(o) for o in owners} if a.team else {}))
@@ -392,9 +411,9 @@ def main():
                 "healthcheck": {"test": ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/ | grep -q 401"],
                                 "interval": "3s", "timeout": "5s", "retries": 40}},
         "ci": {"build": build, "command": ["python3", "/opt/seedco/ci.py"], "volumes": ["deployed:/deployed"],
-               "environment": {"CI": json.dumps({"git": git_url("ci"), "repositories": owners,
-                                                 "contract": {"provider": contract["provider"], "consumer": contract["consumer"], "url": contract["live_url"],
-                                                              "staff": ["admin@example.com", "admin"]}})},
+               "environment": {"CI": json.dumps({"git": git_url("ci"), "repositories": owners, "start_timeout": info.get("ci_start_timeout", 600), "contract": dict(
+                   {"type": kind, "provider": contract["provider"], "consumer": contract["consumer"], "url": contract["live_url"]},
+                   **({"staff": ["admin@example.com", "admin"]} if kind == "graphql" else {"ask": contract["ask"], "token": "/deployed/status/{}-token".format(contract["provider"])}))})},
                "depends_on": {"git": {"condition": "service_healthy"}},
                "healthcheck": {"test": ["CMD-SHELL", "curl -sf http://127.0.0.1:8080/ready > /dev/null"], "interval": "10s", "timeout": "8s", "retries": 90, "start_period": "600s"}},
     }
@@ -414,7 +433,7 @@ def main():
     # A stock harness needs the internet to be installed and to reach its model, so the seat cannot be cut off as
     # the kernel's containers are. The places the real feature could be fetched from are made unreachable by name.
     def seat(who):
-        return {"depends_on": {"ci": {"condition": "service_healthy"}}, "extra_hosts": ["{}:0.0.0.0".format(h) for h in UNREACHABLE],
+        return {"depends_on": {"ci": {"condition": "service_healthy"}}, "extra_hosts": ["{}:0.0.0.0".format(h) for h in UNREACHABLE + tuple(info.get("unreachable", []))],
                 "environment": {"SEAT": who, "SEAT_TOKEN": tokens[who], "TEAM": ",".join(owners) if a.team else ""}}
 
     services["main"] = seat(owners[0] if a.team else "solo")
@@ -443,11 +462,11 @@ def main():
     seat_notes(out, owners)        # role, permissions, tools and budget: apart from the brief, which is the same for every condition
     with open(os.path.join(out, "task.toml"), "w") as f:
         f.write(TASK_TOML.format(slug=a.company.replace("_", "-") + ("-team" if a.team else ""), title=json.dumps(info["title"]), repositories=len(owners),
-                                 memory=6144) + (MCP_TEAM if a.team else ""))
+                                 source=json.dumps(info["source"]), memory=6144) + (MCP_TEAM if a.team else ""))
 
     # ---- the verifier: the scorer, the hidden tests, the test lists, the contract check
     config = {"owners": {}, "git": git_url("verifier"), "judge_token": JUDGE_TOKEN,
-              "contract": dict(contract, base_schema="hidden/base_schema.graphql", usage="hidden/usage.json")}
+              "contract": dict(contract, usage="hidden/usage.json", **({"base_schema": "hidden/base_schema.graphql"} if kind == "graphql" else {}))}
     for owner, repo in repos.items():
         target = mc.target_commit(clones[owner], repo)
         laid = tempfile.mkdtemp(prefix="harbor-tests-")
@@ -464,25 +483,27 @@ def main():
                        env=dict(os.environ, COPYFILE_DISABLE="1"))        # macOS tar would add a `._name` file beside every file
         shutil.rmtree(laid, ignore_errors=True)
         shutil.copy(os.path.join(REPO, "mined", info["owners"][owner]["task"], "reference.json"), os.path.join(tests, "hidden", owner + "-reference.json"))
-        config["owners"][owner] = {"test_command": repo["test_command"], "report": repo.get("report", "junit"), "links": repo.get("links", {})}
+        config["owners"][owner] = dict({"test_command": repo["test_command"], "report": repo.get("report", "junit"), "links": repo.get("links", {})},
+                                       **{k: repo[k] for k in ("setup", "list_tests") if k in repo})
         change = patch(os.path.join(workspace, "services", owner), clones[owner], target, keep[owner])
         with open(os.path.join(solution, owner + ".patch"), "wb") as f:
             f.write(change)
         # files the feature itself removes: their going is no change to the tests by the work
         config["owners"][owner]["removed_by_feature"] = sorted(
             m.group(1).decode() for m in re.finditer(rb"^diff --git a/(\S+) b/\S+\ndeleted file mode", change, re.M))
-    mc._schema_at(clones[contract["provider"]], repos[contract["provider"]]["base"], contract, os.path.join(tests, "hidden", "base_schema.graphql"))
+    if kind == "graphql":
+        mc._schema_at(clones[contract["provider"]], repos[contract["provider"]]["base"], contract, os.path.join(tests, "hidden", "base_schema.graphql"))
     shutil.copy(mc._usage_file(a.company, contract), os.path.join(tests, "hidden", "usage.json"))
-    shutil.copy(os.path.join(REPO, "tools", "mined_graphql_agreement.cjs"), tests)
-    shutil.copy(os.path.join(REPO, "sidecars", "fetch_schema.cjs"), tests)      # the contract check reads the schema the API serves
+    for where, name in CONTRACT_TOOLS[kind]:      # e.g. the schema the API serves is read by fetch_schema.cjs
+        shutil.copy(os.path.join(REPO, where, name), tests)
     shutil.copy(os.path.join(REPO, "tools", "harbor_company_score.py"), os.path.join(tests, "score.py"))
     shutil.copy(os.path.join(REPO, "tools", "harbor_rubric.py"), os.path.join(tests, "rubric.py"))
     with open(os.path.join(REPO, "mined", a.company, "rubric.toml")) as f, open(os.path.join(tests, "rubric.toml"), "w") as g:
         g.write("# GENERATED by tools/export_harbor_company.py from mined/{}/rubric.toml. Do not edit: change the source and export again.\n".format(a.company) + f.read())
     if info.get("business"):      # the business outcome check, beside the reward: the two sides run together, in a browser
-        shutil.copy(os.path.join(REPO, "tools", "harbor_business_check.py"), os.path.join(tests, "business.py"))
+        shutil.copy(os.path.join(REPO, "tools", info["business"].get("driver", "harbor_business_check.py")), os.path.join(tests, "business.py"))
         shutil.copy(os.path.join(REPO, "tools", info["business"]["script"]), tests)
-        config["business"] = info["business"]["roles"]
+        config["business"] = {"roles": info["business"]["roles"], "script": info["business"]["script"]}
     with open(os.path.join(tests, "config.json"), "w") as f:
         json.dump(config, f, indent=2)
     for path, text in ((os.path.join(tests, "test.sh"), TEST_SH.replace("{chat_admin}", CHAT_ADMIN)), (os.path.join(solution, "solve.sh"), SOLVE_SH.format(owners=" ".join(owners), oracle=git_url("oracle")))):

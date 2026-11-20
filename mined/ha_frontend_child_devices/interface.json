@@ -1,0 +1,26 @@
+{
+ "src/data/device/device_registry.ts": {
+  "exists_at_base": true,
+  "names": {
+   "devicesInEffectiveArea": "export const devicesInEffectiveArea = ( devices: Record<string, DeviceRegistryEntry>, areaId: string ): DeviceRegistryEntry[] => ... ; export interface DeviceRegistryEntry extends RegistryEntry { id: string; config_entries: string[]; config_entries_subentries: Record<string, (string | null)[]>; connections: [string, string][]; identifiers: [string, string][]; manufacturer: string | null; model: string | null; model_id: string | null; name: string | null; labels: string[]; sw_version: string | null; hw_version: string | null; serial_number: string | null; via_device_id: string | null; area_id: string | null; name_by_user: string | null; entry_type: \"service\" | null; disabled_by: DeviceDisabler | null; configuration_url: string | null; primary_config_entry: string | null; parent_device_id: string | null; }",
+   "ChildDeviceRegistryEntry": "export interface ChildDeviceRegistryEntry extends RegistryEntry { id: string; config_entry_id: string; config_subentry_id: string | null; identifiers: [string, string][]; name: string | null; name_by_user: string | null; labels: string[]; area_id: string | null; disabled_by: DeviceDisabler | null; parent_device_id: string; }"
+  },
+  "changed": {
+   "DeviceRegistryEntry": "export interface DeviceRegistryEntry extends RegistryEntry { id: string; config_entries: string[]; config_entries_subentries: Record<string, (string | null)[]>; connections: [string, string][]; identifiers: [string, string][]; manufacturer: string | null; model: string | null; model_id: string | null; name: string | null; labels: string[]; sw_version: string | null; hw_version: string | null; serial_number: string | null; via_device_id: string | null; area_id: string | null; name_by_user: string | null; entry_type: \"service\" | null; disabled_by: DeviceDisabler | null; configuration_url: string | null; primary_config_entry: string | null; parent_device_id: string | null; }"
+  }
+ },
+ "src/common/entity/context/get_device_context.ts": {
+  "exists_at_base": true,
+  "names": {},
+  "changed": {
+   "getDeviceArea": "export const getDeviceArea = ( device: DeviceRegistryEntry, areas: HomeAssistant[\"areas\"], devices: HomeAssistant[\"devices\"] ): AreaRegistryEntry | undefined => ..."
+  }
+ },
+ "src/data/ws-device_registry.ts": {
+  "exists_at_base": true,
+  "names": {
+   "resolveChildDevices": "export const resolveChildDevices = ( entries: DeviceRegistryListEntry[] ): DeviceRegistryEntry[] => ..."
+  },
+  "changed": {}
+ }
+}

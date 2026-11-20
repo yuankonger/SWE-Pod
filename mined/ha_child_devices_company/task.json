@@ -1,0 +1,66 @@
+{
+  "id": "ha_child_devices_company",
+  "title": "Child devices across Home Assistant's core and its frontend (August 2026)",
+  "source": "Real changes to Home Assistant core and the Home Assistant frontend (Apache-2.0), August 2026",
+  "unreachable": [
+    "home-assistant.io",
+    "www.home-assistant.io",
+    "developers.home-assistant.io",
+    "community.home-assistant.io",
+    "design.home-assistant.io",
+    "demo.home-assistant.io",
+    "data.home-assistant.io",
+    "alerts.home-assistant.io",
+    "brands.home-assistant.io"
+  ],
+  "owners": {
+    "core": {
+      "task": "ha_core_child_devices"
+    },
+    "frontend": {
+      "task": "ha_frontend_child_devices"
+    }
+  },
+  "contracts": [
+    {
+      "type": "websocket",
+      "provider": "core",
+      "consumer": "frontend",
+      "ask": [
+        {
+          "type": "config/device_registry/list"
+        }
+      ],
+      "live_url": "http://core:8123"
+    }
+  ],
+  "overview": "The company runs Home Assistant as two systems, each a repository of its own:\n- `core` (Python): the home automation server. It keeps every integration, device and entity, and answers clients over its WebSocket API (`/api/websocket`), where each command is registered in core's code under a `type` such as `config/device_registry/list`.\n- `frontend` (TypeScript, Lit): the web application people use. It keeps no data: every screen calls core's WebSocket API, and its own TypeScript types describe what core answers. Core serves the frontend's production build to browsers.\nEach system runs in a container of its own. The containers can reach each other by system name: Home Assistant is at `http://core:8123/`.",
+  "notes": {
+    "core": "",
+    "frontend": ""
+  },
+  "feature": "Many products are several devices in one: each outlet of a power strip, each channel of a relay board. Home Assistant can only show such parts as separate devices linked to a hub (`via_device_id`), each repeating the hardware details of the whole. We want them to be parts of their device.",
+  "deployed": {
+    "core": {
+      "prepare": "python3 -m script.translations develop --all && python3 /opt/seedco/ha_seed.py config /srv/ha-config --frontend /deployed/frontend && for i in $(seq 1 180); do [ -f /deployed/frontend/hass_frontend/index.html ] && break; sleep 5; done",
+      "start": "python3 /opt/seedco/ha_seed.py serve /srv/ha-config /deployed/status/core-token",
+      "where": "Home Assistant, at `http://core:8123/`, with the demo integration (`kitchen_sink`) set up and an owner who can sign in (`owner` / `owner-password`). It serves the frontend as last deployed, and keeps its configuration and registries across deploys."
+    },
+    "frontend": {
+      "prepare": "ln -sfn /deps/node_modules node_modules && rm -rf hass_frontend && IS_TEST=true ./node_modules/.bin/gulp build-app-modern",
+      "start": "sleep infinity",
+      "where": "the frontend's production build, served by core at `http://core:8123/`. A deploy builds it again (about a minute); reload the page to get it."
+    }
+  },
+  "description": "A device can now be a child device: a logical part of another device, its parent.\n\n**In core.** An integration can declare a device as a child of another device of the same config entry and subentry. A child keeps only what is its own (its identifiers, name, area, labels, whether it is disabled, and its config entry and subentry) and takes everything else, such as manufacturer, model and versions, from its parent. Only one level is allowed: a child cannot be a parent. A device that was registered before as a device of its own becomes a child when its integration declares it so, keeping its id, the name its user gave it and its area. Children are stored with the registry and survive a restart.\n\n- A child without an area of its own is in its parent's area wherever areas count: in area targets of actions, in templates, and in what an area holds.\n- Disabling a parent disables its children, which are then disabled because of their device; enabling the parent enables those children again. Children disabled for another reason stay as they are.\n- Removing a parent removes its children and their entities; a child whose parent or config entry is gone is cleaned up.\n- Targeting a device in an action also targets its children's entities.\n- Over the WebSocket API, `config/device_registry/list` returns children beside the other devices, each with only its own fields and the id of its parent; every device says its parent, if any, in `parent_device_id`. A child's name, area, labels and disabled state can be changed with `config/device_registry/update`, as any device's.\n- The demo integration's power strip (`kitchen_sink`) now has its two outlets as children.\n- Custom integrations that read a device attribute a child does not have keep working for now, with a deprecation warning.\n\n**In the frontend.**\n\n1. The frontend understands the new device list: children are complete devices everywhere in it, with the details they take from their parent, and the new reason a device can be disabled.\n2. A child device shows in its parent's area when it has none of its own: on the devices dashboard (area column, grouping and filtering) and on the device page.\n3. A device's page lists its child devices, and a child's page links to its parent.\n4. On an integration's page, children are nested and indented under their parent.",
+  "business": {
+    "driver": "harbor_business_ha.py",
+    "script": "business_ha_child_devices.cjs",
+    "roles": {
+      "core": "core",
+      "frontend": "frontend"
+    }
+  },
+  "done": "It is done when it is on `main` of both repositories and works there: Home Assistant starts from a fresh install with the frontend's build, and its owner can disable the demo power strip in its device settings and see both outlets disabled with it, then enable it and see them come back. The tests each repository has today should still pass. Use the names and signatures in each repository's `INTERFACE.md`.",
+  "ci_start_timeout": 1500
+}

@@ -1,0 +1,3519 @@
+[
+ {
+  "core": [
+   183502
+  ],
+  "frontend": [
+   54437
+  ],
+  "core_src": 10907,
+  "fe_src": 5868,
+  "core_test_files": 44,
+  "fe_test_files": 23,
+  "from": "2026-10-01",
+  "to": "2026-10-01",
+  "ws_added": [
+   "marketplace/critical/acknowledge",
+   "marketplace/critical/list",
+   "marketplace/github/connect",
+   "marketplace/info",
+   "marketplace/repositories/add",
+   "marketplace/repositories/clear_new",
+   "marketplace/repositories/detect",
+   "marketplace/repositories/list",
+   "marketplace/repositories/remove",
+   "marketplace/repositories/removed",
+   "marketplace/repository/beta",
+   "marketplace/repository/ignore",
+   "marketplace/repository/info",
+   "marketplace/repository/install",
+   "marketplace/repository/refresh",
+   "marketplace/repository/releases",
+   "marketplace/repository/uninstall",
+   "marketplace/repository/version",
+   "marketplace/subscribe",
+   "marketplace/warning/accept",
+   "update/release_notes"
+  ],
+  "titles": [
+   "Add Marketplace integration (#183502)",
+   "Add Marketplace panel (#54437)"
+  ]
+ },
+ {
+  "core": [
+   178666,
+   179996
+  ],
+  "frontend": [
+   53619,
+   53766,
+   53617,
+   54060
+  ],
+  "core_src": 2357,
+  "fe_src": 2080,
+  "core_test_files": 32,
+  "fe_test_files": 10,
+  "from": "2026-08-13",
+  "to": "2026-09-10",
+  "ws_added": [
+   "config/device_registry/list",
+   "config/device_registry/list_linked_devices",
+   "config/device_registry/update"
+  ],
+  "titles": [
+   "Add child devices (#178666)",
+   "Add parent device name part to generated entity IDs (#179996)",
+   "Child devices UI (#53619)",
+   "Add parent device to entity context (#53766)",
+   "Add child devices to the device registry (#53617)",
+   "Add parent device to entity ID format (#54060)"
+  ]
+ },
+ {
+  "core": [
+   186547
+  ],
+  "frontend": [
+   54937
+  ],
+  "core_src": 2104,
+  "fe_src": 2015,
+  "core_test_files": 9,
+  "fe_test_files": 3,
+  "from": "2026-10-16",
+  "to": "2026-10-16",
+  "ws_added": [
+   "debug_console/check_input",
+   "debug_console/clear",
+   "debug_console/complete",
+   "debug_console/execute",
+   "debug_console/get_attribute",
+   "debug_console/info",
+   "debug_console/inspect",
+   "debug_console/signature",
+   "debug_console/stop",
+   "debug_console/warning/accept"
+  ],
+  "titles": [
+   "Add Debug console integration (#186547)",
+   "Add Debug console to the Tools panel (#54937)"
+  ]
+ },
+ {
+  "core": [
+   168360
+  ],
+  "frontend": [
+   51591
+  ],
+  "core_src": 1112,
+  "fe_src": 1400,
+  "core_test_files": 1,
+  "fe_test_files": 2,
+  "from": "2026-05-20",
+  "to": "2026-05-20",
+  "ws_added": [],
+  "titles": [
+   "Add support for Z-Wave credential management (#168360)",
+   "Add Z-Wave credential mangement (#51591)"
+  ]
+ },
+ {
+  "core": [
+   161936
+  ],
+  "frontend": [
+   28672
+  ],
+  "core_src": 1568,
+  "fe_src": 1051,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-02-28",
+  "to": "2026-03-13",
+  "ws_added": [],
+  "titles": [
+   "Add Matter lock user and credential management services (#161936)",
+   "Matter lock manager (#28672)"
+  ]
+ },
+ {
+  "core": [
+   174270
+  ],
+  "frontend": [
+   53022
+  ],
+  "core_src": 686,
+  "fe_src": 830,
+  "core_test_files": 10,
+  "fe_test_files": 0,
+  "from": "2026-07-07",
+  "to": "2026-07-07",
+  "ws_added": [],
+  "titles": [
+   "Merge Port 8123 feature branch to dev (#174270)",
+   "Merge Port 8123 feature branch to dev (#53022)"
+  ]
+ },
+ {
+  "core": [
+   180441
+  ],
+  "frontend": [
+   53845
+  ],
+  "core_src": 624,
+  "fe_src": 617,
+  "core_test_files": 3,
+  "fe_test_files": 3,
+  "from": "2026-08-31",
+  "to": "2026-09-01",
+  "ws_added": [
+   "map_tiles/access_token"
+  ],
+  "titles": [
+   "Add map tiles integration to proxy the OpenStreetMap base map (#180441)",
+   "Load the base map through core's tile proxy (#53845)"
+  ]
+ },
+ {
+  "core": [
+   190224
+  ],
+  "frontend": [
+   55604,
+   55606
+  ],
+  "core_src": 509,
+  "fe_src": 2292,
+  "core_test_files": 6,
+  "fe_test_files": 6,
+  "from": "2026-11-15",
+  "to": "2026-11-15",
+  "ws_added": [
+   "energy/save_prefs"
+  ],
+  "titles": [
+   "Add per-direction battery measurement to energy (#190224)",
+   "Use measured battery flows on the energy dashboard (#55604)",
+   "Edit batteries measured per direction (#55606)"
+  ]
+ },
+ {
+  "core": [
+   190600
+  ],
+  "frontend": [
+   55659
+  ],
+  "core_src": 495,
+  "fe_src": 811,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-11-16",
+  "to": "2026-11-16",
+  "ws_added": [
+   "recorder/database_usage"
+  ],
+  "titles": [
+   "Add recorder database usage report (#190600)",
+   "Add database usage card to the storage page (#55659)"
+  ]
+ },
+ {
+  "core": [
+   180135,
+   179524
+  ],
+  "frontend": [
+   53781,
+   53699
+  ],
+  "core_src": 491,
+  "fe_src": 3278,
+  "core_test_files": 3,
+  "fe_test_files": 1,
+  "from": "2026-08-21",
+  "to": "2026-09-30",
+  "ws_added": [
+   "usb/list_serial_ports"
+  ],
+  "titles": [
+   "Add esphome/get_device_capabilities websocket command (#180135)",
+   "USB Websocket API to list serial ports (#179524)",
+   "Add ESPHome device setup checklist (#53781)",
+   "Add a serial panel (#53699)"
+  ]
+ },
+ {
+  "core": [
+   160432
+  ],
+  "frontend": [
+   28845
+  ],
+  "core_src": 479,
+  "fe_src": 589,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-01-28",
+  "to": "2026-01-28",
+  "ws_added": [],
+  "titles": [
+   "Add non standard power sensor support (#160432)",
+   "Add non standard power sensor support (#28845)"
+  ]
+ },
+ {
+  "core": [
+   162200
+  ],
+  "frontend": [
+   29389
+  ],
+  "core_src": 474,
+  "fe_src": 3221,
+  "core_test_files": 5,
+  "fe_test_files": 0,
+  "from": "2026-02-16",
+  "to": "2026-02-16",
+  "ws_added": [
+   "grid"
+  ],
+  "titles": [
+   "Migrate grid connections to single objects with import/export/power (#162200)",
+   "Migrate grid connections to single objects with import/export/power (#29389)"
+  ]
+ },
+ {
+  "core": [
+   171466
+  ],
+  "frontend": [
+   54490
+  ],
+  "core_src": 1621,
+  "fe_src": 413,
+  "core_test_files": 7,
+  "fe_test_files": 0,
+  "from": "2026-05-20",
+  "to": "2026-10-01",
+  "ws_added": [],
+  "titles": [
+   "Reduce token usage by moving deterministic checks to python (#171466)",
+   "Add dependency review workflow (#54490)"
+  ]
+ },
+ {
+  "core": [
+   180105
+  ],
+  "frontend": [
+   53790
+  ],
+  "core_src": 395,
+  "fe_src": 1638,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-08-25",
+  "to": "2026-08-26",
+  "ws_added": [
+   "cloud/attempt_auto_login_now",
+   "cloud/cancel_auto_login",
+   "cloud/remove_data",
+   "cloud/resend_auto_login_confirm",
+   "cloud/status",
+   "cloud/subscribe_events"
+  ],
+  "titles": [
+   "Cloud register auto login (#180105)",
+   "Improve cloud login/sign up pages, add auto login (#53790)"
+  ]
+ },
+ {
+  "core": [
+   162763
+  ],
+  "frontend": [
+   30147,
+   30201
+  ],
+  "core_src": 377,
+  "fe_src": 634,
+  "core_test_files": 13,
+  "fe_test_files": 2,
+  "from": "2026-03-17",
+  "to": "2026-03-18",
+  "ws_added": [],
+  "titles": [
+   "Rework user-given entity name logic (#162763)",
+   "Simplify entity name computation (#30147)",
+   "Add entity name alias toggle and drag-to-reorder aliases in voice settings (#30201)"
+  ]
+ },
+ {
+  "core": [
+   191915
+  ],
+  "frontend": [
+   55834
+  ],
+  "core_src": 306,
+  "fe_src": 747,
+  "core_test_files": 4,
+  "fe_test_files": 1,
+  "from": "2026-11-16",
+  "to": "2026-11-17",
+  "ws_added": [],
+  "titles": [
+   "Add bootstrap startup progress (#191915)",
+   "Show startup progress while Home Assistant starts (#55834)"
+  ]
+ },
+ {
+  "core": [
+   189000
+  ],
+  "frontend": [
+   55322
+  ],
+  "core_src": 300,
+  "fe_src": 333,
+  "core_test_files": 29,
+  "fe_test_files": 1,
+  "from": "2026-10-28",
+  "to": "2026-10-28",
+  "ws_added": [],
+  "titles": [
+   "Bump ZHA to 2.4.1, zha-quirks to 2.4.0 (#189000)",
+   "Add Zigbee Green Power support to ZHA (#55322)"
+  ]
+ },
+ {
+  "core": [
+   185595
+  ],
+  "frontend": [
+   54815,
+   54809
+  ],
+  "core_src": 289,
+  "fe_src": 1402,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-10-10",
+  "to": "2026-10-22",
+  "ws_added": [
+   "system_log/subscribe_raw"
+  ],
+  "titles": [
+   "Add live log stream to system log (#185595)",
+   "Filter the logs page by integration (#54815)",
+   "Add live log dialog to integration page (#54809)"
+  ]
+ },
+ {
+  "core": [
+   186906
+  ],
+  "frontend": [
+   54998
+  ],
+  "core_src": 273,
+  "fe_src": 2139,
+  "core_test_files": 2,
+  "fe_test_files": 4,
+  "from": "2026-10-17",
+  "to": "2026-10-17",
+  "ws_added": [
+   "lorawan/devices/list",
+   "lorawan/devices/subscribe"
+  ],
+  "titles": [
+   "Expose LoRaWAN devices and connection metadata (#186906)",
+   "Add LoRaWAN connectivity panel (#54998)"
+  ]
+ },
+ {
+  "core": [
+   179331
+  ],
+  "frontend": [
+   53672
+  ],
+  "core_src": 270,
+  "fe_src": 328,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-08-26",
+  "to": "2026-08-26",
+  "ws_added": [],
+  "titles": [
+   "Add device class selector (#179331)",
+   "Add device class selector (#53672)"
+  ]
+ },
+ {
+  "core": [
+   149315
+  ],
+  "frontend": [
+   29343
+  ],
+  "core_src": 258,
+  "fe_src": 687,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-02-18",
+  "to": "2026-02-18",
+  "ws_added": [
+   "vacuum/get_segments"
+  ],
+  "titles": [
+   "Add clean_area action to vacuum (#149315)",
+   "Add support for vacuum segment mapping to areas (#29343)"
+  ]
+ },
+ {
+  "core": [
+   187290
+  ],
+  "frontend": [
+   55123,
+   55051,
+   55091
+  ],
+  "core_src": 245,
+  "fe_src": 2768,
+  "core_test_files": 7,
+  "fe_test_files": 5,
+  "from": "2026-10-22",
+  "to": "2026-10-22",
+  "ws_added": [],
+  "titles": [
+   "Allow target to exclude entities (#187290)",
+   "Allow to exclude from the target details (#55123)",
+   "Support exclude block in targets (#55051)",
+   "Add exclusions to the target picker (#55091)"
+  ]
+ },
+ {
+  "core": [
+   174116
+  ],
+  "frontend": [
+   52708
+  ],
+  "core_src": 320,
+  "fe_src": 240,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-06-22",
+  "to": "2026-06-22",
+  "ws_added": [
+   "trace/get",
+   "trace/list"
+  ],
+  "titles": [
+   "Trigger add did not trigger callback (#174116)",
+   "Add support for not triggered traces (#52708)"
+  ]
+ },
+ {
+  "core": [
+   183337
+  ],
+  "frontend": [
+   54391
+  ],
+  "core_src": 211,
+  "fe_src": 550,
+  "core_test_files": 5,
+  "fe_test_files": 3,
+  "from": "2026-10-08",
+  "to": "2026-10-08",
+  "ws_added": [],
+  "titles": [
+   "Add unit of measurement selector (#183337)",
+   "Add unit of measurement selector (#54391)"
+  ]
+ },
+ {
+  "core": [
+   187344
+  ],
+  "frontend": [
+   55078
+  ],
+  "core_src": 204,
+  "fe_src": 818,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-10-23",
+  "to": "2026-10-26",
+  "ws_added": [
+   "logbook/get_action_calls"
+  ],
+  "titles": [
+   "Add logbook websocket command to get action calls (#187344)",
+   "Add action history page to tools (#55078)"
+  ]
+ },
+ {
+  "core": [
+   184855
+  ],
+  "frontend": [
+   54703
+  ],
+  "core_src": 235,
+  "fe_src": 191,
+  "core_test_files": 2,
+  "fe_test_files": 2,
+  "from": "2026-10-23",
+  "to": "2026-10-23",
+  "ws_added": [],
+  "titles": [
+   "Use a signed offset in sun and calendar triggers (#184855)",
+   "Use the offset duration mode for sun and calendar offsets (#54703)"
+  ]
+ },
+ {
+  "core": [
+   184948
+  ],
+  "frontend": [
+   54973
+  ],
+  "core_src": 370,
+  "fe_src": 187,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-09",
+  "to": "2026-10-18",
+  "ws_added": [],
+  "titles": [
+   "Install app in Music Assistant config flow (#184948)",
+   "Set up Music Assistant through its config flow in the ESPHome wizard (#54973)"
+  ]
+ },
+ {
+  "core": [
+   184340
+  ],
+  "frontend": [
+   54891,
+   54725
+  ],
+  "core_src": 183,
+  "fe_src": 1335,
+  "core_test_files": 7,
+  "fe_test_files": 7,
+  "from": "2026-10-12",
+  "to": "2026-10-14",
+  "ws_added": [],
+  "titles": [
+   "Migrate user-given entity names (#184340)",
+   "Use the entity name formatter for all entity names (#54891)",
+   "Finalize the entity naming migration (#54725)"
+  ]
+ },
+ {
+  "core": [
+   163960
+  ],
+  "frontend": [
+   29799
+  ],
+  "core_src": 408,
+  "fe_src": 177,
+  "core_test_files": 12,
+  "fe_test_files": 1,
+  "from": "2026-02-25",
+  "to": "2026-02-25",
+  "ws_added": [
+   "brands/access_token"
+  ],
+  "titles": [
+   "Add brands system integration to proxy brand images through local API (#163960)",
+   "Adjust brands assets to proxy brand images through local API (#29799)"
+  ]
+ },
+ {
+  "core": [
+   190119
+  ],
+  "frontend": [
+   55585
+  ],
+  "core_src": 174,
+  "fe_src": 1106,
+  "core_test_files": 2,
+  "fe_test_files": 2,
+  "from": "2026-11-04",
+  "to": "2026-11-04",
+  "ws_added": [],
+  "titles": [
+   "Add websocket command to explain target excludes (#190119)",
+   "Let core work out what target exclusions take out (#55585)"
+  ]
+ },
+ {
+  "core": [
+   156340
+  ],
+  "frontend": [
+   27906
+  ],
+  "core_src": 169,
+  "fe_src": 406,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-04-07",
+  "to": "2026-04-07",
+  "ws_added": [
+   "calendar/event/subscribe"
+  ],
+  "titles": [
+   "Add websocket subscription support for calendar events (#156340)",
+   "Use websocket subscription for calendar events (#27906)"
+  ]
+ },
+ {
+  "core": [
+   180667
+  ],
+  "frontend": [
+   53880
+  ],
+  "core_src": 166,
+  "fe_src": 291,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-09-03",
+  "to": "2026-09-05",
+  "ws_added": [],
+  "titles": [
+   "Add state class selector (#180667)",
+   "Add reusable state class selector (#53880)"
+  ]
+ },
+ {
+  "core": [
+   158265
+  ],
+  "frontend": [
+   28446
+  ],
+  "core_src": 164,
+  "fe_src": 263,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-01-27",
+  "to": "2026-01-27",
+  "ws_added": [
+   "frontend/get_system_data",
+   "lovelace/config",
+   "lovelace/config/delete",
+   "lovelace/config/save",
+   "lovelace/dashboards/delete",
+   "lovelace/dashboards/list"
+  ],
+  "titles": [
+   "Migrate default Lovelace panel to dashboard system (#158265)",
+   "Set home as default dashboard (#28446)"
+  ]
+ },
+ {
+  "core": [
+   188123
+  ],
+  "frontend": [
+   55211
+  ],
+  "core_src": 153,
+  "fe_src": 518,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-10-23",
+  "to": "2026-10-23",
+  "ws_added": [],
+  "titles": [
+   "Add ESPHome device wizard websocket command (#188123)",
+   "Find ESPHome setup switches through the device wizard (#55211)"
+  ]
+ },
+ {
+  "core": [
+   168817
+  ],
+  "frontend": [
+   51673
+  ],
+  "core_src": 159,
+  "fe_src": 152,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-04-22",
+  "to": "2026-04-23",
+  "ws_added": [],
+  "titles": [
+   "Register optimized ESPHome serial proxy transport with serialx (#168817)",
+   "Improve serial proxies look in serial port selector (#51673)"
+  ]
+ },
+ {
+  "core": [
+   177114
+  ],
+  "frontend": [
+   53247
+  ],
+  "core_src": 152,
+  "fe_src": 947,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-08-19",
+  "to": "2026-08-19",
+  "ws_added": [],
+  "titles": [
+   "Add Matter network topology WebSocket API (#177114)",
+   "Add Matter network topology visualization page (#53247)"
+  ]
+ },
+ {
+  "core": [
+   177140
+  ],
+  "frontend": [
+   53268
+  ],
+  "core_src": 144,
+  "fe_src": 679,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-07-28",
+  "to": "2026-07-28",
+  "ws_added": [
+   "config/entity_registry/settings/get",
+   "config/entity_registry/settings/update"
+  ],
+  "titles": [
+   "Add setting to customise entity ID generation (#177140)",
+   "Add entity ID format setting for new entities (#53268)"
+  ]
+ },
+ {
+  "core": [
+   180629
+  ],
+  "frontend": [
+   53906
+  ],
+  "core_src": 135,
+  "fe_src": 352,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-08-30",
+  "to": "2026-09-02",
+  "ws_added": [],
+  "titles": [
+   "Add options flow to MCP Server integration (#180629)",
+   "Rename AI tasks settings to AI and add Model Context Protocol card (#53906)"
+  ]
+ },
+ {
+  "core": [
+   176703
+  ],
+  "frontend": [
+   53168
+  ],
+  "core_src": 310,
+  "fe_src": 126,
+  "core_test_files": 2,
+  "fe_test_files": 2,
+  "from": "2026-07-22",
+  "to": "2026-10-20",
+  "ws_added": [],
+  "titles": [
+   "Add conditional field visibility to config and options flows (#176703)",
+   "Rename ha-form conditional field to `visible` and skip it in config flow submission (#53168)"
+  ]
+ },
+ {
+  "core": [
+   174545
+  ],
+  "frontend": [
+   55360
+  ],
+  "core_src": 125,
+  "fe_src": 567,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-10-14",
+  "to": "2026-10-28",
+  "ws_added": [],
+  "titles": [
+   "Add Device Class config option to Integral Sensor (#174545)",
+   "Offer gas and water sensors from flow rates (#55360)"
+  ]
+ },
+ {
+  "core": [
+   183368
+  ],
+  "frontend": [
+   54400
+  ],
+  "core_src": 112,
+  "fe_src": 451,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-09-29",
+  "to": "2026-09-29",
+  "ws_added": [
+   "person/update_own_profile"
+  ],
+  "titles": [
+   "Allow users to update their own name and picture (#183368)",
+   "Let users edit their own name and picture from their profile (#54400)"
+  ]
+ },
+ {
+  "core": [
+   189404
+  ],
+  "frontend": [
+   55443
+  ],
+  "core_src": 111,
+  "fe_src": 124,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-10-29",
+  "to": "2026-11-02",
+  "ws_added": [
+   "system_log/subscribe_raw"
+  ],
+  "titles": [
+   "Read the Supervisor log for the integration log history (#189404)",
+   "Show a skeleton while the live log loads (#55443)"
+  ]
+ },
+ {
+  "core": [
+   179937
+  ],
+  "frontend": [
+   54036
+  ],
+  "core_src": 110,
+  "fe_src": 727,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-09-09",
+  "to": "2026-09-09",
+  "ws_added": [
+   "modbus/connections/list"
+  ],
+  "titles": [
+   "Expose the Modbus connections over a websocket API (#179937)",
+   "Add a Modbus panel (#54036)"
+  ]
+ },
+ {
+  "core": [
+   176525
+  ],
+  "frontend": [
+   53166
+  ],
+  "core_src": 345,
+  "fe_src": 109,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-23",
+  "to": "2026-07-23",
+  "ws_added": [
+   "http/config/configure",
+   "http/config/promote"
+  ],
+  "titles": [
+   "Persist active HTTP config slot and keep reverted pending config (#176525)",
+   "Surface active HTTP config slot and reverted pending state (#53166)"
+  ]
+ },
+ {
+  "core": [
+   181551
+  ],
+  "frontend": [
+   54193,
+   54235
+  ],
+  "core_src": 105,
+  "fe_src": 200,
+  "core_test_files": 7,
+  "fe_test_files": 1,
+  "from": "2026-09-29",
+  "to": "2026-09-29",
+  "ws_added": [],
+  "titles": [
+   "Add next_name_part to registry entries (#181551)",
+   "Omit owners in another area from entity context (#54193)",
+   "Use the device area when the entity uses the device name (#54235)"
+  ]
+ },
+ {
+  "core": [
+   162742
+  ],
+  "frontend": [
+   29572
+  ],
+  "core_src": 104,
+  "fe_src": 606,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-02-23",
+  "to": "2026-02-23",
+  "ws_added": [
+   "frontend/update_panel"
+  ],
+  "titles": [
+   "Add configurable panel properties to frontend (#162742)",
+   "Add configuration to built-in panels (#29572)"
+  ]
+ },
+ {
+  "core": [
+   179591
+  ],
+  "frontend": [
+   53748
+  ],
+  "core_src": 102,
+  "fe_src": 918,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-08-25",
+  "to": "2026-08-25",
+  "ws_added": [],
+  "titles": [
+   "Generate frontend device class, sensor state class and units (#179591)",
+   "Expand sensor entity constants and add device classes (#53748)"
+  ]
+ },
+ {
+  "core": [
+   179363
+  ],
+  "frontend": [
+   53677
+  ],
+  "core_src": 100,
+  "fe_src": 125,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-08-27",
+  "to": "2026-08-27",
+  "ws_added": [],
+  "titles": [
+   "Add Z-Wave JS WebSocket command to get network neighbors (#179363)",
+   "Show Z-Wave neighbor connections in the network visualization (#53677)"
+  ]
+ },
+ {
+  "core": [
+   166696
+  ],
+  "frontend": [
+   30384
+  ],
+  "core_src": 99,
+  "fe_src": 319,
+  "core_test_files": 3,
+  "fe_test_files": 2,
+  "from": "2026-03-27",
+  "to": "2026-03-27",
+  "ws_added": [],
+  "titles": [
+   "Use legacy naming for entities (#166696)",
+   "Revert entity naming change (#30384)"
+  ]
+ },
+ {
+  "core": [
+   184720
+  ],
+  "frontend": [
+   54668
+  ],
+  "core_src": 114,
+  "fe_src": 95,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-08",
+  "to": "2026-10-09",
+  "ws_added": [
+   "usb/list_serial_integrations"
+  ],
+  "titles": [
+   "Add websocket command to list serial port integrations (#184720)",
+   "Show only serial integrations when setting up an ESPHome serial port (#54668)"
+  ]
+ },
+ {
+  "core": [
+   172489
+  ],
+  "frontend": [
+   51744
+  ],
+  "core_src": 173,
+  "fe_src": 93,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-08-20",
+  "to": "2026-08-20",
+  "ws_added": [],
+  "titles": [
+   "Add `next_flow` to `RepairsFlow` (#172489)",
+   "Add `RepairsFlow` as a `next_flow` from a `RepairsFlow` (#51744)"
+  ]
+ },
+ {
+  "core": [
+   175762
+  ],
+  "frontend": [
+   53025
+  ],
+  "core_src": 89,
+  "fe_src": 5465,
+  "core_test_files": 1,
+  "fe_test_files": 2,
+  "from": "2026-07-07",
+  "to": "2026-07-07",
+  "ws_added": [
+   "cloud/onboarding/complete",
+   "cloud/onboarding/postpone",
+   "cloud/status"
+  ],
+  "titles": [
+   "Add cloud page onbording prefs (#175762)",
+   "Redesign cloud page (#53025)"
+  ]
+ },
+ {
+  "core": [
+   178125
+  ],
+  "frontend": [
+   55388
+  ],
+  "core_src": 258,
+  "fe_src": 89,
+  "core_test_files": 19,
+  "fe_test_files": 0,
+  "from": "2026-11-17",
+  "to": "2026-11-18",
+  "ws_added": [
+   "update/release_notes"
+  ],
+  "titles": [
+   "Add release notes messages for update entities (#178125)",
+   "Show update release notes messages in the more info dialog (#55388)"
+  ]
+ },
+ {
+  "core": [
+   186071
+  ],
+  "frontend": [
+   54875
+  ],
+  "core_src": 87,
+  "fe_src": 339,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-14",
+  "to": "2026-10-15",
+  "ws_added": [
+   "recorder/clear_statistics"
+  ],
+  "titles": [
+   "Add time range to recorder/clear_statistics (#186071)",
+   "Add dialog to delete statistics in a time range (#54875)"
+  ]
+ },
+ {
+  "core": [
+   160068
+  ],
+  "frontend": [
+   29104
+  ],
+  "core_src": 82,
+  "fe_src": 105,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-01-28",
+  "to": "2026-01-28",
+  "ws_added": [],
+  "titles": [
+   "Enable snapshot analytics as labs feature (#160068)",
+   "Add device database labs feature (#29104)"
+  ]
+ },
+ {
+  "core": [
+   174134
+  ],
+  "frontend": [
+   52709
+  ],
+  "core_src": 80,
+  "fe_src": 196,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-06-24",
+  "to": "2026-06-25",
+  "ws_added": [
+   "recorder/entity_options/get"
+  ],
+  "titles": [
+   "Add WS command recorder/entity_options/get (#174134)",
+   "Show warning when priming will not work for condition (#52709)"
+  ]
+ },
+ {
+  "core": [
+   163608
+  ],
+  "frontend": [
+   29748
+  ],
+  "core_src": 77,
+  "fe_src": 512,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-03-09",
+  "to": "2026-03-09",
+  "ws_added": [
+   "backup/generate",
+   "backup/subscribe_events"
+  ],
+  "titles": [
+   "Allow backups to report the upload progress (#163608)",
+   "Report progress for backup upload (#29748)"
+  ]
+ },
+ {
+  "core": [
+   166955
+  ],
+  "frontend": [
+   51315
+  ],
+  "core_src": 604,
+  "fe_src": 76,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-03-31",
+  "to": "2026-03-31",
+  "ws_added": [],
+  "titles": [
+   "Remove redundant field descriptions from triggers and conditions (#166955)",
+   "Remove target description (#51315)"
+  ]
+ },
+ {
+  "core": [
+   173134
+  ],
+  "frontend": [
+   52464
+  ],
+  "core_src": 76,
+  "fe_src": 462,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-06-17",
+  "to": "2026-06-18",
+  "ws_added": [
+   "radio_frequency/list"
+  ],
+  "titles": [
+   "Add API to query radio frequency information (#173134)",
+   "Add radio frequency panel (#52464)"
+  ]
+ },
+ {
+  "core": [
+   181188
+  ],
+  "frontend": [
+   53957
+  ],
+  "core_src": 72,
+  "fe_src": 75,
+  "core_test_files": 5,
+  "fe_test_files": 0,
+  "from": "2026-09-11",
+  "to": "2026-09-11",
+  "ws_added": [],
+  "titles": [
+   "Add idle state and stop action to lawn mower entity (#181188)",
+   "Add idle state and stop action to lawn mower (#53957)"
+  ]
+ },
+ {
+  "core": [
+   184952
+  ],
+  "frontend": [
+   55281
+  ],
+  "core_src": 387,
+  "fe_src": 72,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-10-13",
+  "to": "2026-10-26",
+  "ws_added": [
+   "ai_task/preferences/set"
+  ],
+  "titles": [
+   "Add evaluation tasks to AI Task (#184952)",
+   "Add AI Task evaluate types and method (#55281)"
+  ]
+ },
+ {
+  "core": [
+   184716
+  ],
+  "frontend": [
+   54660
+  ],
+  "core_src": 70,
+  "fe_src": 990,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-10-22",
+  "to": "2026-10-22",
+  "ws_added": [
+   "camera/capabilities"
+  ],
+  "titles": [
+   "Add two way audio camera support (#184716)",
+   "Add two way audio support (frontend) (#54660)"
+  ]
+ },
+ {
+  "core": [
+   182458
+  ],
+  "frontend": [
+   54503,
+   54585
+  ],
+  "core_src": 126,
+  "fe_src": 68,
+  "core_test_files": 11,
+  "fe_test_files": 2,
+  "from": "2026-09-28",
+  "to": "2026-10-05",
+  "ws_added": [
+   "config/entity_registry/update"
+  ],
+  "titles": [
+   "Reject and report an area set on a device's main entity (#182458)",
+   "Fix area switch for entities without their own name (#54503)",
+   "Treat an entity name equal to its device name as no own name (#54585)"
+  ]
+ },
+ {
+  "core": [
+   182024
+  ],
+  "frontend": [
+   54134
+  ],
+  "core_src": 67,
+  "fe_src": 74,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-09-13",
+  "to": "2026-09-13",
+  "ws_added": [
+   "modbus/connections/list"
+  ],
+  "titles": [
+   "Include YAML hubs in the Modbus connections list (#182024)",
+   "Show YAML-configured Modbus hubs in the Modbus panel (#54134)"
+  ]
+ },
+ {
+  "core": [
+   166484
+  ],
+  "frontend": [
+   30322
+  ],
+  "core_src": 63,
+  "fe_src": 311,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-04-29",
+  "to": "2026-04-29",
+  "ws_added": [],
+  "titles": [
+   "Add automation behavior selector (#166484)",
+   "Add automation behavior selector (#30322)"
+  ]
+ },
+ {
+  "core": [
+   188809
+  ],
+  "frontend": [
+   55204
+  ],
+  "core_src": 59,
+  "fe_src": 210,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-26",
+  "to": "2026-10-28",
+  "ws_added": [
+   "homeassistant/expose_entity"
+  ],
+  "titles": [
+   "Return changed entity IDs from expose entity websocket command (#188809)",
+   "Add bulk expose to voice assistants on the entities table (#55204)"
+  ]
+ },
+ {
+  "core": [
+   177649
+  ],
+  "frontend": [
+   53402
+  ],
+  "core_src": 58,
+  "fe_src": 61,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-30",
+  "to": "2026-07-30",
+  "ws_added": [
+   "media_player/search_media"
+  ],
+  "titles": [
+   "Fix search not showing up in the Music Assistant media browser (#177649)",
+   "Search a media player's own library from the media browser (#53402)"
+  ]
+ },
+ {
+  "core": [
+   180423
+  ],
+  "frontend": [
+   53854
+  ],
+  "core_src": 58,
+  "fe_src": 1827,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-08-28",
+  "to": "2026-09-01",
+  "ws_added": [
+   "cloud/attempt_auto_login_now",
+   "cloud/remove_data",
+   "cloud/resend_auto_login_confirm",
+   "cloud/subscribe_events"
+  ],
+  "titles": [
+   "Read cloud auto-login state from the hass-nabucasa controller (#180423)",
+   "Use the cloud auto-login flow in the voice satellite wizard (#53854)"
+  ]
+ },
+ {
+  "core": [
+   181884
+  ],
+  "frontend": [
+   54111
+  ],
+  "core_src": 58,
+  "fe_src": 667,
+  "core_test_files": 1,
+  "fe_test_files": 2,
+  "from": "2026-10-02",
+  "to": "2026-10-02",
+  "ws_added": [],
+  "titles": [
+   "Add signed and offset modes to the duration selector (#181884)",
+   "Add signed and offset modes to the duration selector (#54111)"
+  ]
+ },
+ {
+  "core": [
+   168857,
+   168860
+  ],
+  "frontend": [
+   51677,
+   51729
+  ],
+  "core_src": 129,
+  "fe_src": 57,
+  "core_test_files": 5,
+  "fe_test_files": 0,
+  "from": "2026-04-24",
+  "to": "2026-04-28",
+  "ws_added": [],
+  "titles": [
+   "Allow targeting non-primary entities in triggers (#168857)",
+   "Allow extracting non-primary entities in websocket command (#168860)",
+   "Target picker respect primaryEntitiesOnly from selector (#51677)",
+   "Fix target picker secondary entities support (#51729)"
+  ]
+ },
+ {
+  "core": [
+   185417
+  ],
+  "frontend": [
+   54785
+  ],
+  "core_src": 56,
+  "fe_src": 73,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-14",
+  "to": "2026-10-14",
+  "ws_added": [],
+  "titles": [
+   "Add device class support to input_number (#185417)",
+   "Use unit of measurement selector and add device class to input number helper (#54785)"
+  ]
+ },
+ {
+  "core": [
+   185730
+  ],
+  "frontend": [
+   54821
+  ],
+  "core_src": 55,
+  "fe_src": 745,
+  "core_test_files": 3,
+  "fe_test_files": 3,
+  "from": "2026-10-27",
+  "to": "2026-10-27",
+  "ws_added": [
+   "energy/get_prefs",
+   "energy/save_prefs"
+  ],
+  "titles": [
+   "Add home total option to energy dashboard (#185730)",
+   "Add home total option to energy dashboard (#54821)"
+  ]
+ },
+ {
+  "core": [
+   163274
+  ],
+  "frontend": [
+   29693
+  ],
+  "core_src": 54,
+  "fe_src": 167,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-02-19",
+  "to": "2026-02-24",
+  "ws_added": [],
+  "titles": [
+   "Add flow rate (stat_rate) tracking for gas and water (#163274)",
+   "Add flow rate picker to gas, water, and water device energy dialogs (#29693)"
+  ]
+ },
+ {
+  "core": [
+   175726
+  ],
+  "frontend": [
+   53013
+  ],
+  "core_src": 54,
+  "fe_src": 136,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-30",
+  "to": "2026-07-30",
+  "ws_added": [],
+  "titles": [
+   "Add zwave_js/subscribe_config_parameter_updates WS command (#175726)",
+   "Add live updates to Z-Wave JS node config parameters (#53013)"
+  ]
+ },
+ {
+  "core": [
+   172348
+  ],
+  "frontend": [
+   52224
+  ],
+  "core_src": 132,
+  "fe_src": 53,
+  "core_test_files": 36,
+  "fe_test_files": 0,
+  "from": "2026-05-27",
+  "to": "2026-05-27",
+  "ws_added": [],
+  "titles": [
+   "Rename trigger behavior options (#172348)",
+   "Rename automation trigger behavior options (#52224)"
+  ]
+ },
+ {
+  "core": [
+   170385
+  ],
+  "frontend": [
+   52004
+  ],
+  "core_src": 52,
+  "fe_src": 179,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-05-13",
+  "to": "2026-05-13",
+  "ws_added": [
+   "subscribe_condition"
+  ],
+  "titles": [
+   "Add websocket command subscribe_condition (#170385)",
+   "Add automation live condition tests (#52004)"
+  ]
+ },
+ {
+  "core": [
+   172157
+  ],
+  "frontend": [
+   52211
+  ],
+  "core_src": 151,
+  "fe_src": 52,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-05-27",
+  "to": "2026-05-27",
+  "ws_added": [],
+  "titles": [
+   "Add entity option to associate scanner tracker with any zone (#172157)",
+   "Add associated zone option for device trackers (#52211)"
+  ]
+ },
+ {
+  "core": [
+   184773
+  ],
+  "frontend": [
+   54695
+  ],
+  "core_src": 106,
+  "fe_src": 51,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-10-23",
+  "to": "2026-10-26",
+  "ws_added": [],
+  "titles": [
+   "Add dedicated websocket commands for add-on ingress sessions (#184773)",
+   "Use dedicated websocket commands for app ingress sessions (#54695)"
+  ]
+ },
+ {
+  "core": [
+   170374
+  ],
+  "frontend": [
+   52523
+  ],
+  "core_src": 48,
+  "fe_src": 172,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-06-26",
+  "to": "2026-06-26",
+  "ws_added": [],
+  "titles": [
+   "Allow disabling managed log file (#170374)",
+   "Handle disabled core log file (#52523)"
+  ]
+ },
+ {
+  "core": [
+   176693
+  ],
+  "frontend": [
+   54507,
+   53169
+  ],
+  "core_src": 48,
+  "fe_src": 1534,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-07-28",
+  "to": "2026-10-01",
+  "ws_added": [
+   "config/device_registry/list_composite_splits"
+  ],
+  "titles": [
+   "Add WS command config/device_registry/list_composite_splits (#176693)",
+   "Resolve split devices in the logbook card (#54507)",
+   "Surface replaced composite devices in device and target pickers (#53169)"
+  ]
+ },
+ {
+  "core": [
+   161816
+  ],
+  "frontend": [
+   29240
+  ],
+  "core_src": 116,
+  "fe_src": 44,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-01-29",
+  "to": "2026-01-29",
+  "ws_added": [
+   "lovelace/info"
+  ],
+  "titles": [
+   "Allow lovelace path for dashboard in yaml and fix yaml dashboard migration (#161816)",
+   "Fix default lovelace yaml loading (#29240)"
+  ]
+ },
+ {
+  "core": [
+   168263
+  ],
+  "frontend": [
+   51573
+  ],
+  "core_src": 44,
+  "fe_src": 215,
+  "core_test_files": 6,
+  "fe_test_files": 0,
+  "from": "2026-04-16",
+  "to": "2026-04-16",
+  "ws_added": [
+   "usb/list_serial_ports"
+  ],
+  "titles": [
+   "Add SerialSelector (#168263)",
+   "Add SerialSelector (#51573)"
+  ]
+ },
+ {
+  "core": [
+   173919
+  ],
+  "frontend": [
+   52663
+  ],
+  "core_src": 44,
+  "fe_src": 518,
+  "core_test_files": 0,
+  "fe_test_files": 6,
+  "from": "2026-06-16",
+  "to": "2026-06-16",
+  "ws_added": [],
+  "titles": [
+   "Publish numeric sensor device classes as generated sensor.json (#173919)",
+   "Fix flash of unformatted entity states on first load (#52663)"
+  ]
+ },
+ {
+  "core": [
+   182750
+  ],
+  "frontend": [
+   54276
+  ],
+  "core_src": 52,
+  "fe_src": 44,
+  "core_test_files": 4,
+  "fe_test_files": 1,
+  "from": "2026-09-27",
+  "to": "2026-09-27",
+  "ws_added": [],
+  "titles": [
+   "Add user_id to assist pipelines (#182750)",
+   "Add a user picker to an assist pipeline (#54276)"
+  ]
+ },
+ {
+  "core": [
+   183054
+  ],
+  "frontend": [
+   54349
+  ],
+  "core_src": 121,
+  "fe_src": 44,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-09-27",
+  "to": "2026-09-27",
+  "ws_added": [],
+  "titles": [
+   "Add option to expose all LLM APIs in the MCP server (#183054)",
+   "Enable the MCP server in one click (#54349)"
+  ]
+ },
+ {
+  "core": [
+   187538
+  ],
+  "frontend": [
+   55116
+  ],
+  "core_src": 44,
+  "fe_src": 185,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-10-21",
+  "to": "2026-10-21",
+  "ws_added": [],
+  "titles": [
+   "Add conditional visibility to blueprint inputs (#187538)",
+   "Add conditional inputs to blueprints (#55116)"
+  ]
+ },
+ {
+  "core": [
+   178319
+  ],
+  "frontend": [
+   53594
+  ],
+  "core_src": 89,
+  "fe_src": 43,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-08-11",
+  "to": "2026-08-11",
+  "ws_added": [
+   "config/device_registry/remove",
+   "config/device_registry/remove_config_entry"
+  ],
+  "titles": [
+   "Add WS command config/device_registry/remove (#178319)",
+   "Replace remove device command (#53594)"
+  ]
+ },
+ {
+  "core": [
+   185956
+  ],
+  "frontend": [
+   54847
+  ],
+  "core_src": 43,
+  "fe_src": 58,
+  "core_test_files": 16,
+  "fe_test_files": 1,
+  "from": "2026-10-12",
+  "to": "2026-10-12",
+  "ws_added": [],
+  "titles": [
+   "Add translations for backup agent errors (#185956)",
+   "Show translated backup agent errors (#54847)"
+  ]
+ },
+ {
+  "core": [
+   174434
+  ],
+  "frontend": [
+   52795
+  ],
+  "core_src": 42,
+  "fe_src": 68,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-06-22",
+  "to": "2026-07-28",
+  "ws_added": [],
+  "titles": [
+   "Forward Z-Wave `interview progress` event (#174434)",
+   "Show circular progress when interviewing Z-Wave devices (#52795)"
+  ]
+ },
+ {
+  "core": [
+   169387
+  ],
+  "frontend": [
+   51773
+  ],
+  "core_src": 41,
+  "fe_src": 231,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-04-28",
+  "to": "2026-04-28",
+  "ws_added": [
+   "usb/list_serial_ports"
+  ],
+  "titles": [
+   "Include matching integrations in scanned ports WS API (#169387)",
+   "Add recommended ports to serial selector (#51773)"
+  ]
+ },
+ {
+  "core": [
+   165388
+  ],
+  "frontend": [
+   30115
+  ],
+  "core_src": 40,
+  "fe_src": 1207,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-03-12",
+  "to": "2026-03-12",
+  "ws_added": [],
+  "titles": [
+   "Remove Z-Wave Installer panel (#165388)",
+   "Remove Z-Wave Installer panel (#30115)"
+  ]
+ },
+ {
+  "core": [
+   179312
+  ],
+  "frontend": [
+   54457
+  ],
+  "core_src": 71,
+  "fe_src": 40,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-09-01",
+  "to": "2026-09-30",
+  "ws_added": [],
+  "titles": [
+   "Add event status to calendar events (#179312)",
+   "Mark tentative calendar events (#54457)"
+  ]
+ },
+ {
+  "core": [
+   175682
+  ],
+  "frontend": [
+   53005,
+   53855
+  ],
+  "core_src": 250,
+  "fe_src": 39,
+  "core_test_files": 6,
+  "fe_test_files": 0,
+  "from": "2026-08-15",
+  "to": "2026-08-28",
+  "ws_added": [],
+  "titles": [
+   "Remove deprecated battery properties from vacuum (#175682)",
+   "Remove deprecated battery props from vacuum (#53005)",
+   "Remove vacuum battery_level attribute unit (#53855)"
+  ]
+ },
+ {
+  "core": [
+   177449
+  ],
+  "frontend": [
+   53363
+  ],
+  "core_src": 39,
+  "fe_src": 219,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-29",
+  "to": "2026-07-29",
+  "ws_added": [
+   "config/device_registry/list_linked_devices"
+  ],
+  "titles": [
+   "Add WS command config/device_registry/list_linked_devices (#177449)",
+   "Add link on the device page to shared hardware devices (#53363)"
+  ]
+ },
+ {
+  "core": [
+   183916
+  ],
+  "frontend": [
+   54559
+  ],
+  "core_src": 378,
+  "fe_src": 39,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-10-12",
+  "to": "2026-10-12",
+  "ws_added": [],
+  "titles": [
+   "Version http SSL profiles and offer upgrade to Mozilla v6 via repair (#183916)",
+   "Offer versioned SSL profiles in the HTTP server settings (#54559)"
+  ]
+ },
+ {
+  "core": [
+   183610
+  ],
+  "frontend": [
+   54454
+  ],
+  "core_src": 40,
+  "fe_src": 37,
+  "core_test_files": 1,
+  "fe_test_files": 2,
+  "from": "2026-09-30",
+  "to": "2026-09-30",
+  "ws_added": [],
+  "titles": [
+   "Include parent device in computed entity name (#183610)",
+   "Fix computed entity name in voice settings (#54454)"
+  ]
+ },
+ {
+  "core": [
+   185001
+  ],
+  "frontend": [
+   54740
+  ],
+  "core_src": 44,
+  "fe_src": 37,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-10-08",
+  "to": "2026-10-08",
+  "ws_added": [],
+  "titles": [
+   "Add a Marketplace view to the brands integration (#185001)",
+   "Load Marketplace icons through the Marketplace brands view (#54740)"
+  ]
+ },
+ {
+  "core": [
+   181957
+  ],
+  "frontend": [
+   54389
+  ],
+  "core_src": 173,
+  "fe_src": 35,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-09-26",
+  "to": "2026-09-27",
+  "ws_added": [],
+  "titles": [
+   "Support PKCE S256 in OAuth server (#181957)",
+   "Forward PKCE code_challenge parameters in login flow (#54389)"
+  ]
+ },
+ {
+  "core": [
+   189891
+  ],
+  "frontend": [
+   55533
+  ],
+  "core_src": 34,
+  "fe_src": 1063,
+  "core_test_files": 5,
+  "fe_test_files": 6,
+  "from": "2026-11-06",
+  "to": "2026-11-06",
+  "ws_added": [],
+  "titles": [
+   "Allow individual devices for gas (#189891)",
+   "Individual devices to gas in energy dashboard (#55533)"
+  ]
+ },
+ {
+  "core": [
+   175281
+  ],
+  "frontend": [
+   52927
+  ],
+  "core_src": 33,
+  "fe_src": 592,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-07-02",
+  "to": "2026-07-21",
+  "ws_added": [],
+  "titles": [
+   "Developer Tools -> Tools: Redirect URLs to /config/tools (#175281)",
+   "Developer Tools -> Tools: Frontend panels (#52927)"
+  ]
+ },
+ {
+  "core": [
+   174808
+  ],
+  "frontend": [
+   52863
+  ],
+  "core_src": 51,
+  "fe_src": 30,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-07-01",
+  "to": "2026-07-01",
+  "ws_added": [
+   "logbook/event_stream"
+  ],
+  "titles": [
+   "Expose selected state attributes in the logbook (#174808)",
+   "Show the event type in the logbook for event entities (#52863)"
+  ]
+ },
+ {
+  "core": [
+   172917
+  ],
+  "frontend": [
+   52412
+  ],
+  "core_src": 42,
+  "fe_src": 29,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-06-04",
+  "to": "2026-06-04",
+  "ws_added": [],
+  "titles": [
+   "Always include template errors in trace (#172917)",
+   "Show template errors in traces (#52412)"
+  ]
+ },
+ {
+  "core": [
+   160860
+  ],
+  "frontend": [
+   30094
+  ],
+  "core_src": 270,
+  "fe_src": 28,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-03-10",
+  "to": "2026-03-11",
+  "ws_added": [],
+  "titles": [
+   "Improve group entities (#160860)",
+   "Use group entities attribute (#30094)"
+  ]
+ },
+ {
+  "core": [
+   162989
+  ],
+  "frontend": [
+   29636
+  ],
+  "core_src": 27,
+  "fe_src": 204,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-07-17",
+  "to": "2026-07-18",
+  "ws_added": [],
+  "titles": [
+   "Add manufacturer, model, and model_id filtering to entity filter selector (#162989)",
+   "Add manufacturer, model, and model_id filtering to entity filter selector (#29636)"
+  ]
+ },
+ {
+  "core": [
+   171996,
+   171985
+  ],
+  "frontend": [
+   52192
+  ],
+  "core_src": 302,
+  "fe_src": 27,
+  "core_test_files": 6,
+  "fe_test_files": 1,
+  "from": "2026-05-23",
+  "to": "2026-05-25",
+  "ws_added": [],
+  "titles": [
+   "Change default ESPHome bluetooth proxy scanning mode to Auto (#171996)",
+   "Change default Bluetooth scanning mode to Auto (#171985)",
+   "Teach Bluetooth UI about auto scanning mode (#52192)"
+  ]
+ },
+ {
+  "core": [
+   145606
+  ],
+  "frontend": [
+   28882
+  ],
+  "core_src": 26,
+  "fe_src": 286,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-01-27",
+  "to": "2026-01-27",
+  "ws_added": [],
+  "titles": [
+   "Add initial_color property to CalendarEntity (#145606)",
+   "Add color setting for calendar entities (#28882)"
+  ]
+ },
+ {
+  "core": [
+   172740
+  ],
+  "frontend": [
+   52339
+  ],
+  "core_src": 338,
+  "fe_src": 26,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-07-09",
+  "to": "2026-07-09",
+  "ws_added": [],
+  "titles": [
+   "Support Z-Wave locks that require coupled users and credentials (#172740)",
+   "Z-Wave: create users with credentials in a single API call (#52339)"
+  ]
+ },
+ {
+  "core": [
+   170436
+  ],
+  "frontend": [
+   54864
+  ],
+  "core_src": 26,
+  "fe_src": 117,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-16",
+  "to": "2026-10-16",
+  "ws_added": [],
+  "titles": [
+   "Allow overview_label translation for object selector fields (#170436)",
+   "Show translated overview labels in ObjectSelector (#54864)"
+  ]
+ },
+ {
+  "core": [
+   184957
+  ],
+  "frontend": [
+   54592
+  ],
+  "core_src": 49,
+  "fe_src": 25,
+  "core_test_files": 5,
+  "fe_test_files": 1,
+  "from": "2026-10-14",
+  "to": "2026-10-14",
+  "ws_added": [
+   "logbook/get_events",
+   "trace/get",
+   "trace/list"
+  ],
+  "titles": [
+   "Add the run to automation triggered and script started events (#184957)",
+   "Link each run in the activity details to its own trace (#54592)"
+  ]
+ },
+ {
+  "core": [
+   190168
+  ],
+  "frontend": [
+   55589
+  ],
+  "core_src": 62,
+  "fe_src": 25,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-11-03",
+  "to": "2026-11-03",
+  "ws_added": [],
+  "titles": [
+   "WTH: Track when long-lived access tokens were last used (#190168)",
+   "WTH: Show when long-lived access tokens were last used (#55589)"
+  ]
+ },
+ {
+  "core": [
+   161789
+  ],
+  "frontend": [
+   29221
+  ],
+  "core_src": 24,
+  "fe_src": 823,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-01-28",
+  "to": "2026-01-28",
+  "ws_added": [],
+  "titles": [
+   "Remove developer tools panel, add redirects (#161789)",
+   "Move developer tools panel to config panel (#29221)"
+  ]
+ },
+ {
+  "core": [
+   190251
+  ],
+  "frontend": [
+   55615
+  ],
+  "core_src": 721,
+  "fe_src": 24,
+  "core_test_files": 9,
+  "fe_test_files": 0,
+  "from": "2026-11-03",
+  "to": "2026-11-04",
+  "ws_added": [
+   "marketplace/repository/install"
+  ],
+  "titles": [
+   "Add China mirror support to the Marketplace (#190251)",
+   "Add Marketplace download source menu item for the China mirrors (#55615)"
+  ]
+ },
+ {
+  "core": [
+   168447
+  ],
+  "frontend": [
+   51693
+  ],
+  "core_src": 331,
+  "fe_src": 22,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-04-24",
+  "to": "2026-04-24",
+  "ws_added": [],
+  "titles": [
+   "Add radio_frequency entity integration (#168447)",
+   "Add radio_frequency domain entity platform (#51693)"
+  ]
+ },
+ {
+  "core": [
+   185604
+  ],
+  "frontend": [
+   54811
+  ],
+  "core_src": 22,
+  "fe_src": 24,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-10-11",
+  "to": "2026-10-21",
+  "ws_added": [],
+  "titles": [
+   "Restore ZHA log levels only when the last permit session ends (#185604)",
+   "Close the previous ZHA permit subscription on search again (#54811)"
+  ]
+ },
+ {
+  "core": [
+   161803,
+   163803
+  ],
+  "frontend": [
+   29760
+  ],
+  "core_src": 78,
+  "fe_src": 21,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-02-23",
+  "to": "2026-02-26",
+  "ws_added": [],
+  "titles": [
+   "Add time_delta option to waze_travel_time (#161803)",
+   "Allow to disable seconds in DurationSelector (#163803)",
+   "Allow to disable seconds in DurationSelector (#29760)"
+  ]
+ },
+ {
+  "core": [
+   167178
+  ],
+  "frontend": [
+   51361
+  ],
+  "core_src": 21,
+  "fe_src": 1997,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-04-02",
+  "to": "2026-04-03",
+  "ws_added": [],
+  "titles": [
+   "Fix zwave_js subscribe_rebuild_routes_progress initial event (#167178)",
+   "Z-Wave rebuild routes add detail progress (#51361)"
+  ]
+ },
+ {
+  "core": [
+   182668
+  ],
+  "frontend": [
+   54382
+  ],
+  "core_src": 21,
+  "fe_src": 24,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-09-19",
+  "to": "2026-09-27",
+  "ws_added": [],
+  "titles": [
+   "Migrate GitHub Actions updates from Dependabot to Renovate (#182668)",
+   "Move GitHub Actions updates from Dependabot to Renovate (#54382)"
+  ]
+ },
+ {
+  "core": [
+   190740
+  ],
+  "frontend": [
+   55682
+  ],
+  "core_src": 21,
+  "fe_src": 23,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-11-09",
+  "to": "2026-11-09",
+  "ws_added": [
+   "config/entity_registry/get_automatic_entity_ids"
+  ],
+  "titles": [
+   "Allow unsaved name and area when getting automatic entity IDs (#190740)",
+   "Use unsaved name and area when regenerating an entity ID (#55682)"
+  ]
+ },
+ {
+  "core": [
+   163080
+  ],
+  "frontend": [
+   29698
+  ],
+  "core_src": 20,
+  "fe_src": 29,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-02-15",
+  "to": "2026-02-18",
+  "ws_added": [],
+  "titles": [
+   "Assign no-stale to Tasks/Epic/Opportunity issue type (#163080)",
+   "Assign no-stale to Tasks/Epic/Opportunity issue type (#29698)"
+  ]
+ },
+ {
+  "core": [
+   165803
+  ],
+  "frontend": [
+   30190
+  ],
+  "core_src": 20,
+  "fe_src": 1668,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-03-17",
+  "to": "2026-03-18",
+  "ws_added": [],
+  "titles": [
+   "Demo valve registry entry and device (#165803)",
+   "Valve favorites (#30190)"
+  ]
+ },
+ {
+  "core": [
+   168744
+  ],
+  "frontend": [
+   51655
+  ],
+  "core_src": 20,
+  "fe_src": 628,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-04-22",
+  "to": "2026-04-22",
+  "ws_added": [],
+  "titles": [
+   "Rename SerialSelector to SerialPortSelector (#168744)",
+   "Update name and look and feel of Serial Port Selector (#51655)"
+  ]
+ },
+ {
+  "core": [
+   178024
+  ],
+  "frontend": [
+   53444
+  ],
+  "core_src": 18,
+  "fe_src": 34,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-09-14",
+  "to": "2026-09-14",
+  "ws_added": [
+   "search/related"
+  ],
+  "titles": [
+   "Include disabled entities in search/related when requested (#178024)",
+   "Show disabled entities when filtering entities by device or area (#53444)"
+  ]
+ },
+ {
+  "core": [
+   182487
+  ],
+  "frontend": [
+   54294
+  ],
+  "core_src": 78,
+  "fe_src": 18,
+  "core_test_files": 15,
+  "fe_test_files": 0,
+  "from": "2026-09-17",
+  "to": "2026-09-21",
+  "ws_added": [],
+  "titles": [
+   "Add ToolResult type to the LLM API (#182487)",
+   "Use the tool result field in the chat log (#54294)"
+  ]
+ },
+ {
+  "core": [
+   183611
+  ],
+  "frontend": [
+   54452
+  ],
+  "core_src": 17,
+  "fe_src": 33,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-09-29",
+  "to": "2026-09-29",
+  "ws_added": [],
+  "titles": [
+   "Accept the map tiles access token in a header (#183611)",
+   "Send the map tiles token in a header, so tile URLs stop rotating (#54452)"
+  ]
+ },
+ {
+  "core": [
+   179369
+  ],
+  "frontend": [
+   53681
+  ],
+  "core_src": 35,
+  "fe_src": 16,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-08-17",
+  "to": "2026-08-20",
+  "ws_added": [],
+  "titles": [
+   "Add move local data option to hassio mount failed repair (#179369)",
+   "Fall back to option key for untranslated repair menu options (#53681)"
+  ]
+ },
+ {
+  "core": [
+   190622
+  ],
+  "frontend": [
+   55683
+  ],
+  "core_src": 16,
+  "fe_src": 24,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-11-05",
+  "to": "2026-11-05",
+  "ws_added": [],
+  "titles": [
+   "Rename Google Assistant to Google Home (#190622)",
+   "Google Assistant => Google Home (#55683)"
+  ]
+ },
+ {
+  "core": [
+   167775
+  ],
+  "frontend": [
+   51486
+  ],
+  "core_src": 21,
+  "fe_src": 15,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-04-14",
+  "to": "2026-04-20",
+  "ws_added": [],
+  "titles": [
+   "Fix device_class removal in template binary sensors (#167775)",
+   "Fix inconsistency with template binary sensors (#51486)"
+  ]
+ },
+ {
+  "core": [
+   179357
+  ],
+  "frontend": [
+   53675
+  ],
+  "core_src": 52,
+  "fe_src": 15,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-08-17",
+  "to": "2026-08-24",
+  "ws_added": [],
+  "titles": [
+   "Warn when a Lovelace YAML resource points to a missing local file (#179357)",
+   "Log console error when a dashboard resource fails to load (#53675)"
+  ]
+ },
+ {
+  "core": [
+   183886
+  ],
+  "frontend": [
+   54513
+  ],
+  "core_src": 15,
+  "fe_src": 80,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-10-01",
+  "to": "2026-10-01",
+  "ws_added": [],
+  "titles": [
+   "Keep the ESPHome Z-Wave home ID current after a home ID change (#183886)",
+   "Detect the ESPHome Z-Wave discovery flow by the device MAC (#54513)"
+  ]
+ },
+ {
+  "core": [
+   190980
+  ],
+  "frontend": [
+   55713
+  ],
+  "core_src": 15,
+  "fe_src": 161,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-11-17",
+  "to": "2026-11-17",
+  "ws_added": [],
+  "titles": [
+   "Allow a sensor to provide battery capacity in energy preferences (#190980)",
+   "Allow selecting a sensor for battery capacity (#55713)"
+  ]
+ },
+ {
+  "core": [
+   156192
+  ],
+  "frontend": [
+   27873
+  ],
+  "core_src": 394,
+  "fe_src": 14,
+  "core_test_files": 3,
+  "fe_test_files": 0,
+  "from": "2026-08-24",
+  "to": "2026-08-24",
+  "ws_added": [],
+  "titles": [
+   "Add 'Collection image' integration (#156192)",
+   "Allow media selector to optionally select a media directory (#27873)"
+  ]
+ },
+ {
+  "core": [
+   176926
+  ],
+  "frontend": [
+   53216
+  ],
+  "core_src": 14,
+  "fe_src": 29,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-21",
+  "to": "2026-07-21",
+  "ws_added": [],
+  "titles": [
+   "Use registry for Alexa name override (#176926)",
+   "Use registry for Alexa name override (#53216)"
+  ]
+ },
+ {
+  "core": [
+   184255
+  ],
+  "frontend": [
+   54548
+  ],
+  "core_src": 14,
+  "fe_src": 26,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-10-05",
+  "to": "2026-10-06",
+  "ws_added": [],
+  "titles": [
+   "Validate OAuth request parameters and S256 challenges (#184255)",
+   "Forward OAuth authorization parameters to the login flow (#54548)"
+  ]
+ },
+ {
+  "core": [
+   172312
+  ],
+  "frontend": [
+   52219
+  ],
+  "core_src": 13,
+  "fe_src": 368,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-05-27",
+  "to": "2026-05-27",
+  "ws_added": [],
+  "titles": [
+   "Rename automation comments to note (#172312)",
+   "Rename automation comments to note (#52219)"
+  ]
+ },
+ {
+  "core": [
+   177623
+  ],
+  "frontend": [
+   53394
+  ],
+  "core_src": 13,
+  "fe_src": 92,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-31",
+  "to": "2026-07-31",
+  "ws_added": [
+   "slugify"
+  ],
+  "titles": [
+   "Add slugify websocket command (#177623)",
+   "Use backend slugify for the entity ID format preview (#53394)"
+  ]
+ },
+ {
+  "core": [
+   170658
+  ],
+  "frontend": [
+   52051
+  ],
+  "core_src": 12,
+  "fe_src": 346,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-05-19",
+  "to": "2026-05-19",
+  "ws_added": [],
+  "titles": [
+   "Make energy electric sources nameable (#170658)",
+   "Make energy electric sources nameable (#52051)"
+  ]
+ },
+ {
+  "core": [
+   180192
+  ],
+  "frontend": [
+   53791
+  ],
+  "core_src": 14,
+  "fe_src": 12,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-08-26",
+  "to": "2026-08-26",
+  "ws_added": [],
+  "titles": [
+   "Persist the translation domain for config entry setup errors (#180192)",
+   "Allow cross domain translations for config entry setup errors (#53791)"
+  ]
+ },
+ {
+  "core": [
+   160418,
+   156906
+  ],
+  "frontend": [
+   28834,
+   28005
+  ],
+  "core_src": 39,
+  "fe_src": 11,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-01-08",
+  "to": "2026-02-03",
+  "ws_added": [],
+  "titles": [
+   "Add target_humidity_step attribute to climate (#160418)",
+   "Add target_humidity_step attribute to humidifier (#156906)",
+   "Expose target_humidity_step value to climate (#28834)",
+   "Add target_humidity_step to humidifier (#28005)"
+  ]
+ },
+ {
+  "core": [
+   162251
+  ],
+  "frontend": [
+   30321
+  ],
+  "core_src": 486,
+  "fe_src": 11,
+  "core_test_files": 5,
+  "fe_test_files": 0,
+  "from": "2026-02-26",
+  "to": "2026-03-25",
+  "ws_added": [],
+  "titles": [
+   "Add infrared entity integration (#162251)",
+   "Add support for infrared domain (#30321)"
+  ]
+ },
+ {
+  "core": [
+   172822
+  ],
+  "frontend": [
+   52360
+  ],
+  "core_src": 15,
+  "fe_src": 11,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-06-02",
+  "to": "2026-06-02",
+  "ws_added": [],
+  "titles": [
+   "Make the renamed trigger behavior options backwards compatible (#172822)",
+   "Migrate trigger behavior (#52360)"
+  ]
+ },
+ {
+  "core": [
+   179953
+  ],
+  "frontend": [
+   54677
+  ],
+  "core_src": 11,
+  "fe_src": 118,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-09-16",
+  "to": "2026-10-09",
+  "ws_added": [],
+  "titles": [
+   "Add therm (thm) as a native UnitOfEnergy unit (#179953)",
+   "Show energy gas in the unit of its sources (#54677)"
+  ]
+ },
+ {
+  "core": [
+   180452
+  ],
+  "frontend": [
+   53866
+  ],
+  "core_src": 22,
+  "fe_src": 10,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-08-29",
+  "to": "2026-09-19",
+  "ws_added": [],
+  "titles": [
+   "Allow image_upload in the media selector config (#180452)",
+   "Make the media selector clear button follow image_upload (#53866)"
+  ]
+ },
+ {
+  "core": [
+   182854
+  ],
+  "frontend": [
+   54305,
+   54303
+  ],
+  "core_src": 10,
+  "fe_src": 393,
+  "core_test_files": 0,
+  "fe_test_files": 3,
+  "from": "2026-09-21",
+  "to": "2026-09-22",
+  "ws_added": [],
+  "titles": [
+   "Add field IDs to the bug report form (#182854)",
+   "Add a bug report link to log details (#54305)",
+   "Add field IDs to the bug report form (#54303)"
+  ]
+ },
+ {
+  "core": [
+   181332
+  ],
+  "frontend": [
+   53989
+  ],
+  "core_src": 28,
+  "fe_src": 9,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-09-14",
+  "to": "2026-09-14",
+  "ws_added": [],
+  "titles": [
+   "Add glass break device class for binary_sensor (#181332)",
+   "Support glass break binary sensors (#53989)"
+  ]
+ },
+ {
+  "core": [
+   165349
+  ],
+  "frontend": [
+   30106
+  ],
+  "core_src": 8,
+  "fe_src": 100,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-03-12",
+  "to": "2026-03-12",
+  "ws_added": [],
+  "titles": [
+   "Add \"cleaning_up\" stage to backup (#165349)",
+   "Add \"cleaning_up\" backup stage (#30106)"
+  ]
+ },
+ {
+  "core": [
+   170447
+  ],
+  "frontend": [
+   52011
+  ],
+  "core_src": 8,
+  "fe_src": 168,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-05-13",
+  "to": "2026-05-13",
+  "ws_added": [],
+  "titles": [
+   "Make gas & water sources nameable (#170447)",
+   "Make gas & water sources nameable (#52011)"
+  ]
+ },
+ {
+  "core": [
+   159901
+  ],
+  "frontend": [
+   28721
+  ],
+  "core_src": 10,
+  "fe_src": 7,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-01-20",
+  "to": "2026-01-20",
+  "ws_added": [],
+  "titles": [
+   "Make add entry translatable (#159901)",
+   "Allow the main entry type button to be translatable (#28721)"
+  ]
+ },
+ {
+  "core": [
+   183883
+  ],
+  "frontend": [
+   54506
+  ],
+  "core_src": 7,
+  "fe_src": 30,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-02",
+  "to": "2026-10-02",
+  "ws_added": [],
+  "titles": [
+   "issue_schema: Add optional  short_title translations (#183883)",
+   "Use optional short issue title localization to repairs dialog (#54506)"
+  ]
+ },
+ {
+  "core": [
+   162635
+  ],
+  "frontend": [
+   29440
+  ],
+  "core_src": 6,
+  "fe_src": 511,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-02-09",
+  "to": "2026-02-09",
+  "ws_added": [],
+  "titles": [
+   "Add translation for MFA code (#162635)",
+   "Migrate profile dialogs to wa, refactor LL access token dialog (#29440)"
+  ]
+ },
+ {
+  "core": [
+   164025
+  ],
+  "frontend": [
+   29815
+  ],
+  "core_src": 38,
+  "fe_src": 6,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-02-25",
+  "to": "2026-02-25",
+  "ws_added": [],
+  "titles": [
+   "Use show in sidebar property instead of removing panel title and icon (#164025)",
+   "Use show in sidebar property instead of checking title (#29815)"
+  ]
+ },
+ {
+  "core": [
+   172249
+  ],
+  "frontend": [
+   52212
+  ],
+  "core_src": 6,
+  "fe_src": 142,
+  "core_test_files": 5,
+  "fe_test_files": 0,
+  "from": "2026-05-27",
+  "to": "2026-05-27",
+  "ws_added": [],
+  "titles": [
+   "Remove `show_advanced_options` from data entry flow API (#172249)",
+   "Remove advanced mode completely (#52212)"
+  ]
+ },
+ {
+  "core": [
+   172817
+  ],
+  "frontend": [
+   52355
+  ],
+  "core_src": 6,
+  "fe_src": 80,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-26",
+  "to": "2026-07-27",
+  "ws_added": [],
+  "titles": [
+   "Add capacity to battery energy source (#172817)",
+   "Add battery capacity option for weighted state of charge (#52355)"
+  ]
+ },
+ {
+  "core": [
+   169773
+  ],
+  "frontend": [
+   54050,
+   54056
+  ],
+  "core_src": 38,
+  "fe_src": 6,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-09-08",
+  "to": "2026-09-08",
+  "ws_added": [],
+  "titles": [
+   "Add timedelta_string template function similar to time_since/time_until/relative_time (#169773)",
+   "Add timedelta_string template completion (#54050)",
+   "Add 'timedelta_string' to documented Jinja completions (#54056)"
+  ]
+ },
+ {
+  "core": [
+   186909
+  ],
+  "frontend": [
+   55459
+  ],
+  "core_src": 6,
+  "fe_src": 8,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-10-16",
+  "to": "2026-10-29",
+  "ws_added": [],
+  "titles": [
+   "Rename developer docs to contributors docs (#186909)",
+   "Update the PR template for the contributors docs (#55459)"
+  ]
+ },
+ {
+  "core": [
+   171091
+  ],
+  "frontend": [
+   52090
+  ],
+  "core_src": 5,
+  "fe_src": 744,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-05-21",
+  "to": "2026-05-21",
+  "ws_added": [],
+  "titles": [
+   "Add comment optional attribute to automation items (#171091)",
+   "Add automation item comments (#52090)"
+  ]
+ },
+ {
+  "core": [
+   190430
+  ],
+  "frontend": [
+   55665
+  ],
+  "core_src": 224,
+  "fe_src": 5,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-11-05",
+  "to": "2026-11-05",
+  "ws_added": [
+   "esphome/get_device_capabilities"
+  ],
+  "titles": [
+   "Use serial proxy URL builder for ESPHome capabilities API (#190430)",
+   "Allow the ESPHome serial proxy URL to be `null` (#55665)"
+  ]
+ },
+ {
+  "core": [
+   192275
+  ],
+  "frontend": [
+   55883
+  ],
+  "core_src": 19,
+  "fe_src": 5,
+  "core_test_files": 5,
+  "fe_test_files": 2,
+  "from": "2026-11-16",
+  "to": "2026-11-16",
+  "ws_added": [
+   "energy/save_prefs"
+  ],
+  "titles": [
+   "Remove unused cost_adjustment_day from energy grid sources (#192275)",
+   "Remove unused cost_adjustment_day from grid sources (#55883)"
+  ]
+ },
+ {
+  "core": [
+   169550
+  ],
+  "frontend": [
+   51812
+  ],
+  "core_src": 4,
+  "fe_src": 127,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-05-12",
+  "to": "2026-05-12",
+  "ws_added": [],
+  "titles": [
+   "Add battery state of charge to energy preferences (#169550)",
+   "Show battery state of charge on the energy distribution card (#51812)"
+  ]
+ },
+ {
+  "core": [
+   160645
+  ],
+  "frontend": [
+   28909
+  ],
+  "core_src": 3,
+  "fe_src": 158,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-01-10",
+  "to": "2026-01-14",
+  "ws_added": [],
+  "titles": [
+   "Duration selector for timer.change (#160645)",
+   "Implement allow_negative for duration selector (#28909)"
+  ]
+ },
+ {
+  "core": [
+   163965
+  ],
+  "frontend": [
+   29800
+  ],
+  "core_src": 74,
+  "fe_src": 3,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-02-25",
+  "to": "2026-02-25",
+  "ws_added": [],
+  "titles": [
+   "Add vacuum area mapping not configured issue (#163965)",
+   "Add vacuum mapping not configured issue (#29800)"
+  ]
+ },
+ {
+  "core": [
+   164259
+  ],
+  "frontend": [
+   29876
+  ],
+  "core_src": 47,
+  "fe_src": 3,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-02-27",
+  "to": "2026-02-27",
+  "ws_added": [],
+  "titles": [
+   "Remove vacuum area mapping not configured issue (#164259)",
+   "Revert \"Add vacuum mapping not configured issue\" (#29876)"
+  ]
+ },
+ {
+  "core": [
+   165914
+  ],
+  "frontend": [
+   30211
+  ],
+  "core_src": 3,
+  "fe_src": 14,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-03-18",
+  "to": "2026-03-18",
+  "ws_added": [],
+  "titles": [
+   "Add unit of measurement to entity selector filter (#165914)",
+   "Add uom filter to entity selector (#30211)"
+  ]
+ },
+ {
+  "core": [
+   177146
+  ],
+  "frontend": [
+   53258
+  ],
+  "core_src": 3,
+  "fe_src": 543,
+  "core_test_files": 9,
+  "fe_test_files": 0,
+  "from": "2026-07-23",
+  "to": "2026-07-27",
+  "ws_added": [
+   "media_player/browse_media"
+  ],
+  "titles": [
+   "Add search_media_classes to media browser (#177146)",
+   "Add search functionality to media browser (#53258)"
+  ]
+ },
+ {
+  "core": [
+   176231
+  ],
+  "frontend": [
+   53572
+  ],
+  "core_src": 180,
+  "fe_src": 3,
+  "core_test_files": 4,
+  "fe_test_files": 0,
+  "from": "2026-08-24",
+  "to": "2026-08-24",
+  "ws_added": [],
+  "titles": [
+   "Add optional speed parameter to cover movement actions (#176231)",
+   "Add supported_speeds parameter for cover movement actions (#53572)"
+  ]
+ },
+ {
+  "core": [
+   184526
+  ],
+  "frontend": [
+   54633
+  ],
+  "core_src": 3,
+  "fe_src": 38,
+  "core_test_files": 1,
+  "fe_test_files": 3,
+  "from": "2026-10-07",
+  "to": "2026-10-07",
+  "ws_added": [],
+  "titles": [
+   "Consider next name part when unprefixing entity name (#184526)",
+   "Consider next name part when unprefixing entity name (#54633)"
+  ]
+ },
+ {
+  "core": [
+   160391
+  ],
+  "frontend": [
+   28880
+  ],
+  "core_src": 2,
+  "fe_src": 38,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-01-09",
+  "to": "2026-01-09",
+  "ws_added": [],
+  "titles": [
+   "Use duration selector for timer service (#160391)",
+   "Duration selector: migrate legacy duration formats (#28880)"
+  ]
+ },
+ {
+  "core": [
+   176648
+  ],
+  "frontend": [
+   53162
+  ],
+  "core_src": 19,
+  "fe_src": 2,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-07-17",
+  "to": "2026-07-17",
+  "ws_added": [],
+  "titles": [
+   "Refresh add-on update entities after store reload through Supervisor API proxy (#176648)",
+   "Use /store/reload instead of legacy /addons/reload alias when checking for add-on updates (#53162)"
+  ]
+ },
+ {
+  "core": [
+   179810
+  ],
+  "frontend": [
+   53739
+  ],
+  "core_src": 2,
+  "fe_src": 19,
+  "core_test_files": 1,
+  "fe_test_files": 1,
+  "from": "2026-09-28",
+  "to": "2026-09-28",
+  "ws_added": [],
+  "titles": [
+   "Add default support to object selector fields (#179810)",
+   "Add default support to object selector fields (#53739)"
+  ]
+ },
+ {
+  "core": [
+   181576
+  ],
+  "frontend": [
+   54021
+  ],
+  "core_src": 2,
+  "fe_src": 179,
+  "core_test_files": 2,
+  "fe_test_files": 1,
+  "from": "2026-09-29",
+  "to": "2026-09-29",
+  "ws_added": [],
+  "titles": [
+   "Fix friendly names for empty entity name overrides (#181576)",
+   "Add a switch to use the device name for entities (#54021)"
+  ]
+ },
+ {
+  "core": [
+   186688
+  ],
+  "frontend": [
+   54970
+  ],
+  "core_src": 2,
+  "fe_src": 16,
+  "core_test_files": 2,
+  "fe_test_files": 0,
+  "from": "2026-10-16",
+  "to": "2026-10-16",
+  "ws_added": [],
+  "titles": [
+   "Send a backup upload progress event when each agent upload starts (#186688)",
+   "Only list the backup's own locations in the upload progress (#54970)"
+  ]
+ },
+ {
+  "core": [
+   189449
+  ],
+  "frontend": [
+   55447
+  ],
+  "core_src": 6,
+  "fe_src": 2,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-29",
+  "to": "2026-11-01",
+  "ws_added": [],
+  "titles": [
+   "Simplify OSM attribution in const.py (#189449)",
+   "Simplify OpenStreetMap attribution (#55447)"
+  ]
+ },
+ {
+  "core": [
+   175123
+  ],
+  "frontend": [
+   52904
+  ],
+  "core_src": 1,
+  "fe_src": 2298,
+  "core_test_files": 1,
+  "fe_test_files": 6,
+  "from": "2026-09-04",
+  "to": "2026-09-08",
+  "ws_added": [],
+  "titles": [
+   "Allow non-admins to subscribe to conditions over the websocket (#175123)",
+   "Delegate dashboard visibility conditions to core (#52904)"
+  ]
+ },
+ {
+  "core": [
+   184812
+  ],
+  "frontend": [
+   54684
+  ],
+  "core_src": 1,
+  "fe_src": 18,
+  "core_test_files": 1,
+  "fe_test_files": 0,
+  "from": "2026-10-08",
+  "to": "2026-10-08",
+  "ws_added": [],
+  "titles": [
+   "Send a result for the ZHA reconfigure websocket subscription (#184812)",
+   "Fix ZHA reconfigure dialog errors after closing and on reconnect (#54684)"
+  ]
+ },
+ {
+  "core": [
+   189240
+  ],
+  "frontend": [
+   55401
+  ],
+  "core_src": 44,
+  "fe_src": 0,
+  "core_test_files": 0,
+  "fe_test_files": 0,
+  "from": "2026-10-28",
+  "to": "2026-10-28",
+  "ws_added": [],
+  "titles": [
+   "Rename the Control Home Assistant field to AI tools (#189240)",
+   "Rename the MCP card URL labels (#55401)"
+  ]
+ }
+]

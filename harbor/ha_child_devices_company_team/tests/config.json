@@ -1,0 +1,39 @@
+{
+  "owners": {
+    "core": {
+      "test_command": "python3 -m script.translations develop --all > /tmp/translations.log 2>&1 && python3 -b -X dev -m pytest -qq --timeout=9 --numprocesses 1 --max-worker-restart 0 --dist=loadfile -p no:sugar -o cache_dir=/tmp/pytest-cache -o junit_family=legacy tests/auth tests/components/alexa_devices tests/components/analytics tests/components/assist_pipeline tests/components/avea tests/components/bluetooth tests/components/bsblan tests/components/cloud tests/components/config tests/components/conversation tests/components/deconz tests/components/derivative tests/components/device_tracker tests/components/diagnostics tests/components/dlna_dmr tests/components/generic_hygrostat tests/components/generic_thermostat tests/components/google_assistant tests/components/hassio tests/components/heos tests/components/history_stats tests/components/homeassistant tests/components/homekit tests/components/homekit_controller tests/components/hue tests/components/integration tests/components/intelliclima tests/components/intent tests/components/kitchen_sink tests/components/lcn tests/components/lg_netcast tests/components/matter tests/components/mold_indicator tests/components/motioneye tests/components/nanoleaf tests/components/netatmo tests/components/nexia tests/components/ntfy tests/components/nut tests/components/opendisplay tests/components/overkiz tests/components/portainer tests/components/prometheus tests/components/reolink tests/components/samsungtv tests/components/search tests/components/simplisafe tests/components/statistics tests/components/switchbee tests/components/telegram_bot tests/components/teslemetry tests/components/threshold tests/components/trend tests/components/unifi tests/components/unifiprotect tests/components/upnp tests/components/utility_meter tests/components/webostv tests/components/websocket_api tests/components/xiaomi_ble tests/components/yolink tests/components/zha tests/components/zwave_js tests/helpers tests/test_loader.py",
+      "report": "junit",
+      "links": {},
+      "removed_by_feature": []
+    },
+    "frontend": {
+      "test_command": "./node_modules/.bin/gulp gen-icons-json build-translations build-locale-data > /tmp/gulp.log 2>&1 && npx vitest run --config test/vitest.config.ts --reporter=junit --outputFile=/out/report.xml",
+      "report": "junit",
+      "links": {
+        "node_modules": "/deps/node_modules"
+      },
+      "removed_by_feature": []
+    }
+  },
+  "git": "http://verifier:verifier-c41f09be73@git:8080",
+  "judge_token": "judge-3b9e51c07a2d",
+  "contract": {
+    "type": "websocket",
+    "provider": "core",
+    "consumer": "frontend",
+    "ask": [
+      {
+        "type": "config/device_registry/list"
+      }
+    ],
+    "live_url": "http://core:8123",
+    "usage": "hidden/usage.json"
+  },
+  "business": {
+    "roles": {
+      "core": "core",
+      "frontend": "frontend"
+    },
+    "script": "business_ha_child_devices.cjs"
+  }
+}
