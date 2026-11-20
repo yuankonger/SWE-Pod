@@ -45,6 +45,27 @@ def first(job, name):
     return found[0] if found and os.path.getsize(found[0]) else None
 
 
+IDLE_S = 600      # a stretch this long with no request to the model is a wait, not work
+
+
+def working(answered):
+    """The seat's working time, from the meter alone, whichever harness ran: from its first request to its last, less
+    every stretch of IDLE_S or more with no request (a pause for a rate limit, a wait on a background job, a session
+    kept open after its answer). Each such wait is listed, with what the request after it had to write to the cache."""
+    rs = sorted(answered, key=lambda r: r["at"])
+    waits, work = [], 0.0
+    for a, b in zip(rs, rs[1:]):
+        gap = b["at"] - (a["at"] + a.get("seconds", 0))
+        if gap >= IDLE_S:
+            waits.append({"minutes": round(gap / 60, 1), "cache_rewritten": b.get("cache_write", 0)})
+        else:
+            work += b["at"] - a["at"]
+    if rs:
+        work += rs[0].get("seconds", 0)
+    return {"working_minutes": round(work / 60, 1), "waits": waits,
+            "cache_rewritten_after_waits": sum(w["cache_rewritten"] for w in waits)}
+
+
 def measure(job):
     seats, total = {}, {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0}
     by_seat = {os.path.basename(p)[:-6]: lines(p) for p in sorted(glob.glob(os.path.join(job, "meter", "*.jsonl")))}
@@ -68,7 +89,8 @@ def measure(job):
                            peak_context_tokens=max([r.get("context_tokens", 0) for r in answered] or [0]),
                            contexts=len(held), side_contexts=len(contexts) - len(held), largest_contexts=held[:6],
                            models=sorted({r.get("model") for r in answered if r.get("model")}),
-                           active_minutes=round((max(r["at"] + r.get("seconds", 0) for r in answered) - min(r["at"] for r in answered)) / 60, 1) if answered else 0)
+                           active_minutes=round((max(r["at"] + r.get("seconds", 0) for r in answered) - min(r["at"] for r in answered)) / 60, 1) if answered else 0,
+                           **working(answered))
     read = lambda s: s["input"] + s["cache_read"] + s["cache_write"]
     everything = sum(read(s) + s["output"] for s in seats.values()) or 1
     git = lines(first(job, "git.jsonl") or "")
@@ -85,6 +107,7 @@ def measure(job):
     try:
         with open(first(job, "ci.json") or "") as f:
             runs = json.load(f).get("runs", [])
+        runs = [r for r in (runs.values() if isinstance(runs, dict) else runs) if isinstance(r, dict)]
     except (OSError, ValueError):
         runs = None
     try:
@@ -112,18 +135,18 @@ def measure(job):
             t = lambda s: datetime.fromisoformat(s.replace("Z", "+00:00"))
             minutes = round((t(ae["finished_at"]) - t(ae["started_at"])).total_seconds() / 60, 1)
     # how each seat's work ended, as its runner recorded it: a stop by the model service makes the run incomplete
-    runs = {}
+    seat_runs = {}
     for path in sorted(glob.glob(os.path.join(job, "*__*", "agent", "**", "seat-run.json"), recursive=True)):
         try:
             with open(path) as f:
                 r = json.load(f)
-            runs[r.get("seat") or path] = r
+            seat_runs[r.get("seat") or path] = r
         except (OSError, ValueError):
             pass
-    outside = {s: r["ended"] for s, r in runs.items() if r.get("stopped_from_outside")}
+    outside = {s: r["ended"] for s, r in seat_runs.items() if r.get("stopped_from_outside")}
     return {"job": os.path.basename(job.rstrip("/")),
             "outcome": {"reward": reward, "minutes": minutes, "seat_says": seat_reward,
-                        "complete": not outside, "stopped_from_outside": outside, "seat_runs": runs,
+                        "complete": not outside, "stopped_from_outside": outside, "seat_runs": seat_runs,
                         "seat_disagrees_with_judge": seat_reward is not None and reward is not None and abs(float(seat_reward) - reward) > 1e-9},
             "context": {"total": dict(total, read=sum(total[k] for k in ("input", "cache_read", "cache_write"))), "seats": seats},
             "division": {"token_share": {n: round((read(s) + s["output"]) / everything, 3) for n, s in seats.items()},
@@ -139,8 +162,8 @@ def said(m):
         m["job"], o["reward"], "" if o.get("complete", True) else " (INCOMPLETE: stopped from outside: {})".format(o["stopped_from_outside"]), o["minutes"], c["total"]["read"] / 1e6, c["total"]["input"] / 1e6, c["total"]["cache_read"] / 1e6, c["total"]["cache_write"] / 1e6, c["total"]["output"] / 1e3)]
     for name, s in c["seats"].items():
         w = d["git"].get(name) or d["git"].get("solo") or {}
-        out.append("  seat {:10} {:4} requests  share {:4.0%}  active {:5.1f} min  largest context {:6.0f}k  contexts {} (+{} side)  pushed {}  refused {}  said {}".format(
-            name, s["requests"], d["token_share"][name], s["active_minutes"], s["peak_context_tokens"] / 1e3, s["contexts"], s["side_contexts"],
+        out.append("  seat {:10} {:4} requests  share {:4.0%}  working {:5.1f} min (span {:5.1f}, {} waits)  largest context {:6.0f}k  contexts {} (+{} side)  pushed {}  refused {}  said {}".format(
+            name, s["requests"], d["token_share"][name], s["working_minutes"], s["active_minutes"], len(s["waits"]), s["peak_context_tokens"] / 1e3, s["contexts"], s["side_contexts"],
             w.get("pushes", {}), w.get("pushes_refused", {}), (d["messages"] or {}).get(name)))
     for name, r in o.get("seat_runs", {}).items():
         out.append("  run  {:10} {}  working {:.0f} min  paused {:.0f} min ({} pauses)  spent ${}".format(name, r["ended"][:80], r["working_s"] / 60, r["paused_s"] / 60, r["pauses"], r["spent_usd"]))

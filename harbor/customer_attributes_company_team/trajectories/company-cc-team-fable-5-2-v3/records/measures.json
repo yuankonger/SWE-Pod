@@ -1,0 +1,150 @@
+{
+ "job": "company-cc-team-fable-5-2-v3",
+ "outcome": {
+  "reward": 0.8759,
+  "minutes": 189.4,
+  "seat_says": 0.8759,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "seat-dashboard": {
+    "seat": "seat-dashboard",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 3214,
+    "paused_s": 6940,
+    "pauses": 1,
+    "work_limit_s": 14400.0,
+    "spent_usd": 22.59
+   },
+   "main": {
+    "seat": "main",
+    "ended": "budget spent",
+    "stopped_from_outside": false,
+    "working_s": 4348,
+    "paused_s": 7015,
+    "pauses": 2,
+    "work_limit_s": 14400.0,
+    "spent_usd": 26.06
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 466,
+   "cache_read": 55108413,
+   "cache_write": 2618192,
+   "output": 285922,
+   "read": 57727071
+  },
+  "seats": {
+   "core": {
+    "input": 266,
+    "cache_read": 31507810,
+    "cache_write": 1458211,
+    "output": 129232,
+    "requests": 133,
+    "refused": 2,
+    "peak_context_tokens": 379039,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 133,
+      "peak_context_tokens": 379039,
+      "output": 129232,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 189.4,
+    "working_minutes": 62.1,
+    "waits": [
+     {
+      "minutes": 117.1,
+      "cache_rewritten": 326336
+     },
+     {
+      "minutes": 10.0,
+      "cache_rewritten": 377372
+     }
+    ],
+    "cache_rewritten_after_waits": 703708
+   },
+   "dashboard": {
+    "input": 200,
+    "cache_read": 23600603,
+    "cache_write": 1159981,
+    "output": 156690,
+    "requests": 100,
+    "refused": 1,
+    "peak_context_tokens": 422091,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 100,
+      "peak_context_tokens": 422091,
+      "output": 156690,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 169.2,
+    "working_minutes": 41.6,
+    "waits": [
+     {
+      "minutes": 115.7,
+      "cache_rewritten": 369964
+     },
+     {
+      "minutes": 10.0,
+      "cache_rewritten": 382473
+     }
+    ],
+    "cache_rewritten_after_waits": 752437
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 0.57,
+   "dashboard": 0.43
+  },
+  "active_minutes": {
+   "core": 189.4,
+   "dashboard": 169.2
+  },
+  "git": {
+   "dashboard": {
+    "pushes": {
+     "dashboard": 1
+    },
+    "pushes_refused": {},
+    "fetches": 4
+   },
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 3
+   }
+  },
+  "messages": {
+   "core": 2,
+   "dashboard": 3
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 3,
+  "ci_runs_failed": 1,
+  "model_requests_refused": 3
+ }
+}

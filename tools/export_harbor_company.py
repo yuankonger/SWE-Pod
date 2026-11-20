@@ -320,7 +320,16 @@ def main():
     clones = dict(c.split("=", 1) for c in a.clone)
     info, repos = mc.load_company(a.company)
     out = os.path.abspath(a.out or os.path.join(REPO, "harbor", a.company + ("_team" if a.team else "")))
+    # The task is made again from nothing, but its trajectories/ (the runs on it, outside the freeze) are kept.
+    kept_runs = None
+    if os.path.isdir(os.path.join(out, "trajectories")):
+        kept_runs = tempfile.mkdtemp(prefix="harbor-trajectories-")
+        shutil.move(os.path.join(out, "trajectories"), os.path.join(kept_runs, "trajectories"))
     shutil.rmtree(out, ignore_errors=True)
+    os.makedirs(out)
+    if kept_runs:
+        shutil.move(os.path.join(kept_runs, "trajectories"), os.path.join(out, "trajectories"))
+        shutil.rmtree(kept_runs, ignore_errors=True)
     env_dir, tests, solution = (os.path.join(out, d) for d in ("environment", "tests", "solution"))
     for d in (env_dir, os.path.join(tests, "hidden"), solution):
         os.makedirs(d)
@@ -443,6 +452,14 @@ def main():
         target = mc.target_commit(clones[owner], repo)
         laid = tempfile.mkdtemp(prefix="harbor-tests-")
         put(clones[owner], target, mc.changed_tests(clones[owner], repo), laid)
+        fixes = os.path.join(REPO, "mined", a.company, "test_fixes.py")      # reviewed fixes to how upstream's tests check
+        if os.path.isfile(fixes):
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("test_fixes_" + a.company, fixes)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            for fixed in module.apply(owner, laid):
+                print("  hidden test fixed: {}: {}".format(owner, fixed))
         subprocess.run(["tar", "-czf", os.path.join(tests, "hidden", owner + "-tests.tar.gz"), "-C", laid, "."], check=True,
                        env=dict(os.environ, COPYFILE_DISABLE="1"))        # macOS tar would add a `._name` file beside every file
         shutil.rmtree(laid, ignore_errors=True)

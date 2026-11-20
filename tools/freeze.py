@@ -5,7 +5,8 @@
 
 Frozen is every file of the task (the brief, the seat notes, the environment, the verifier and what it reads,
 the oracle), the two files that run it (tools/harbor_team.py, tools/harbor_harness.sh), and the images the
-environment is built from. The id of a freeze is the hash of all of that; tools/harbor_harness.sh writes it into
+environment is built from. Task-root trajectories/ holds past run outputs and is excluded.
+The id of a freeze is the hash of all of that; tools/harbor_harness.sh writes it into
 each run it starts and refuses to start a run on a task that is not as frozen.
 """
 import hashlib
@@ -32,6 +33,8 @@ def state(task):
     files = {}
     for d, dirs, names in os.walk(task):
         dirs[:] = sorted(x for x in dirs if x != "__pycache__")
+        if d == task and "trajectories" in dirs:
+            dirs.remove("trajectories")
         for name in sorted(names):
             path = os.path.join(d, name)
             if name != "FROZEN.json" and not os.path.islink(path):

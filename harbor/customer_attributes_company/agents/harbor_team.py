@@ -75,7 +75,13 @@ class Seat:
 LIMIT = re.compile(r"\b429\b|\b529\b|rate.?limit|overloaded|cooling down", re.I)
 RESET = re.compile(r"reset after (?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?")
 RESUMED = ("The model service refused requests for a while (a rate limit), and this session was paused until it lifted. "
+           "Anything you had running in the background was stopped with the session; start again what you still need. "
            "Nothing else has changed. Carry on with the work from where you stopped.")
+# Ends the harness and every process under it (its background jobs among them), and nothing else of the seat: the
+# seat's own services (its database, say) keep running.
+KILL_HARNESS = ("all=$(pgrep -f '[c]laude --verbose'); next=$all; "
+                "while [ -n \"$next\" ]; do next=$(for p in $next; do pgrep -P $p; done); all=\"$all $next\"; done; "
+                "[ -n \"$all\" ] && kill -KILL $all 2>/dev/null; true")
 CHAT = ("curl -s -m 10 -X POST -H 'Content-Type: application/json' "
         "-d \"{{\\\"name\\\": \\\"$SEAT\\\", \\\"token\\\": \\\"$SEAT_TOKEN\\\"{more}}}\" http://chat:8080/{what} >/dev/null 2>&1 || true")
 
@@ -100,6 +106,7 @@ class SeatClaudeCode(ClaudeCode):
         self._seat_notes = str(seat_notes) if seat_notes else None      # a file (one seat) or a directory of <owner>.md
         self._seat_figures = {"cap": seat_cap, "total": seat_total, "hours": seat_hours}
         self._launched = {}      # seat -> (command, env, cwd) of the harness as it was started there
+        self._ended_by_runner = {}      # seat -> why the runner ended a stretch of its harness, each time it did
 
     @staticmethod
     def name() -> str:
@@ -142,6 +149,54 @@ class SeatClaudeCode(ClaudeCode):
                 pass
         return records
 
+    TRAJECTORY_EVERY_S = 300      # how often each seat's trajectory is written while it works
+
+    def _seat_logs(self, seat):
+        """The seat's harness logs on this machine: Harbor's own for its seat, <logs>/<owner> for every other seat."""
+        from pathlib import Path
+        return Path(self.logs_dir) if seat == "main" else Path(self.logs_dir) / self._owner(seat)
+
+    def write_trajectory(self, seat):
+        """Writes the seat's trajectory, in ATIF, from its Claude Code session files: `trajectory.json` in the seat's
+        logs. The same conversion Harbor makes for its own seat once the run is over, here for every seat, and
+        while the work goes on, so that a run that breaks off still leaves one. Returns the number of steps."""
+        logs = self._seat_logs(seat)
+        converter = ClaudeCode(logs_dir=logs, model_name=self.model_name)
+        session = converter._get_session_dir()
+        trajectory = converter._convert_events_to_trajectory(session) if session else None
+        if not trajectory:
+            return 0
+        written = trajectory.to_json_dict()
+        written.setdefault("agent", {})["model_name"] = self.model_name      # the converter can leave "<synthetic>"
+        written["agent"].setdefault("extra", {})["seat"] = self._owner(seat)
+        path = os.path.join(str(logs), "trajectory.json")
+        with open(path + ".tmp", "w", encoding="utf-8") as f:
+            json.dump(written, f, indent=2, ensure_ascii=False)
+        os.replace(path + ".tmp", path)
+        return len(written.get("steps", []))
+
+    async def _keep_trajectory(self, seat):
+        """Writes the seat's trajectory every few minutes until cancelled."""
+        while True:
+            await asyncio.sleep(self.TRAJECTORY_EVERY_S)
+            try:
+                await asyncio.to_thread(self.write_trajectory, seat)
+            except Exception as e:      # the record is beside the work: never let it stop the work
+                print("seat {}: trajectory not written: {}".format(seat, e), flush=True)
+
+    def populate_context_post_run(self, context):
+        super().populate_context_post_run(context)
+        try:      # Harbor's own conversion of its seat: put the model's name back
+            self.write_trajectory("main")
+        except Exception as e:
+            print("trajectory not rewritten: {}".format(e), flush=True)
+
+    @staticmethod
+    def _spent(records):
+        """What the seat has spent. The harness reports a session's cost as a running total, and a resumed session
+        carries its total on: the spend is the largest total, not the sum of them."""
+        return max([float(r.get("total_cost_usd") or 0) for r in records] or [0.0])
+
     def _pause(self, record, waited):
         """Seconds to wait if this result is the model service refusing for a while; None if it is anything else."""
         if not record or not record.get("is_error") or not LIMIT.search(str(record.get("result") or "")):
@@ -152,17 +207,46 @@ class SeatClaudeCode(ClaudeCode):
             return h * 3600 + m * 60 + sec + 60
         return min(self._resume_wait * 2 ** waited, 3600)
 
+    WATCH_EVERY_S = 15      # how often the harness's log is read while it runs
+    FINISH_GRACE_S = 30     # how long a harness that has given its final answer may take to exit by itself
+
     async def _working(self, environment, seat, step, limit):
-        """Runs one stretch of the harness for at most `limit` seconds of working time. Returns (failure, out of time)."""
+        """Runs one stretch of the harness for at most `limit` seconds of working time. Returns (failure, out of time).
+
+        The stretch also ends on what the harness writes, not only when it exits. A harness keeps running while a
+        job it started in the background is alive, and wakes on it later: so a turn the model service ended with a
+        rate limit sat idle until the job's own timeout instead of pausing, and an answer given as final was
+        reopened by a leftover job, re-caching the whole conversation. Now a rate limit ends the stretch at once (and
+        the seat pauses as usual), and a final answer ends it after FINISH_GRACE_S: when you stop, the work stops, as
+        every seat is told. Ending it stops the harness and everything it started, and nothing else of the seat."""
+        before = len(await self._results(environment))
+        task = asyncio.ensure_future(step)
+        deadline, answered, ended_by_us, out_of_time = time.time() + max(0.05, limit), None, None, False
+        while not task.done():
+            await asyncio.wait({task}, timeout=max(0.01, min(self.WATCH_EVERY_S, deadline - time.time())))
+            if task.done():
+                break
+            if time.time() >= deadline:      # the seat's working time is up, as the task's own timeout would end it
+                ended_by_us, out_of_time = "working time is up", True
+            else:
+                records = await self._results(environment)
+                last = records[-1] if len(records) > before else None
+                if last is not None and self._pause(last, 0) is not None:
+                    ended_by_us = "a rate limit ended its turn while a background job kept the harness running"
+                elif last is not None and not last.get("is_error"):
+                    answered = answered or time.time()
+                    if time.time() - answered >= self.FINISH_GRACE_S:
+                        ended_by_us = "it gave its final answer and a background job kept the harness running"
+            if ended_by_us:
+                await environment.exec(KILL_HARNESS)
+                print("seat {}: harness ended: {}".format(seat, ended_by_us), flush=True)
+                self._ended_by_runner.setdefault(seat, []).append(ended_by_us)
+                break
         try:
-            await asyncio.wait_for(step, timeout=max(0.05, limit))
-            return None, False
+            await task
+            return None, out_of_time
         except NonZeroAgentExitCodeError as e:
-            return e, False
-        except asyncio.TimeoutError:      # the seat's working time is up: the harness is ended, as the task's own timeout would
-            await environment.exec("pkill -KILL -f 'claude --verbose' || true")
-            print("seat {}: working time is up".format(seat), flush=True)
-            return None, True
+            return (None if ended_by_us else e), out_of_time
 
     async def run(self, instruction, environment, context):
         """Paused time is not working time. The seat works for at most `work_sec` (the task's agent timeout) of time
@@ -171,6 +255,18 @@ class SeatClaudeCode(ClaudeCode):
         seat's start) is the last moment a wait may end. How the seat's work ended is written to /logs/agent/seat-run.json:
         a stop by the model service makes the run incomplete, whatever the score."""
         seat, started, failure, waited, paused = getattr(environment, "_service", "main"), time.time(), None, 0, 0.0
+        keeping = asyncio.create_task(self._keep_trajectory(seat))
+        try:
+            return await self._run(instruction, environment, context, seat, started, waited, paused)
+        finally:
+            keeping.cancel()
+            try:
+                steps = await asyncio.to_thread(self.write_trajectory, seat)
+                print("seat {}: trajectory written ({} steps)".format(seat, steps), flush=True)
+            except Exception as e:
+                print("seat {}: trajectory not written: {}".format(seat, e), flush=True)
+
+    async def _run(self, instruction, environment, context, seat, started, waited, paused):
         failure, out_of_time = await self._working(environment, seat, super().run(instruction, environment, context), self._work)
         ended = "working time up" if out_of_time else None
         while seat in self._launched and not ended:
@@ -190,7 +286,7 @@ class SeatClaudeCode(ClaudeCode):
             command, env, cwd = self._launched[seat]
             again = "--resume {} --print -- {} 2>&1 </dev/null | tee -a ".format(records[-1]["session_id"], shlex.quote(RESUMED))
             command = re.sub(r"--print -- .* 2>&1 </dev/null \| tee ", lambda _: again, command, flags=re.S)
-            spent = sum(float(r.get("total_cost_usd") or 0) for r in records)
+            spent = self._spent(records)
             command = re.sub(r"--max-budget-usd (\S+)", lambda m: "--max-budget-usd {:.2f}".format(max(0.01, float(m.group(1)) - spent)), command)
             left = self._work - (time.time() - started - paused)
             wall = self._wall - (time.time() - started)      # Harbor's own timeout, less room to end cleanly
@@ -203,14 +299,15 @@ class SeatClaudeCode(ClaudeCode):
         records = await self._results(environment)
         if not ended:
             last = records[-1] if records else None
-            ended = "finished" if last and not last.get("is_error") else "the harness ended with an error: {}".format(str((last or {}).get("result") or failure)[:300])
+            ended = "finished" if last and not last.get("is_error") else "budget spent" if last and last.get("subtype") == "error_max_budget_usd" else "the harness ended with an error: {}".format(str((last or {}).get("result") or failure)[:300])
         run = {"seat": seat, "ended": ended, "stopped_from_outside": ended.startswith("stopped by"),
                "working_s": round(time.time() - started - paused), "paused_s": round(paused), "pauses": waited,
-               "work_limit_s": self._work, "spent_usd": round(sum(float(r.get("total_cost_usd") or 0) for r in records), 2)}
+               "work_limit_s": self._work, "spent_usd": round(self._spent(records), 2),
+               "ended_by_runner": self._ended_by_runner.get(seat, [])}
         await environment.exec("mkdir -p /logs/agent && cat > /logs/agent/seat-run.json <<'SEAT_RUN_END'\n{}\nSEAT_RUN_END".format(json.dumps(run)))
         if type(self) is SeatClaudeCode:
             await self.keep_environment_records(environment)
-        if failure and not ended.startswith("stopped by"):
+        if failure and ended != "budget spent" and not ended.startswith("stopped by"):
             raise failure
 
     async def keep_environment_records(self, environment):

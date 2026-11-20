@@ -52,7 +52,10 @@ case "$harness" in
     mkdir -p "runs/harbor/$job/meter"
     python3 tools/model_meter.py "${OPENAI_BASE_URL%/v1}" "runs/harbor/$job/meter" "${METER_PORT:-8318}" > "runs/harbor/$job/meter/meter.log" 2>&1 &
     meter=$!
-    trap 'kill $meter 2>/dev/null; python3 tools/run_measures.py "runs/harbor/$job" > "runs/harbor/$job/measures.txt" 2>&1 || true' EXIT
+    # On the way out: the measures, then the run into the task's trajectories/ (every seat's ATIF trajectory, which
+    # the seats wrote as they worked, with the judge's result and the company's records). The review comes after.
+    harbor_python=$(head -1 "$(command -v harbor)" | sed 's/^#!//')
+    trap 'kill $meter 2>/dev/null; python3 tools/run_measures.py "runs/harbor/$job" > "runs/harbor/$job/measures.txt" 2>&1 || true; "$harbor_python" tools/export_trajectories.py "runs/harbor/$job" --task "$frozen" > "runs/harbor/$job/exported.txt" 2>&1 || true' EXIT
     export METER="http://host.docker.internal:${METER_PORT:-8318}/seat"
     denied="WebSearch,WebFetch"
     [ "$condition" = lead ] || denied="$denied,Agent,Task,Workflow"

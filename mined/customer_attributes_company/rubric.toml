@@ -8,7 +8,9 @@
 # measure = reported beside the reward, never part of it.
 # reward  = 0 if a gate fails, else weighted mean of targets x product of guards x product of fits.
 #           Targets: the API's hidden tests (weight 1), the staff application's hidden tests (0.5: they are upstream's
-#           unit tests, tied to how upstream built it), and staff setting a customer's tier in a browser (1).
+#           unit tests, tied to how upstream built it), staff setting a customer's tier in a browser (1), and the share
+#           the staff application uses of what the API gained (0.5). Fits: it asks only what the API serves, and its
+#           schema copies state the API; either failing breaks it.
 #
 # Every score is a share from 0 to 1, so work that is partly done is partly rewarded.
 
@@ -50,10 +52,13 @@ type = "tests"
 weight = 0.5
 repository = "dashboard"
 set = "new"
-exclude = '''^src/(components/ConditionalFilter/(API/(filterChoicesPage|initialState/customers/InitialCustomerState|initialState/product/useProductInitialAPIState)|FilterElement/Condition|UI/resolve(Async|Attribute)ComboboxState|ValueProvider/(TokenArray/(TokenArray|fetchingParams)|navigationQueryParams))|components/Sidebar/menu/(createCustomerTypeMenuItems|utils)|customerTypes/(handlers/customerTypeAttributeCreateHandler|utils/customerTypePageForm)|customers/(components/CustomerDetailsPage/saveComposition|utils/customerAttributes))\.test\.'''
+exclude = '''(^src/(components/ConditionalFilter/(API/(filterChoicesPage|initialState/customers/InitialCustomerState|initialState/product/useProductInitialAPIState)|FilterElement/Condition|UI/resolve(Async|Attribute)ComboboxState|ValueProvider/(TokenArray/(TokenArray|fetchingParams)|navigationQueryParams))|components/Sidebar/menu/(createCustomerTypeMenuItems|utils)|customerTypes/(handlers/customerTypeAttributeCreateHandler|utils/customerTypePageForm)|customers/(components/CustomerDetailsPage/saveComposition|utils/customerAttributes))\.test\.)|(^src/(configuration/createConfigurationMenu\.test\.ts::createConfigurationMenu orders groups by merchant job and drops legacy labels|customerTypes/components/CustomerTypeDetailsPage/CustomerTypeDetailsPage\.topNav\.test\.tsx::CustomerTypeDetailsPage top nav hides set as default and delete on the default customer type|customers/components/CustomerDetailsPage/CustomerDetailsPage\.test\.tsx::CustomerDetailsPage with MANAGE_USERS \(full edit access\) renders the savebar \(cancel/save buttons\)|components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerTypeQueryVarsBuilder\.test\.ts::CustomerTypeQueryVarsBuilder updateFilterQueryVariables should leave the filter query unchanged)$)|(^src/components/ConditionalFilter/API/Handler\.test\.ts::WarehouseHandler (handles empty response with no warehouses|handles empty search query|handles null warehouses response|propagates apollo client query errors)$)'''
 note = """The share that pass of the tests the Saleor project wrote for this feature in the staff application, but
-for those of upstream's own helper functions (105 of 184). What those helpers return is upstream's choice, which
-neither the brief nor the interface settles, so they are reported as a measure below instead."""
+for those of upstream's own helper functions, and three that check presentation alone (where delete sits, whether
+it is hidden or disabled, the order of the configuration groups, a legacy filter path left as a no-op), and four of the warehouse choices that pass on
+the start's code once the page size is left open (they check nothing the feature changes: 97 are scored). What those helpers return, and how upstream laid
+out its screens, is upstream's choice, which neither the brief nor the interface settles, so they are reported as
+measures below instead."""
 
 [[criterion]]
 id = "staff-set-a-customers-tier"
@@ -68,6 +73,17 @@ saves the page. Then the API, asked outside the staff application, must read the
 that customer, and no other, among customers whose tier is Gold. The browser finds the field by its name and the
 nearest control to choose a value with, and saves with the page's save bar, as it is before the feature. If the check
 itself cannot run (no browser, no database) it has no score; it does not fail."""
+
+[[criterion]]
+id = "dashboard-uses-what-api-gained"
+kind = "target"
+type = "contract"
+check = "uses_new_api"
+weight = 0.5
+note = """The share the staff application uses of what the real staff application uses of what the API gained. A
+staff application that sends only what was valid before fits the API and does nothing with the feature. A target
+and not a fit: each field counts the same, and a field left unused can cost a whole feature or only where an error
+is shown, so it is weighed with the other targets instead of multiplying the reward."""
 
 # ---------------------------------------------------------------- guards: what works today
 
@@ -98,14 +114,6 @@ note = """The share of the GraphQL operations the staff application sends that a
 on `main` really has. Each side's own tests pass against its own idea of the other; this is the two held together."""
 
 [[criterion]]
-id = "dashboard-uses-what-api-gained"
-kind = "fit"
-type = "contract"
-check = "uses_new_api"
-note = """The share the staff application uses of what the real staff application uses of what the API gained. A
-staff application that sends only what was valid before fits the API and does nothing with the feature."""
-
-[[criterion]]
 id = "dashboard-schema-copies-current"
 kind = "fit"
 type = "contract"
@@ -115,6 +123,17 @@ what the API gained that those copies state, over all of them together: a copy l
 criterion, not the whole reward."""
 
 # ---------------------------------------------------------------- measures
+
+[[criterion]]
+id = "dashboard-presentation-tests"
+kind = "measure"
+type = "tests"
+repository = "dashboard"
+set = "new"
+only = '''^src/(configuration/createConfigurationMenu\.test\.ts::createConfigurationMenu orders groups by merchant job and drops legacy labels|customerTypes/components/CustomerTypeDetailsPage/CustomerTypeDetailsPage\.topNav\.test\.tsx::CustomerTypeDetailsPage top nav hides set as default and delete on the default customer type|customers/components/CustomerDetailsPage/CustomerDetailsPage\.test\.tsx::CustomerDetailsPage with MANAGE_USERS \(full edit access\) renders the savebar \(cancel/save buttons\)|components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerTypeQueryVarsBuilder\.test\.ts::CustomerTypeQueryVarsBuilder updateFilterQueryVariables should leave the filter query unchanged)$'''
+note = """Upstream's tests of its own choices that neither the brief nor the interface settles: delete in the menu and
+not in the save bar, the default type's delete hidden and not disabled, the configuration groups in upstream's
+order, and the customer type filter's legacy (non-`where`) path left as a no-op. Reported, not scored."""
 
 [[criterion]]
 id = "pushed-code-review-signals"
@@ -150,5 +169,5 @@ id = "existing-tests-untouched"
 kind = "measure"
 type = "untouched"
 note = """Most of the reward is decided by test suites that are the work's own to change. This lists every test file
-and test setting of the work's start that was changed or removed (the hidden tests replace the ones the feature
-had to change). A change here is not wrong in itself; it is what a reviewer should read first."""
+and test setting of the work's start that was changed, renamed or removed (the hidden tests replace the ones the
+feature had to change). Test files the work added are listed beside it and are not counted. A change here is not wrong in itself; it is what a reviewer should read first."""

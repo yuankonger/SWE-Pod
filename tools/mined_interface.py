@@ -204,8 +204,10 @@ def _ts_declaration(source, m):
     """The whole of a declaration's signature: a function's parameters and return type, an arrow function's up to
     its `=>`, the body of an interface, a type or an enum. A value that is not a function is its first line."""
     kind, start = m.group(3), m.start()
-    if kind.startswith("function") or kind == "class":
-        end = _ts_span(source, m.end(), lambda i, depth: depth == 1 and source[i] == "{" and (kind == "class" or source[:i].rstrip().endswith((")", ">")) or re.search(r"\)\s*:\s*[^=;]*$", source[m.end():i])))
+    if kind == "class":
+        return _ts_class(source, m)
+    if kind.startswith("function"):
+        end = _ts_span(source, m.end(), lambda i, depth: depth == 1 and source[i] == "{" and (source[:i].rstrip().endswith((")", ">")) or re.search(r"\)\s*:\s*[^=;]*$", source[m.end():i])))
     elif kind in ("interface", "enum"):
         end = _ts_span(source, m.end(), lambda i, depth: depth == 0 and source[i] == "}") + 1
     elif kind == "type":
@@ -221,6 +223,73 @@ def _ts_declaration(source, m):
             end = len(source) if end < 0 else end
     text = re.sub(r"\s+", " ", source[start:end]).strip().rstrip("{").strip()
     text = text + " ..." if text.endswith("=>") else text
+    return text if len(text) <= MAX_DECLARATION else text[:MAX_DECLARATION] + " ..."
+
+
+def _ts_header_end(source, at):
+    """Where a class's body opens: the first `{` outside brackets and outside generic arguments (`<{ a: b }>`)."""
+    angle, i = 0, at
+    while i < len(source):
+        c = source[i]
+        if c == "<":
+            angle += 1
+        elif c == ">" and source[i - 1] != "=":
+            angle -= 1
+        elif c in "([":
+            i = _ts_span(source, i, lambda j, depth: depth == 0)
+        elif c == "{":
+            if angle == 0:
+                return i
+            i = _ts_span(source, i, lambda j, depth: depth == 0)
+        i += 1
+    return i
+
+
+def _ts_method_body(source, at):
+    """Where a method's body opens, after its parameters: the first `{` that is not a type. A `{` right after `:`,
+    `|`, `&`, `,` or `<` begins an object type (a return type such as `: { a?: string }`), and is read past."""
+    angle, i = 0, at
+    while i < len(source):
+        c = source[i]
+        if c == "<":
+            angle += 1
+        elif c == ">" and source[i - 1] != "=":
+            angle -= 1
+        elif c in "([":
+            i = _ts_span(source, i, lambda j, depth: depth == 0)
+        elif c == "{":
+            before = source[:i].rstrip()[-1:]
+            if angle == 0 and before not in (":", "|", "&", ",", "<", "("):
+                return i
+            i = _ts_span(source, i, lambda j, depth: depth == 0)
+        elif c == ";" and angle == 0:
+            return i
+        i += 1
+    return i
+
+
+CLASS_MEMBER = re.compile(r"^[ \t]+(?:(?:public|static|async|readonly|override|get|set)\s+)*(?!private\b|protected\b)([A-Za-z_$][\w$]*)\s*(<[^>(]*>)?\(", re.M)
+
+
+def _ts_class(source, m):
+    """A class: its header whole (generic arguments too), then the signature of every method it declares that is not
+    private: the names and types its callers, and the tests, use."""
+    open_at = _ts_header_end(source, m.end())
+    close_at = _ts_span(source, open_at, lambda i, depth: depth == 0 and source[i] == "}")
+    header = re.sub(r"\s+", " ", source[m.start():open_at]).strip()
+    body, members, i = source[open_at + 1:close_at], [], 0
+    while True:
+        found = CLASS_MEMBER.search(body, i)
+        if not found:
+            break
+        if found.group(1) in ("if", "for", "while", "switch", "return", "catch", "function", "await", "new", "typeof"):
+            i = found.end()
+            continue
+        params_end = _ts_span(body, found.end() - 1, lambda j, depth: depth == 0 and body[j] == ")")
+        body_open = _ts_method_body(body, params_end + 1)
+        members.append(re.sub(r"\s+", " ", body[found.start():body_open]).strip())
+        i = (_ts_span(body, body_open, lambda j, depth: depth == 0 and body[j] == "}") + 1) if body[body_open:body_open + 1] == "{" else body_open + 1
+    text = header + (" { " + "; ".join(members) + " }" if members else "")
     return text if len(text) <= MAX_DECLARATION else text[:MAX_DECLARATION] + " ..."
 
 
@@ -292,6 +361,9 @@ def _tree_text(root, keep):
     return "\n".join(parts)
 
 
+SHARED = "src/components/"      # the shared component library: what every page renders through it is no news
+
+
 def typescript_looked_for(base, target, test_files, is_test_side):
     """{directory of the tests: {"test ids": [...], "text": [...]}}: what the tests search the rendered page for
     that the base's source does not hold and that is not data the tests bring themselves."""
@@ -304,7 +376,11 @@ def typescript_looked_for(base, target, test_files, is_test_side):
         text = open(os.path.join(target, test_file), encoding="utf-8").read()
         ids = {v for kind, _, v in TS_LOOKED_FOR.findall(text) if kind == "TestId"} - set(TS_TEST_ID.findall(text))     # not the ids of the test's own stand-ins
         shown = {v for kind, _, v in TS_LOOKED_FOR.findall(text) if kind != "TestId"} | {"{} named {}".format(role, v) for role, _, v in TS_ROLE_NAME.findall(text)}
-        ids = sorted(v for v in ids if "${" not in v and '"{}"'.format(v) not in source_at_base and "'{}'".format(v) not in source_at_base)
+        # an id is already there only if the components under test render it today: one that exists on another
+        # component (a status pill's id on another card, say) is still news to whoever builds this one
+        here = os.path.dirname(test_file)
+        source_here = _tree_text(base, lambda p, here=here: not is_test_side(p) and (os.path.dirname(p).startswith(here) or p.startswith(SHARED)))
+        ids = sorted(v for v in ids if "${" not in v and '"{}"'.format(v) not in source_here and "'{}'".format(v) not in source_here)
 
         def is_data(v):         # text the test itself supplies (a fixture's name, a property it passes) is not the page's own
             plain = v.split(" named ", 1)[-1]
@@ -391,7 +467,7 @@ def render(interface: dict, language: str) -> str:
     if interface.get(LOOKED_FOR):
         lines += ["## What the tests look for on the page", "",
                   "Tests of the components in each directory find elements by these test ids (`data-test-id`) and by this",
-                  "exact visible text. Neither exists in the source yet.", ""]
+                  "exact visible text. The components there do not render them yet (some ids are used elsewhere already).", ""]
         for where in sorted(interface[LOOKED_FOR]):
             entry = interface[LOOKED_FOR][where]
             lines.append("### `{}`".format(where))
