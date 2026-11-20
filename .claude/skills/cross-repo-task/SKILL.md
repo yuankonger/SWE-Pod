@@ -439,6 +439,11 @@ that the brief did not state, a message the seats could not deliver. Those are t
 
 ## Defects found building the example (check for each in a new task)
 
+- **A clone of the repository did not verify the freeze.** Two causes. Upstream committed some files with CRLF
+  and its own `.gitattributes` says `text=auto`, so git stored them with LF and a clone had other bytes than were
+  frozen: the exporter now writes them as git stores them (`git_line_endings`). And upstream's `.gitignore`
+  ignores dot-files it tracks by force, so a plain `git add` left them out of our repository: add a task with
+  `git add -f`. Check by cloning the repository to a scratch folder and running `tools/freeze.py verify` there.
 - **The verifier ran in the seat**, so the seat could rewrite it. Fix: a separate judge container.
 - **Upstream's own test configuration** was not put back. Restore every run-config file (`pyproject.toml`,
   `setup.cfg`, babel, `.swcrc`, jest config) from the start.

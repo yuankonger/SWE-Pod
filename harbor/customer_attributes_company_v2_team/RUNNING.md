@@ -41,6 +41,22 @@ whatever the judge's score:
 
 In the team variant no seat holds both repositories, so `solution/solve.sh` (the oracle) runs in the solo variant only.
 
+### From the SWE-Pod repository
+
+`tools/harbor_harness.sh` does the same with the caps, the model meter, the measures and the export of the run
+into `trajectories/`. It needs `.env` at the repository's root with `OPENAI_BASE_URL` and `OPENAI_API_KEY` (the
+model gateway), and starts only on a task that is as frozen. Solo, then the isolated team, one after the other
+(two companies at once run short of memory):
+
+    TASK=harbor/customer_attributes_company_v2 MODEL=<model> CAP=50 \
+        tools/harbor_harness.sh claude-code solo <job name>
+    TASK=harbor/customer_attributes_company_v2 MODEL=<model> CAP=50 ISOLATED=true \
+        tools/harbor_harness.sh claude-code team <job name>
+
+`MODEL` defaults to `claude-opus-5-5` and `CAP` (dollars for the whole work; a team's seats get half each) to 50.
+Each run leaves `runs/harbor/<job name>/` and `trajectories/<job name>/` in the task's folder; the line to read
+first in a team's `measures.txt` is `contract:`.
+
 Resources: the seat gets 6 CPUs and 6 GB (`task.toml`; each team seat the same). The other containers have no limit
 of their own: give Docker 16 GB, since the judge runs both test suites while the systems are still up; with 8 GB,
 test runs in the seat were killed for memory. Agent time is up to 4 hours, scoring up to 3.
