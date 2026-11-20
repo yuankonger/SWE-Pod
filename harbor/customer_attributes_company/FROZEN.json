@@ -1,11 +1,11 @@
 {
- "id": "be34dfe0d891470e",
+ "id": "1c6d5017defbb767",
  "files": {
-  "DATASHEET.md": "eff6fe21295498f21f13630a064ffb0ffe05e068fee3bbcda17f6ff0b0123160",
+  "DATASHEET.md": "61d04bd0f662cc672f6823cb1127de9578fe48ce33265aaf31632d04002e6db3",
   "RUNNING.md": "8ba67cd7520c394ccfab0443dab35bbd602c8d1b9b5b0c23c1dad07347a85719",
   "instruction.md": "1fe0efde6f47998d2daa18f8466a79468d0c86abbdb476ff77292bf1050c55dc",
   "task.toml": "32aa039f8e1fe5d50bff22c044bf127f109ee77fad53e46e06351360dba88d63",
-  "agents/harbor_team.py": "1d047aecee7238fe19ad6b2a89e8be1adfa3de46a3688040eba5d98ae0679fe2",
+  "agents/harbor_team.py": "25672a9e381146e2aa97760cc12a99877832d39343e4a39aa97482a55de73d6a",
   "environment/Dockerfile": "f2555618993d0b4f2dda6badd083cb0c0d1f6e77f5893e2a05b74a8237fde8bc",
   "environment/docker-compose.yaml": "8b987db87092e78cad89a88149056a42f68d31420f21113a94425c25109ea1a0",
   "environment/sidecars/chat.py": "aed21a3ae2c1f1ddaf20fd662871485c27df876688f506bea45d14c96e789973",
@@ -4663,7 +4663,7 @@
   "environment/work/dashboard/CHANGELOG.md": "0aa68e10a65e967482c511e6ded46f1b55d237311503ceb930c120f84f76fc04",
   "environment/work/dashboard/CONTEXT.md": "83add1e0ade287fa05a700bcaee2f88736300f7cbc3f1eff616874caf8072fed",
   "environment/work/dashboard/Dockerfile": "8c0402afec74c7209e79050f0a7cc0806c7f88a493d32e5642f464bb630d51b9",
-  "environment/work/dashboard/INTERFACE.md": "de08bed92139158455e581354bacee25fd64298d71f09a9e6fea6bf323c07dfc",
+  "environment/work/dashboard/INTERFACE.md": "da99cbf6afdfc5a908c68553d25a159da049f2aeb598c5299509a0f21fe44d8c",
   "environment/work/dashboard/LICENSE": "2723d1248394da475804b33008b525d8f40d0d1a9c12c6f43a200fbf5bac9c56",
   "environment/work/dashboard/NOTES.md": "b6ddbb0830de6653ce8c1a0fba5c50b4488eca38342d2f1b29e67f4de12a1337",
   "environment/work/dashboard/README.md": "16e05d49381f704d97002006a32fc78eea9d9a2137f1405880b21d1239e3d837",
@@ -11014,24 +11014,24 @@
   "tests/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
   "tests/mined_graphql_agreement.cjs": "18d3549f68ee58952c0d4247792dae93a10a8dae1bca5af76b3cee491cb54555",
   "tests/rubric.py": "d5a5ca23a0bd2c07b19b1f6d9e4ae510c9f207c83b689c04fe1a46548c69921a",
-  "tests/rubric.toml": "e5d385ed6cb734eac09665aa4371728c07e70928604cc3fc539d4da68c2a54f1",
-  "tests/score.py": "31726f2dce8b1a595136cb1cdfdfd7a365ba8eaa14d75277ab3574f345da0e3a",
+  "tests/rubric.toml": "d9802ada7433c845c4ee0c6aa3841b05a5501e697348ccc1c6ba652b59001c91",
+  "tests/score.py": "016fb82e9e95de6fe2ffcd36ec1b94db55e9d28076acdddba952b41a914d022d",
   "tests/test.sh": "88446ece9eb55e33d5edfdfcc5d5ce844f8dceaa9bb4282b6dafc3daa291fcd3",
   "tests/hidden/base_schema.graphql": "d2367ce7934b7c7532e6a72d368583f9323b0319c208c09f76ea77ba3664ea1e",
   "tests/hidden/core-reference.json": "774cd40fdf43742fb8a290b588a81d831b4fa142ab01b5078520c5dee278b6f0",
-  "tests/hidden/core-tests.tar.gz": "37602fe33fe76f782b6834c3a18f2b92ef1b568c9830f9677e558cec39b5e87b",
+  "tests/hidden/core-tests.tar.gz": "b974c0238d29f7ea66163be822844187e83641fedbed94bba937eda68dad669e",
   "tests/hidden/dashboard-reference.json": "ec7df4dacc00d74f6b5d6551699ecce9fe156000b131d023ce7173dd7dfecec5",
-  "tests/hidden/dashboard-tests.tar.gz": "db7c67e5c7bb028cc82acd58d57b0dd881f73d298138a0c14347371d4f0802d5",
+  "tests/hidden/dashboard-tests.tar.gz": "60d67c2e4460d8f209c448c6f51afd5edad6af72fd3fd8907c1e2263198ef22c",
   "tests/hidden/usage.json": "90e56a1f06e637657976010b8fb0c4612a2b125c309d5a3c0e3711c83cfa0f6c"
  },
  "runners": {
-  "tools/harbor_team.py": "1d047aecee7238fe19ad6b2a89e8be1adfa3de46a3688040eba5d98ae0679fe2",
-  "tools/harbor_harness.sh": "7346e31e0295c7b0414bc3a7a1949ae1043f1d6cea56f90df4370db3de598809"
+  "tools/harbor_team.py": "25672a9e381146e2aa97760cc12a99877832d39343e4a39aa97482a55de73d6a",
+  "tools/harbor_harness.sh": "fb3e2ec197bb77788c3ba126ea17f5df9e35572028b1c62275ab10b6a7adf651"
  },
  "images": {
   "python:3.12-bookworm@sha256:4209fae09a3e20afd863e528bfddc235da5fd5977983e1996cd54cc9a72e6267": "sha256:4209fae09a3e20afd863e528bfddc235da5fd5977983e1996cd54cc9a72e6267",
   "node:24-bookworm@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496": "not here",
   "base-core": "not here"
  },
- "frozen_at": "2026-11-18T22:32:06Z"
+ "frozen_at": "2026-11-20T01:25:04Z"
 }
