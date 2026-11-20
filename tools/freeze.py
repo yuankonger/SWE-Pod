@@ -5,7 +5,7 @@
 
 Frozen is every file of the task (the brief, the seat notes, the environment, the verifier and what it reads,
 the oracle), the two files that run it (tools/harbor_team.py, tools/harbor_harness.sh), and the images the
-environment is built from. Task-root trajectories/ holds past run outputs and is excluded.
+environment is built from (those the Dockerfile pins by digest are fixed by the Dockerfile and not compared). Task-root trajectories/ holds past run outputs and is excluded.
 The id of a freeze is the hash of all of that; tools/harbor_harness.sh writes it into
 each run it starts and refuses to start a run on a task that is not as frozen.
 """
@@ -51,6 +51,16 @@ def state(task):
     return {"id": hashlib.sha256(whole).hexdigest()[:16], "files": files, "runners": runners, "images": images}
 
 
+def fixed_by_dockerfile(task, image):
+    """An image the Dockerfile itself fixes, whatever this machine holds: one pinned by digest (the Dockerfile is
+    among the frozen files), or the name of one of its own build stages. What `docker image inspect` says of these
+    differs between machines (pulled or not, how Docker stores images) without the task differing."""
+    if "@sha256:" in image:
+        return True
+    with open(os.path.join(task, "environment", "Dockerfile")) as f:
+        return image in re.findall(r"^FROM \S+ AS (\S+)", f.read(), re.M | re.I)
+
+
 def main():
     what, tasks = sys.argv[1], sys.argv[2:]
     bad = 0
@@ -67,7 +77,8 @@ def main():
             continue
         with open(path) as f:
             was = json.load(f)
-        changed = [k + " " + name for k in ("files", "runners", "images") for name in sorted(set(was[k]) | set(now[k])) if was[k].get(name) != now[k].get(name)]
+        changed = [k + " " + name for k in ("files", "runners", "images") for name in sorted(set(was[k]) | set(now[k]))
+                   if was[k].get(name) != now[k].get(name) and not (k == "images" and fixed_by_dockerfile(task, name))]
         if changed:
             bad = 1
             print("{}: not as frozen ({}):\n  {}".format(task, was["id"], "\n  ".join(changed[:20])))

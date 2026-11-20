@@ -318,6 +318,29 @@ def notes_for_harbor(text: str) -> str:
     return "".join(line for line in text.splitlines(keepends=True) if not any(x in line for x in NOT_HERE))
 
 
+def git_line_endings(tree: str) -> list:
+    """Rewrites the files of a tree that git would store with other line endings than they have (the tree's own
+    .gitattributes says `text=auto` and upstream committed some with CRLF), so that the task is the same bytes on
+    disk, in this repository and in a clone of it: a freeze made here must verify there."""
+    holder = tempfile.mkdtemp(prefix="harbor-eol-")
+    env = dict(os.environ, GIT_DIR=os.path.join(holder, "git"), GIT_WORK_TREE=tree)
+    run = lambda *args: subprocess.run(["git"] + list(args), check=True, capture_output=True, text=True, env=env, cwd=tree)
+    run("init", "-q")
+    run("add", "-A", "-f")
+    changed = []
+    for line in run("ls-files", "--eol").stdout.splitlines():
+        state, name = line.split("\t", 1)
+        if "i/lf" in state.split() and "w/crlf" in state.split():
+            path = os.path.join(tree, name)
+            with open(path, "rb") as f:
+                data = f.read()
+            with open(path, "wb") as f:
+                f.write(data.replace(b"\r\n", b"\n"))
+            changed.append(name)
+    shutil.rmtree(holder, ignore_errors=True)
+    return changed
+
+
 def patch(start: str, clone: str, commit: str, keep: tuple) -> bytes:
     """The change from a repository's starting tree to the feature's commit, as one binary git patch."""
     holder = tempfile.mkdtemp(prefix="harbor-patch-")
@@ -332,6 +355,7 @@ def patch(start: str, clone: str, commit: str, keep: tuple) -> bytes:
             path = os.path.join(tree, name)
             shutil.rmtree(path) if os.path.isdir(path) and not os.path.islink(path) else os.remove(path)
     export(clone, commit, tree)
+    git_line_endings(tree)          # as the start was made: the patch must not carry line endings alone
     run("add", "-A", "-f")
     out = run("diff", "--cached", "--binary").stdout
     shutil.rmtree(holder, ignore_errors=True)
@@ -376,6 +400,8 @@ def main():
                 "- The other system, `{}`: {}\n".format(o, w["where"]) for o, w in where.items() if o != owner))
         with open(os.path.join(tree, "NOTES.md"), "w") as f:
             f.write(notes)
+        for name in git_line_endings(tree):
+            print("  line endings as git stores them: {}: {}".format(owner, name))
         shutil.copytree(tree, os.path.join(env_dir, "work", owner), symlinks=True)
         keep[owner] = ("NOTES.md", "INTERFACE.md") + tuple(repo.get("links", {}))
 
