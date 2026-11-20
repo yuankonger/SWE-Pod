@@ -22,6 +22,7 @@ Standard library only.
 import glob
 import json
 import os
+import re
 import sys
 
 
@@ -94,11 +95,13 @@ def measure(job):
     read = lambda s: s["input"] + s["cache_read"] + s["cache_write"]
     everything = sum(read(s) + s["output"] for s in seats.values()) or 1
     git = lines(first(job, "git.jsonl") or "")
-    work = {}
+    work, pushes, said = {}, [], []
     for e in git:
         if e.get("agent") in ("ci", "verifier", "oracle"):
             continue
         w = work.setdefault(e["agent"], {"pushes": {}, "pushes_refused": {}, "fetches": 0})
+        if e.get("action") == "push" and e.get("allowed") and e.get("at"):
+            pushes.append((e["agent"], e["at"]))
         if e.get("action") == "push":
             kind = "pushes" if e.get("allowed") else "pushes_refused"
             w[kind][e["repository"]] = w[kind].get(e["repository"], 0) + 1
@@ -120,6 +123,7 @@ def measure(job):
                 messages[m["from"]] = messages.get(m["from"], 0) + 1
     except (OSError, ValueError):
         messages = None
+    contract = contract_measures(runs, said if isinstance(said, list) else [], pushes) if runs else None
     reward, minutes, seat_reward = None, None, None
     for path in glob.glob(os.path.join(job, "*__*", "result.json")):
         with open(path) as f:
@@ -153,7 +157,43 @@ def measure(job):
                          "active_minutes": {n: s["active_minutes"] for n, s in seats.items()}, "git": work, "messages": messages},
             "control": {"pushes_refused": sum(sum(w["pushes_refused"].values()) for w in work.values()),
                         "ci_runs": None if runs is None else len(runs), "ci_runs_failed": None if runs is None else sum(1 for r in runs if r.get("state") == "failed"),
-                        "model_requests_refused": sum(s["refused"] for s in seats.values())}}
+                        "model_requests_refused": sum(s["refused"] for s in seats.values())},
+            "contract": contract}
+
+
+def contract_measures(runs, messages, pushes):
+    """How the API's contract reached the application that calls it, from the company's own records: when the API
+    first served something it gained, how often what it serves changed after the caller had pushed, how often CI
+    found the caller asking for what the API did not serve, and what was said before the first publication.
+    Times are minutes from the first CI run (the start of the work). A change is seen as a change in how many fields
+    the running API has gained, so a rename that keeps the count is missed."""
+    runs = sorted((r for r in runs if r.get("started_at")), key=lambda r: r["started_at"])
+    if not runs:
+        return None
+    start = runs[0]["started_at"]
+    minute = lambda at: round((at - start) / 60, 1)
+    check = lambda r, name: next((c for c in r.get("checks", []) if c.get("name", "").endswith(name)), None)
+
+    def gained(r):
+        c = check(r, "answers what it gained")
+        found = re.match(r"(\d+) gained", (c or {}).get("detail", ""))
+        return int(found.group(1)) if found else None
+
+    providers = {c["name"].split(" answers")[0] for r in runs for c in r.get("checks", []) if c.get("name", "").endswith("answers what it gained")}
+    published = [{"minute": minute(r.get("finished_at") or r["started_at"]), "gained_fields": gained(r), "ci_run": r.get("id"), "passed": r.get("state") == "passed"}
+                 for r in runs if gained(r) is not None and set(r.get("moved", [])) & providers]
+    published = [p for i, p in enumerate(published) if p["gained_fields"] != (published[i - 1]["gained_fields"] if i else 0)]
+    first = next((p["minute"] for p in published if p["gained_fields"]), None)
+    callers_first_push = min((at for who, at in pushes if who not in providers and who not in ("ci", "oracle", "verifier", "solo")), default=None)
+    refused = [{"minute": minute(r["started_at"]), "ci_run": r.get("id"), "detail": check(r, "calls")["detail"]}
+               for r in runs if check(r, "calls") and not check(r, "calls").get("ok")]
+    return {"first_published_minute": first,
+            "publications": published,
+            "caller_first_pushed_minute": None if callers_first_push is None else minute(callers_first_push),
+            "changes_after_caller_pushed": None if callers_first_push is None else sum(1 for p in published if p["minute"] > minute(callers_first_push)),
+            "ci_runs_caller_asked_what_api_lacks": refused,
+            "messages_before_first_publication": sum(1 for m in messages if isinstance(m, dict) and m.get("at") and (first is None or minute(m["at"]) < first)),
+            "messages": len(messages)}
 
 
 def said(m):
@@ -167,6 +207,11 @@ def said(m):
             w.get("pushes", {}), w.get("pushes_refused", {}), (d["messages"] or {}).get(name)))
     for name, r in o.get("seat_runs", {}).items():
         out.append("  run  {:10} {}  working {:.0f} min  paused {:.0f} min ({} pauses)  spent ${}".format(name, r["ended"][:80], r["working_s"] / 60, r["paused_s"] / 60, r["pauses"], r["spent_usd"]))
+    t = m.get("contract")
+    if t:
+        out.append("  contract: API first published at min {}  publications {}  caller first pushed at min {}  changes after that {}  CI runs with the caller asking what the API lacks {}  messages before publication {} of {}".format(
+            t["first_published_minute"], [(p["minute"], p["gained_fields"]) for p in t["publications"]], t["caller_first_pushed_minute"], t["changes_after_caller_pushed"],
+            len(t["ci_runs_caller_asked_what_api_lacks"]), t["messages_before_first_publication"], t["messages"]))
     out.append("  control: pushes refused {}  CI runs {} (failed {})  model requests refused {}".format(k["pushes_refused"], k["ci_runs"], k["ci_runs_failed"], k["model_requests_refused"]))
     return "\n".join(out)
 

@@ -1,6 +1,6 @@
 # Review: Fable 5.2, solo v3 and fixed team v3 (customer_attributes_company)
 
-Both runs on the fixed tests; solo on freeze cc9d88cd4f2ae522, team on 971abf7b03699d90. Reviewed 2026-11-21.
+Both runs on the fixed tests; solo on freeze cc9d88cd4f2ae522, team on 971abf7b03699d90. Reviewed 2026-11-19.
 Behaviour in detail: `reports/company-cc-fable-5-2-v3-behaviour.md`.
 
 | | Solo | Team |
@@ -21,7 +21,8 @@ note in Claude Code's own memory (per trial, not shared between trials). Neither
 
 Neither changed an existing test. Both added new test files and one fixture
 (`permission_manage_customer_types_and_attributes`); solo also registered a new fixtures module. The measure
-`existing-tests-untouched` counts added files as changes: a labelling defect of the measure.
+`existing-tests-untouched` counted added files as changes on this run's freeze: a labelling defect of the measure,
+fixed since (added files are now listed beside it and not counted).
 
 ## The 9% fit loss (dashboard-uses-what-api-gained, 10 of 11)
 
@@ -69,3 +70,7 @@ team seats worked 72 and 54 minutes.
   fresh-database migration and fixed a real migration bug; the team's dashboard seat ran neither the full jest
   suite nor a browser check, and said so.
 - Every seat's final summary stated its gaps accurately.
+
+## Freeze
+
+Scored on freeze 971abf7b03699d90 with that freeze's rubric (reward 0.8759). The task has since been frozen again as 2391d5edfb719217: the unused-API-field check became a weighted target (0.5) instead of a factor, and two dashboard test defects were fixed. Under the current rubric this run would score about 0.954; that figure is recalculated by hand from this run's criteria, not a judge's output.

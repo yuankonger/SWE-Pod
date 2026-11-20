@@ -149,8 +149,9 @@ RUN cd /usr/local/bin && ln -sf node nodejs && ln -sf ../lib/node_modules/npm/bi
 """
 # What of a toolchain's image is merged into the seat's, beside Node: `/deps` (installed dependencies) by default, or
 # the paths its task names in `toolchain_paths` (a pnpm store, corepack's prepared versions).
-TOOLCHAIN_COPY = """COPY --from={stage} {path} {path}-{stage}
-RUN mkdir -p {path} && cp -an {path}-{stage}/. {path}/ && rm -rf {path}-{stage}
+# Merged from a mount of the other stage, not copied in and then merged: a copy would stay in the image as a layer of
+# its own (2 GB of node_modules, twice).
+TOOLCHAIN_COPY = """RUN --mount=type=bind,from={stage},source={path},target=/mnt/toolchain mkdir -p {path} && cp -an /mnt/toolchain/. {path}/
 """
 
 TEST_SH = """#!/bin/bash
@@ -282,8 +283,13 @@ MESSAGING = {
 }
 
 
-def seat_notes(out, owners):
-    """Writes <task>/seats/: one note per condition and seat. The same files are in the solo and the team task."""
+ISOLATED_PERMISSIONS = ("Permissions: `{owner}` is the one repository you have, and you may push to it. You cannot read or push to {others_repos}. "
+                        "Of {them_long} you can see what is deployed from `main` (your repository's `NOTES.md` says where each system runs) and what CI reports.")
+
+
+def seat_notes(out, owners, isolated=False):
+    """Writes <task>/seats/: one note per condition and seat. The same files are in the solo and the team task.
+    `isolated`: a team's seats hold their own repository only."""
     def put(path, text):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -293,10 +299,16 @@ def seat_notes(out, owners):
     for messaging in (True, False):
         for owner in owners:
             others = [o for o in owners if o != owner]
-            put(os.path.join(out, "seats", "team" if messaging else "team_no_messaging", owner + ".md"), SEAT_NOTES["team"].format(
-                owner=owner, n=len(owners), others_repos=", ".join("`{}`".format(o) for o in others), them="them" if len(others) > 1 else "it",
-                others=("The owners of {} are" if len(others) > 1 else "The owner of {} is").format(", ".join("`{}`".format(o) for o in others)) + " working on this",
-                messaging=MESSAGING[messaging], total="{total}", cap="{cap}", hours="{hours}"))
+            names = ", ".join("`{}`".format(o) for o in others)
+            note = SEAT_NOTES["team"].format(
+                owner=owner, n=len(owners), others_repos=names, them="them" if len(others) > 1 else "it",
+                others=("The owners of {} are" if len(others) > 1 else "The owner of {} is").format(names) + " working on this",
+                messaging=MESSAGING[messaging], total="{total}", cap="{cap}", hours="{hours}")
+            if isolated:
+                note = "\n".join(ISOLATED_PERMISSIONS.format(owner=owner, others_repos=names, them_long="the others' work" if len(others) > 1 else "the other's work")
+                                 if line.startswith("Permissions:") else line for line in note.splitlines())
+                note = note.replace("They see what you push, not your checkout", "They see what is deployed from what you push, not your repository")
+            put(os.path.join(out, "seats", "team" if messaging else "team_no_messaging", owner + ".md"), note)
 
 
 
@@ -390,17 +402,24 @@ def main():
     os.makedirs(os.path.join(out, "agents"), exist_ok=True)
     shutil.copy(os.path.join(REPO, "tools", "harbor_team.py"), os.path.join(out, "agents", "harbor_team.py"))
     for doc in ("RUNNING.md", "DATASHEET.md"):      # how to run it, and what it is (mined/<company>/)
-        if os.path.isfile(os.path.join(REPO, "mined", a.company, doc)):
-            shutil.copy(os.path.join(REPO, "mined", a.company, doc), os.path.join(out, doc))
+        if os.path.isfile(mc.company_file(a.company, doc)):
+            shutil.copy(mc.company_file(a.company, doc), os.path.join(out, doc))
     contract = info["contracts"][0]
     kind = mc.contract_type(contract)
     for where, name in CONTRACT_TOOLS[kind]:
         shutil.copy(os.path.join(REPO, where, name), os.path.join(env_dir, "sidecars"))
     deploy = info.get("deployed", {})
     everything = lambda level: {o: level for o in owners}
-    tokens = dict(TOKENS, **({o: OWNER_TOKEN.format(o) for o in owners} if a.team else {}))
+    # An isolated owner must not be able to work out another's token from its own, so each is a hash and not a pattern.
+    import hashlib
+    owner_token = lambda o: ("seat-{}-{}".format(o, hashlib.sha256("{}/{}/owner".format(a.company, o).encode()).hexdigest()[:12])
+                             if info.get("isolated") else OWNER_TOKEN.format(o))
+    tokens = dict(TOKENS, **({o: owner_token(o) for o in owners} if a.team else {}))
     access = {"tokens": tokens, "access": {"ci": everything("read"), "verifier": everything("read"), "oracle": everything("write")}}
-    if a.team:      # each owner pushes to its own repository and reads the others: the same rule a solo agent's reading has
+    isolated = bool(a.team and info.get("isolated"))      # each owner has its own repository and cannot read the others'
+    if isolated:
+        access["access"].update({o: {o: "write"} for o in owners})
+    elif a.team:    # each owner pushes to its own repository and reads the others: the same rule a solo agent's reading has
         access["access"].update({o: dict(everything("read"), **{o: "write"}) for o in owners})
     else:
         access["access"]["solo"] = everything("write")
@@ -436,7 +455,8 @@ def main():
     # the kernel's containers are. The places the real feature could be fetched from are made unreachable by name.
     def seat(who):
         return {"depends_on": {"ci": {"condition": "service_healthy"}}, "extra_hosts": ["{}:0.0.0.0".format(h) for h in UNREACHABLE + tuple(info.get("unreachable", []))],
-                "environment": {"SEAT": who, "SEAT_TOKEN": tokens[who], "TEAM": ",".join(owners) if a.team else ""}}
+                "environment": dict({"SEAT": who, "SEAT_TOKEN": tokens[who], "TEAM": ",".join(owners) if a.team else ""},
+                                    **({"SEAT_ONLY": who} if isolated else {}))}
 
     services["main"] = seat(owners[0] if a.team else "solo")
     if a.team:      # the first owner sits at Harbor's own seat; every other owner gets one like it
@@ -461,7 +481,7 @@ def main():
     # ---- what the agent is told
     with open(os.path.join(out, "instruction.md"), "w") as f:
         f.write(INSTRUCTION.format(feature=info["feature"], parts=mc.statement(info, repos), done=info["done"]))
-    seat_notes(out, owners)        # role, permissions, tools and budget: apart from the brief, which is the same for every condition
+    seat_notes(out, owners, isolated=bool(info.get("isolated")))        # role, permissions, tools and budget: apart from the brief, which is the same for every condition
     with open(os.path.join(out, "task.toml"), "w") as f:
         f.write(TASK_TOML.format(slug=a.company.replace("_", "-") + ("-team" if a.team else ""), title=json.dumps(info["title"]), repositories=len(owners),
                                  source=json.dumps(info["source"]), memory=6144) + (MCP_TEAM if a.team else ""))
@@ -473,7 +493,7 @@ def main():
         target = mc.target_commit(clones[owner], repo)
         laid = tempfile.mkdtemp(prefix="harbor-tests-")
         put(clones[owner], target, mc.changed_tests(clones[owner], repo), laid)
-        fixes = os.path.join(REPO, "mined", a.company, "test_fixes.py")      # reviewed fixes to how upstream's tests check
+        fixes = mc.company_file(a.company, "test_fixes.py")      # reviewed fixes to how upstream's tests check
         if os.path.isfile(fixes):
             import importlib.util
             spec = importlib.util.spec_from_file_location("test_fixes_" + a.company, fixes)
@@ -500,8 +520,9 @@ def main():
         shutil.copy(os.path.join(REPO, where, name), tests)
     shutil.copy(os.path.join(REPO, "tools", "harbor_company_score.py"), os.path.join(tests, "score.py"))
     shutil.copy(os.path.join(REPO, "tools", "harbor_rubric.py"), os.path.join(tests, "rubric.py"))
-    with open(os.path.join(REPO, "mined", a.company, "rubric.toml")) as f, open(os.path.join(tests, "rubric.toml"), "w") as g:
-        g.write("# GENERATED by tools/export_harbor_company.py from mined/{}/rubric.toml. Do not edit: change the source and export again.\n".format(a.company) + f.read())
+    with open(mc.company_file(a.company, "rubric.toml")) as f, open(os.path.join(tests, "rubric.toml"), "w") as g:
+        g.write("# GENERATED by tools/export_harbor_company.py from {}. Do not edit: change the source and export again.\n".format(
+            os.path.relpath(mc.company_file(a.company, "rubric.toml"), REPO)) + f.read())
     if info.get("business"):      # the business outcome check, beside the reward: the two sides run together, in a browser
         shutil.copy(os.path.join(REPO, "tools", info["business"].get("driver", "harbor_business_check.py")), os.path.join(tests, "business.py"))
         shutil.copy(os.path.join(REPO, "tools", info["business"]["script"]), tests)

@@ -138,4 +138,6 @@ Validation without a model: the reference scores 1.0 and the start 0 on the judg
 
 The v3 runs were scored with 98 dashboard tests; the later fixes (a `oneOf` list in any order, the legacy filter
 path to a measure) would move solo's dashboard target from 84/98 to about 85/97 and the team's from 83/98 to about
-83/97. Their reviews are in `trajectories/<job>/REVIEW.md`. Repeated runs per condition are still to come.
+83/97. They also ran on an earlier rubric and brief: using what the API gained was a fit then (a factor of the reward), and the brief did not say that an error on
+saving an attribute is shown at that attribute, which is why both left `AccountError.attributes` unused. Their
+recorded rewards are that freeze's; each `run.json` names it. Their reviews are in `trajectories/<job>/REVIEW.md`. Repeated runs per condition are still to come.

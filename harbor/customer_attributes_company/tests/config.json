@@ -38,11 +38,14 @@
     "serve": "python manage.py runserver 0.0.0.0:8000",
     "url": "http://127.0.0.1:8000/graphql/",
     "live_url": "http://core:8000/graphql/",
-    "base_schema": "hidden/base_schema.graphql",
-    "usage": "hidden/usage.json"
+    "usage": "hidden/usage.json",
+    "base_schema": "hidden/base_schema.graphql"
   },
   "business": {
-    "core": "core",
-    "dashboard": "dashboard"
+    "roles": {
+      "core": "core",
+      "dashboard": "dashboard"
+    },
+    "script": "business_customer_tier.cjs"
   }
 }
