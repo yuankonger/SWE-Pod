@@ -16,6 +16,15 @@ What a run checks is what the company can see of itself, not what a feature is s
                        API really has (not against the consumer's own copy of it)
     <provider> answers what it gained   the API asked, as staff, for the fields it gained since CI first saw it
                        (sidecars/smoke_new_fields.cjs): an error in a resolver fails it
+A `lexicon` contract (Bluesky) is checked instead by
+    <provider> answers   the AppView, asked through the PDS as a seeded account (the network's status file, written
+                       by bsky_seed.mjs: the PDS's URL, the AppView's DID, the accounts), answers the contract's `ask`
+                       methods with 200
+    <consumer> calls     every AppView method the consumer's code calls is one the deployed AppView serves, read from
+                       both deployed sources (mined_lexicon_contract.py). Methods the consumer called at CI's first run
+                       that the AppView did not serve then are taken as another service's (the PDS's, chat's)
+    <consumer> copies    every lexicon the consumer vendors that the AppView has states what the AppView has; those
+                       that differed at CI's first run are left out
 A `websocket` contract (Home Assistant) is checked instead by
     <provider> answers   Home Assistant, asked as its owner over its WebSocket API (the token the provider's sidecar
                        wrote, `token`), answers the contract's `ask` commands
@@ -26,7 +35,8 @@ A `websocket` contract (Home Assistant) is checked instead by
                        types for that answer require
 
 CI = {"git": "http://name:token@git:8080", "repositories": [...], "contract": {"provider", "consumer", "url", "staff": [email, password]}
-      (or {"type": "websocket", "provider", "consumer", "url", "ask": [commands], "token": file}),
+      (or {"type": "websocket", "provider", "consumer", "url", "ask": [commands], "token": file},
+       or {"type": "lexicon", "provider", "consumer", "url", "network": status file, "ask": [methods]}),
       "serves": {name: url}}
 "systems": {repository: [the systems it holds]} where a repository holds more than the one of its own name.
 `contract` and `serves` are each optional. `serves`: a system that must answer 200 at its URL after a deploy.
@@ -39,6 +49,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -182,10 +193,78 @@ def together_websocket(contract):
     return checks
 
 
+def together_lexicon(contract):
+    """The AppView and the app tested against each other as they run now. Returns the checks."""
+    provider, consumer = contract["provider"], contract["consumer"]
+    os.makedirs(SCRATCH, exist_ok=True)
+    status = {}
+    for _ in range(100):      # the provider's sidecar writes the network's status once it has started and seeded it
+        try:
+            with open(contract["network"]) as f:
+                status = json.load(f)
+            break
+        except (OSError, ValueError):
+            time.sleep(3)
+    pds = contract["url"]      # the PDS, by the provider's name on the company's network
+    asked, detail = {}, "the network's status ({}) was not written".format(contract["network"])
+    if status:
+        try:
+            account = status["accounts"]["alice"]
+            body = json.dumps({"identifier": account["handle"], "password": account["password"]}).encode()
+            request = urllib.request.Request(pds + "/xrpc/com.atproto.server.createSession", data=body, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(request, timeout=20) as r:
+                session = json.load(r)
+            for method in contract["ask"]:
+                request = urllib.request.Request("{}/xrpc/{}".format(pds, method), headers={
+                    "Authorization": "Bearer " + session["accessJwt"], "atproto-proxy": status["appviewDid"] + "#bsky_appview"})
+                try:
+                    with urllib.request.urlopen(request, timeout=30) as r:
+                        asked[method] = r.status
+                except urllib.error.HTTPError as e:
+                    asked[method] = "{} {}".format(e.code, e.read()[:300].decode(errors="replace"))
+            detail = ", ".join("{}: {}".format(m, a) for m, a in asked.items())
+        except (OSError, ValueError, KeyError) as e:
+            detail = "could not sign in to the PDS as a seeded account: {}".format(e)
+    up = bool(asked) and all(a == 200 for a in asked.values())
+    checks = [{"name": provider + " answers", "ok": up, "detail": detail}]
+    tool = os.path.join(HERE, "mined_lexicon_contract.py")
+    read = {}
+    for side, owner in (("provider", provider), ("consumer", consumer)):
+        out_file = os.path.join(SCRATCH, side + "-lexicons.json")
+        code, out = sh(["python3", "-I", tool, side, os.path.join(DEPLOYED, owner), out_file], timeout=300)
+        if code != 0:
+            checks.append({"name": consumer + " calls", "ok": False, "detail": "could not read {}'s source: {}".format(owner, out[-500:])})
+            return checks
+        with open(out_file) as f:
+            read[side] = json.load(f)
+    served, calls = set(read["provider"]["served"]), read["consumer"]["calls"]
+    theirs, mine = read["provider"]["schemas"], read["consumer"]["schemas"]
+    differ = sorted(n for n in mine if n in theirs and mine[n] != theirs[n])
+    baseline = os.path.join(CLONES, "..", "lexicon-baseline.json")
+    if not os.path.isfile(baseline):      # the first run: what was not served, or differed, then is no part of this work
+        with open(baseline, "w") as f:
+            json.dump({"elsewhere": sorted(n for n in calls if n not in served), "differ": differ}, f)
+    with open(baseline) as f:
+        known = json.load(f)
+    unserved = {n: calls[n] for n in calls if n not in served and n not in known["elsewhere"]}
+    detail = "{} of {} AppView methods the app calls are ones {} serves".format(
+        sum(1 for n in calls if n in served), sum(1 for n in calls if n not in known["elsewhere"]), provider)
+    if unserved:
+        detail += "\n" + "\n".join("  {}: {}".format(n, ", ".join(f[:5])) for n, f in sorted(unserved.items())[:40])
+    checks.append({"name": consumer + " calls", "ok": not unserved, "detail": detail})
+    stale = [n for n in differ if n not in known["differ"]]
+    missing = [n for n in contract["ask"] if n in theirs and n not in mine]
+    checks.append({"name": consumer + " copies", "ok": not stale and not missing,
+                   "detail": "vendored copies that differ from {}'s: {}; asked-for lexicons not vendored: {}".format(provider, ", ".join(stale) or "none", ", ".join(missing) or "none")})
+    return checks
+
+
 def together(contract):
     """The systems tested against each other as they run now. Returns the checks: [{name, ok, detail}]."""
     if contract.get("type") == "websocket":
         return together_websocket(contract)
+    if contract.get("type") == "lexicon":
+        return together_lexicon(contract)
     provider, consumer, url = contract["provider"], contract["consumer"], contract["url"]
     checks = []
     up = answers(url)

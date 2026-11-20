@@ -1,0 +1,54 @@
+{
+ "id": "bsky_appview_grouped_notifications",
+ "title": "atproto AppView: grouped notifications (#5568, #5577, #5633, #5631, #5656)",
+ "repository": "https://github.com/bluesky-social/atproto",
+ "licence": "MIT OR Apache-2.0",
+ "language": "typescript",
+ "base": "91c357974f2c",
+ "base_recipe": {
+  "from": "647cb4125^",
+  "reverts": [
+   "dbb0bb54a",
+   "3cd9fa601",
+   "61c915a4b"
+  ],
+  "why": "#5631 (a pick) moves the profile hydrators and calls the profile-link code of #5615, which landed between the feature's first commit and it; picked on the commit before #5568 it does not apply. So the start is upstream on 9 October 2026, just before #5631, with the feature's three earlier commits (#5633, #5577, #5568) reverted. Its notification code and lexicons are identical to the commit before #5568 (cd736b3db)."
+ },
+ "picks": [
+  "61c915a4b",
+  "3cd9fa601",
+  "dbb0bb54a",
+  "647cb4125",
+  "388dac9f7"
+ ],
+ "source": "Five merged changes of 30 September to 14 October 2026, applied alone in order on the commit before the first: grouped notifications in the AppView with the getGroupedNotifications lexicon (#5568), a union array for related views (#5577), spotlighting extended to repost-related types (#5633), lighter profile hydration in the grouped views (#5631), and the parent of a subscribed reply (#5656). The five leave the lexicon exactly as social-app vendors it at #12012.",
+ "image": "mined-bsky-appview-grouped-notifications:1",
+ "directory": "atproto",
+ "deps": [
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc"
+ ],
+ "handed_over": [
+  "lexicons/app/bsky/notification/getGroupedNotifications.json",
+  "lexicons/app/bsky/authManageNotifications.json"
+ ],
+ "test_side": [
+  "(^|/)tests/",
+  "\\.test\\.ts$",
+  "(^|/)__snapshots__/"
+ ],
+ "test_command": "start-test-db && cd packages/bsky && pnpm exec vitest run --reporter=junit --outputFile=/out/report.xml",
+ "report": "junit",
+ "notes": "- Node 24 and pnpm 11, with the repository's locked dependencies in a local pnpm store. There is no internet: nothing new can be installed. Link them first: `pnpm install --offline --frozen-lockfile --store-dir /pnpm/atproto`.\n- Generated code is not committed. Before building or testing, generate it and build the TypeScript: `pnpm run prebuild` (lexicon and protobuf codegen) then `pnpm run build` (TypeScript and the OAuth UI bundle the servers load; a few minutes the first time). Rerun `prebuild` whenever you change a lexicon under `lexicons/` or `packages/bsky/proto/`.\n- The AppView's tests need Postgres and Redis. Start them with `start-test-db` (Postgres on 5433, Redis on 6380, the environment variables are already set), then run tests a file at a time from `packages/bsky`: `pnpm exec vitest run tests/views/notifications.test.ts`.\n- `packages/dev-env` runs a PDS and an AppView together for trying things by hand (`TestNetwork` in `packages/dev-env/src/network.ts`).\n- The lexicon of the new endpoint is given: `lexicons/app/bsky/notification/getGroupedNotifications.json`, with `app.bsky.authManageNotifications` granting it. It is the agreed contract with social-app: implement it as written.\n",
+ "setup": "start-test-db && pnpm install --offline --frozen-lockfile --store-dir /pnpm/atproto > /tmp/install.log 2>&1 && pnpm run prebuild > /tmp/codegen.log 2>&1 && pnpm run build > /tmp/build.log 2>&1",
+ "exact": [
+  "The data plane's protocol (`packages/bsky/proto/bsky.proto`, generated into `src/proto/bsky_pb.ts` by `pnpm run prebuild`) gains an rpc `GetNotificationsV2(GetNotificationsV2Request) returns (GetNotificationsV2Response)` on `Service`.",
+  "`message GetNotificationsV2Request { string actor_did = 1; int32 limit = 2; string cursor = 3; NotificationFeed feed = 4; }` and `message GetNotificationsV2Response { repeated Notification notifications = 1; string cursor = 2; }`, with the existing `Notification` message.",
+  "`enum NotificationFeed { NOTIFICATION_FEED_UNSPECIFIED = 0; NOTIFICATION_FEED_ALL = 1; NOTIFICATION_FEED_PEOPLE_I_FOLLOW = 2; NOTIFICATION_FEED_CONVERSATIONS = 3; NOTIFICATION_FEED_FOLLOWERS = 4; NOTIFICATION_FEED_ACTIVITY = 5; }`."
+ ],
+ "toolchain_paths": [
+  "/pnpm/atproto",
+  "/opt/corepack"
+ ]
+}

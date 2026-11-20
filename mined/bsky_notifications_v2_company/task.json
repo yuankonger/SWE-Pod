@@ -1,0 +1,72 @@
+{
+  "id": "bsky_notifications_v2_company",
+  "title": "Notifications v2 across Bluesky's AppView and its app (October 2026)",
+  "source": "Real changes to bluesky-social/atproto (MIT or Apache-2.0) and bluesky-social/social-app (MIT), 30 September to 14 October 2026",
+  "unreachable": [
+    "bsky.app",
+    "bsky.social",
+    "bsky.network",
+    "public.api.bsky.app",
+    "api.bsky.app",
+    "plc.directory",
+    "docs.bsky.app",
+    "atproto.com",
+    "lexicon.community",
+    "ozone.tools"
+  ],
+  "owners": {
+    "atproto": {
+      "task": "bsky_appview_grouped_notifications"
+    },
+    "social-app": {
+      "task": "social_app_notifications_v2"
+    }
+  },
+  "contracts": [
+    {
+      "type": "lexicon",
+      "provider": "atproto",
+      "consumer": "social-app",
+      "live_url": "http://atproto:2583",
+      "ask": [
+        "app.bsky.notification.getGroupedNotifications"
+      ]
+    }
+  ],
+  "overview": "The company runs Bluesky as two systems, each a repository of its own:\n- `atproto` (TypeScript monorepo): the protocol's servers. The one that matters here is the AppView (`packages/bsky`): it indexes the network and answers the app's queries, each an XRPC method named by a lexicon (`lexicons/`, e.g. `app.bsky.notification.listNotifications`). The PDS (`packages/pds`) holds accounts and proxies the app's AppView queries to it. `packages/dev-env` runs them all together.\n- `social-app` (TypeScript, React Native and Expo; web, iOS and Android): the Bluesky app. It vendors a copy of every lexicon it calls (`lexicons/`, listed in `lexicons.json`), generates its API types from that copy, and calls the AppView through the user's PDS.\nEach system runs in a container of its own. The containers can reach each other by system name: the PDS is at `http://atproto:2583`, the AppView at `http://atproto:2584`, and the app's web build at `http://social-app:8100`.",
+  "notes": {
+    "atproto": "",
+    "social-app": ""
+  },
+  "feature": "Notifications today are a flat list the app groups itself, one page at a time: likes on one post are folded together if they happen to land on the same page, and nothing else is. We want notifications grouped by the AppView, the same way for every client and across the whole history, and a redesigned Notifications screen in the app built on those groups.",
+  "description": "**In the AppView (atproto).** A new query, `app.bsky.notification.getGroupedNotifications`, returns the signed-in account's notifications already grouped for display. Its lexicon is agreed and given in the atproto repository (`lexicons/app/bsky/notification/getGroupedNotifications.json`, granted by `app.bsky.authManageNotifications`): implement it as written.\n\n- Feeds: `all`, `people-i-follow`, `conversations`, `followers` and `activity` select and group differently (follows are grouped in `all`, one per group in `followers`).\n- Groups: likes and reposts by several people of the same post; likes and reposts by one person of several posts; the same through the account's own reposts; follows; likes of a feed generator; new posts by accounts it subscribes to. Replies, quotes, mentions, follow-backs, verifications, starter-pack joins and contact matches stay single notifications.\n- A burst of activity on one post is spotlighted as a group of its own, for reposts and likes via reposts as well as likes.\n- Each group carries the views it needs to render (the post, the actors, the first ten items) as a typed union array, with basic profile and starter-pack views so that grouping stays cheap. A subscribed post that is a reply names its parent, whose view is included.\n- Groups are paged with a cursor and do not split at day boundaries; one request groups at one time throughout.\n\n**In the app (social-app).** Notifications v2: a redesigned Notifications screen built on the grouped query, behind the feature flag `notifications_v2:enable`, which internal builds turn on.\n\n1. The app vendors the new lexicon from the AppView and calls `getGroupedNotifications` for each tab.\n2. Tabs for the feeds, each with rows for every kind of group: who did what to which post, with avatars, a count of the rest, and the post or posts it is about; follow groups with follow-back buttons; single notifications with their post and the usual post controls.\n3. Rows can be expanded to show a group's items; unread rows are marked, and the screen marks notifications read only up to the newest one loaded.\n4. Tabs stay fresh across refreshes, switches and returns to the app, and stop paging after five empty pages.",
+  "done": "It is done when it is on `main` of both repositories and works there: the AppView starts in the dev network, and in an internal web build of the app a person signed in to the PDS sees, in the Notifications tab, the likes two other people gave their new post as one row naming both of them, and the three posts one of them liked as another. The tests each repository has today should still pass. Use the names and signatures in each repository's `INTERFACE.md`.",
+  "ci_start_timeout": 1500,
+  "deployed": {
+    "atproto": {
+      "prepare": "start-test-db && pnpm install --offline --frozen-lockfile --store-dir /pnpm/atproto > /tmp/install.log 2>&1 && pnpm run prebuild > /tmp/codegen.log 2>&1 && pnpm run build > /tmp/build.log 2>&1",
+      "start": "start-test-db && rm -f /deployed/status/atproto-network.json && exec node /opt/seedco/bsky_seed.mjs . /deployed/status/atproto-network.json",
+      "where": "the dev network from `packages/dev-env` as built from `main`: the PDS at `http://atproto:2583`, the AppView at `http://atproto:2584` (PLC at 2582), on a fresh database each deploy, with three accounts (`alice.test`, `bob.test`, `carla.test`, password `hunter2`) who follow each other, Alice's four posts and Bob's and Carla's likes of them. `/deployed/status/atproto-network.json` has the AppView's DID, which an app sends in `atproto-proxy`. A deploy builds and starts it again (about five minutes)."
+    },
+    "social-app": {
+      "prepare": "pnpm install --offline --frozen-lockfile --store-dir /pnpm/social-app > /tmp/install.log 2>&1 && pnpm intl:compile > /tmp/intl.log 2>&1 && for i in $(seq 1 120); do [ -f /deployed/status/atproto-network.json ] && break; sleep 10; done && rm -rf dist && EXPO_PUBLIC_ENV=testflight EXPO_PUBLIC_BLUESKY_PROXY_DID=did:plc:seedcocheckappview0000000000 pnpm exec expo export --platform web --output-dir dist > /tmp/web-build.log 2>&1 && grep -rl did:plc:seedcocheckappview0000000000 dist | xargs sed -i \"s/did:plc:seedcocheckappview0000000000/$(python3 -c 'import json;print(json.load(open(\"/deployed/status/atproto-network.json\"))[\"appviewDid\"])')/g\"",
+      "start": "exec python3 /opt/seedco/bsky_serve_web.py dist 8100",
+      "where": "an internal web build of the app (`EXPO_PUBLIC_ENV=testflight`, so internal-only features are on), made from `main` and served at `http://social-app:8100`, set to send its AppView calls to the dev network's AppView. A deploy builds it again (about a minute and a half after the dependencies)."
+    }
+  },
+  "business": {
+    "driver": "harbor_business_bsky.py",
+    "script": "business_bsky_notifications_v2.cjs",
+    "roles": {
+      "atproto": "atproto",
+      "social-app": "social-app"
+    },
+    "browser_install": "RUN mkdir -p /opt/playwright && cd /opt/playwright && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1.55.0 \\\n    && PLAYWRIGHT_BROWSERS_PATH=/opt/playwright/browsers npx playwright install --with-deps chromium && chmod -R a+rX /opt/playwright && rm -rf /var/lib/apt/lists/* /root/.npm\nENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright/browsers\n"
+  },
+  "env": {
+    "atproto": {
+      "NODE_PATH": "/opt/playwright/node_modules"
+    },
+    "social-app": {}
+  }
+}

@@ -1,0 +1,42 @@
+{
+ "packages/bsky/src/api/app/bsky/notification/constants.ts": {
+  "exists_at_base": false,
+  "names": {
+   "APPVIEW_NOTIFICATION_REASON": "export const APPVIEW_NOTIFICATION_REASON =",
+   "DataplaneNotificationReason": "export type DataplaneNotificationReason = (typeof NOTIFICATION_REASON)[keyof typeof NOTIFICATION_REASON]",
+   "NOTIFICATION_REASON": "export const NOTIFICATION_REASON ="
+  },
+  "changed": {}
+ },
+ "packages/bsky/src/api/app/bsky/notification/getGroupedNotifications.ts": {
+  "exists_at_base": false,
+  "names": {
+   "getNextRawLimit": "export const getNextRawLimit = ( itemsFetched: number, groupsBuilt: number, groupsNeeded: number, ): number => ..."
+  },
+  "changed": {}
+ },
+ "packages/bsky/src/api/app/bsky/notification/grouping/grouping.ts": {
+  "exists_at_base": false,
+  "names": {
+   "NotificationGroup": "export type NotificationGroup = { id: string kind: AppviewNotificationReason groupingKey: string actorDids: DidString[] itemCount: number indexedAt: DatetimeString firstIndexedAt: DatetimeString isRead: boolean items: NotificationItem[] }",
+   "NotificationItem": "export type NotificationItem = { raw: RawNotification id: string groupingKey: string actorDid: DidString }",
+   "buildGroups": "export const buildGroups = ( items: NotificationItem[], limit: number, now: number, seenAt: number | undefined, algorithm: NotificationsV2Algorithm, feed = NotificationFeed.ALL, ): GroupingResult => ... ; export type NotificationItem = { raw: RawNotification id: string groupingKey: string actorDid: DidString } ; export type GroupingResult = { groups: NotificationGroup[] cursor?: string }",
+   "parseRawNotification": "export function parseRawNotification( notification: Notification, ): RawNotification | undefined ; type Notification, ; export type RawNotification = { recipientDid: DidString uri: AtUriString indexedAt: DatetimeString } & ( | { reason: DataplaneNotificationReasonWithSubject reasonSubject: AtUriString } | { reason: Exclude< DataplaneNotificationReason, DataplaneNotificationReasonWithSubject > reasonSubject: undefined } )"
+  },
+  "changed": {}
+ },
+ "packages/bsky/src/api/app/bsky/notification/grouping/spotlight.ts": {
+  "exists_at_base": false,
+  "names": {
+   "buildSpotlight": "export function buildSpotlight( items: NotificationItem[], groups: NotificationGroup[], cursor: string | undefined, limit: number, seenAt: number | undefined, ): GroupingResult"
+  },
+  "changed": {}
+ },
+ "packages/bsky/src/api/app/bsky/notification/util.ts": {
+  "exists_at_base": true,
+  "names": {
+   "delayCursor": "export const delayCursor = ( cursorStr: string | undefined, delayMs: number, ): string => ..."
+  },
+  "changed": {}
+ }
+}
