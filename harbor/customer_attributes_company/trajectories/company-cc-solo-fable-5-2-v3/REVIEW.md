@@ -73,4 +73,4 @@ team seats worked 72 and 54 minutes.
 
 ## Freeze
 
-Scored on freeze cc9d88cd4f2ae522 with that freeze's rubric (reward 0.8777). The task has since been frozen again as 1c6d5017defbb767: the unused-API-field check became a weighted target (0.5) instead of a factor, and two dashboard test defects were fixed. Under the current rubric this run would score about 0.956; that figure is recalculated by hand from this run's criteria, not a judge's output.
+Scored on freeze cc9d88cd4f2ae522 with that freeze's rubric (reward 0.8777). The task has since been frozen again as 6b4e27a136a64524: the unused-API-field check became a weighted target (0.5) instead of a factor, two dashboard test defects were fixed, and the brief now says that an error on saving an attribute is shown at that attribute. Under the current rubric this run would score about 0.956; that figure is recalculated by hand from this run's criteria, not a judge's output.

@@ -163,7 +163,7 @@
   "model_requests_refused": 1
  },
  "review": "REVIEW.md",
- "task_frozen_now": "1c6d5017defbb767",
+ "task_frozen_now": "6b4e27a136a64524",
  "ran_on_current_freeze": false,
  "note": "This run was scored on an earlier freeze of the task; its reward follows that freeze's rubric and is not comparable with runs on the current one. See the task's DATASHEET.md."
 }

@@ -1,0 +1,1 @@
+export { DiscountProducts } from "./DiscountProducts";
