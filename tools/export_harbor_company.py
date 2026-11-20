@@ -238,7 +238,7 @@ CI_CHECKS = {
 CONTRACT_TOOLS = {
     "graphql": [("tools", "mined_graphql_agreement.cjs"), ("sidecars", "fetch_schema.cjs")],
     "websocket": [("tools", "ha_seed.py"), ("tools", "mined_ws_contract.py"), ("tools", "mined_ws_agreement.cjs")],
-    "lexicon": [("tools", "mined_lexicon_contract.py"), ("tools", "bsky_seed.mjs")],
+    "lexicon": [("tools", "mined_lexicon_contract.py"), ("tools", "bsky_seed.mjs"), ("tools", "bsky_serve_web.py")],
 }
 ENDING = ("Ending: when you stop, the work stops. Anything you left running is ended with you, and only what is on `main` "
           "by then counts.")
@@ -413,7 +413,9 @@ def main():
         "ci": {"build": build, "command": ["python3", "/opt/seedco/ci.py"], "volumes": ["deployed:/deployed"],
                "environment": {"CI": json.dumps({"git": git_url("ci"), "repositories": owners, "start_timeout": info.get("ci_start_timeout", 600), "contract": dict(
                    {"type": kind, "provider": contract["provider"], "consumer": contract["consumer"], "url": contract["live_url"]},
-                   **({"staff": ["admin@example.com", "admin"]} if kind == "graphql" else {"ask": contract["ask"], "token": "/deployed/status/{}-token".format(contract["provider"])}))})},
+                   **({"staff": ["admin@example.com", "admin"]} if kind == "graphql" else
+                      {"ask": contract["ask"], "network": "/deployed/status/{}-network.json".format(contract["provider"])} if kind == "lexicon" else
+                      {"ask": contract["ask"], "token": "/deployed/status/{}-token".format(contract["provider"])}))})},
                "depends_on": {"git": {"condition": "service_healthy"}},
                "healthcheck": {"test": ["CMD-SHELL", "curl -sf http://127.0.0.1:8080/ready > /dev/null"], "interval": "10s", "timeout": "8s", "retries": 90, "start_period": "600s"}},
     }

@@ -1,0 +1,1737 @@
+[
+ {
+  "sa": "ad69752ae",
+  "date": "2026-11-17",
+  "subject": "[APP-3864] Send interactionFollow when following a feed item's author (#12447)",
+  "nsids": [
+   "app.bsky.feed.defs"
+  ],
+  "sa_size": {
+   "src": 100,
+   "test": 81,
+   "test_files": 2,
+   "lex": 5,
+   "files": 12,
+   "pkgs": []
+  },
+  "atproto": []
+ },
+ {
+  "sa": "a9bb165cb",
+  "date": "2026-11-17",
+  "subject": "[APP-3777] Update @bsky/sdk to 1.4.0 and the feed lexicons (#12441)",
+  "nsids": [
+   "app.bsky.actor.defs",
+   "app.bsky.actor.profile",
+   "app.bsky.feed.defs",
+   "app.bsky.feed.getAuthorFeed"
+  ],
+  "sa_size": {
+   "src": 2,
+   "test": 0,
+   "test_files": 0,
+   "lex": 56,
+   "files": 1,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "d70b673be",
+    "date": "2026-10-09",
+    "subject": "Add profile link record lexicons (#5610)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 71,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "f88250427",
+    "date": "2026-10-13",
+    "subject": "Hydrate labels on profile link records (#5647)",
+    "size": {
+     "src": 47,
+     "test": 550,
+     "test_files": 3,
+     "lex": 11,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "7bada4b9a",
+  "date": "2026-11-13",
+  "subject": "Integrate getAtmosphereRecommendedActivity (#12415)",
+  "nsids": [
+   "app.bsky.unspecced.getAtmosphereRecommendedActivity"
+  ],
+  "sa_size": {
+   "src": 253,
+   "test": 534,
+   "test_files": 3,
+   "lex": 57,
+   "files": 7,
+   "pkgs": []
+  },
+  "atproto": []
+ },
+ {
+  "sa": "2ce37d03e",
+  "date": "2026-11-12",
+  "subject": "Activity feed v2 (#12407)",
+  "nsids": [
+   "app.bsky.embed.external",
+   "app.bsky.unspecced.getAtmosphereTimeline",
+   "app.bsky.unspecced.getAtmosphereTimelineV2"
+  ],
+  "sa_size": {
+   "src": 401,
+   "test": 455,
+   "test_files": 5,
+   "lex": 433,
+   "files": 13,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "648f7c9eb",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add canonical external embed modality view schemas (#5599)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 219,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ },
+ {
+  "sa": "1917863c9",
+  "date": "2026-11-12",
+  "subject": "Activity feed (#12403)",
+  "nsids": [
+   "app.bsky.embed.external",
+   "app.bsky.unspecced.getAtmosphereApps",
+   "app.bsky.unspecced.getAtmosphereExploreTab",
+   "app.bsky.unspecced.getAtmosphereRecordViews",
+   "app.bsky.unspecced.getAtmosphereTimeline",
+   "site.standard.graph.recommend",
+   "site.standard.graph.subscription"
+  ],
+  "sa_size": {
+   "src": 2537,
+   "test": 1871,
+   "test_files": 17,
+   "lex": 415,
+   "files": 64,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "648f7c9eb",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add canonical external embed modality view schemas (#5599)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 219,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "94e3838ea",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add Atmosphere Explore tab endpoint (#5617)",
+    "size": {
+     "src": 370,
+     "test": 719,
+     "test_files": 1,
+     "lex": 136,
+     "files": 5,
+     "pkgs": [
+      "bsky",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "fd62be571",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Install initially supported Atmosphere lexicons (#5603)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 1169,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ },
+ {
+  "sa": "2da6ecf83",
+  "date": "2026-11-11",
+  "subject": "Atmo explore tab design tweaks (#12388)",
+  "nsids": [
+   "app.bsky.embed.external"
+  ],
+  "sa_size": {
+   "src": 1042,
+   "test": 2048,
+   "test_files": 10,
+   "lex": 19,
+   "files": 43,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "648f7c9eb",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add canonical external embed modality view schemas (#5599)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 219,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ },
+ {
+  "sa": "b43bf4c9c",
+  "date": "2026-11-06",
+  "subject": "Atmosphere explore tab improvements (#12322)",
+  "nsids": [
+   "app.bsky.unspecced.getAtmosphereExploreTab",
+   "community.lexicon.location.address",
+   "community.lexicon.location.hthree",
+   "place.stream.badge.defs",
+   "place.stream.chat.defs",
+   "place.stream.chat.pinnedRecord",
+   "place.stream.chat.profile",
+   "place.stream.defs",
+   "place.stream.livestream",
+   "site.standard.document",
+   "site.standard.publication",
+   "site.standard.theme.basic",
+   "site.standard.theme.color",
+   "social.grain.defs",
+   "social.grain.gallery",
+   "social.grain.photo"
+  ],
+  "sa_size": {
+   "src": 3194,
+   "test": 2658,
+   "test_files": 21,
+   "lex": 1314,
+   "files": 71,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "94e3838ea",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add Atmosphere Explore tab endpoint (#5617)",
+    "size": {
+     "src": 370,
+     "test": 719,
+     "test_files": 1,
+     "lex": 136,
+     "files": 5,
+     "pkgs": [
+      "bsky",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "fd62be571",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Install initially supported Atmosphere lexicons (#5603)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 1169,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "f98b78adb",
+    "date": "2026-10-15",
+    "subject": "Allow installing local files (based on file:// uris) using lex-install (#5591)",
+    "size": {
+     "src": 13126,
+     "test": 1550,
+     "test_files": 14,
+     "lex": 34113,
+     "files": 370,
+     "pkgs": [
+      "api",
+      "bsky",
+      "internal/fetch",
+      "lex-cli/src",
+      "lex/lex",
+      "lex/lex-builder",
+      "lex/lex-client",
+      "lex/lex-installer",
+      "lex/lex-password-session",
+      "lex/lex-resolver",
+      "lex/lex-rpc",
+      "lex/lex-schema",
+      "lex/lex-server",
+      "lex/{lex-client => lex-rpc}",
+      "lex/{lex-resolver",
+      "lexicon-resolver",
+      "oauth/oauth-client-browser-example",
+      "ozone",
+      "pds",
+      "pds/src",
+      "pds/tests",
+      "sync",
+      "syntax/src"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "9f51522a3",
+  "date": "2026-11-03",
+  "subject": "Add Atmosphere Apps tab with category filters (#12288)",
+  "nsids": [
+   "app.bsky.unspecced.getAtmosphereApps"
+  ],
+  "sa_size": {
+   "src": 350,
+   "test": 809,
+   "test_files": 5,
+   "lex": 99,
+   "files": 13,
+   "pkgs": []
+  },
+  "atproto": []
+ },
+ {
+  "sa": "124fc2557",
+  "date": "2026-10-23",
+  "subject": "\ud83c\udf0e Atmosphere explore tab (#12188)",
+  "nsids": [
+   "app.bsky.embed.external",
+   "app.bsky.embed.getEmbedExternalView",
+   "app.bsky.unspecced.getAtmosphereExploreTab"
+  ],
+  "sa_size": {
+   "src": 1608,
+   "test": 2446,
+   "test_files": 11,
+   "lex": 579,
+   "files": 42,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "648f7c9eb",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add canonical external embed modality view schemas (#5599)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 219,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "94e3838ea",
+    "date": "2026-10-08",
+    "subject": "\ud83c\udf0e Add Atmosphere Explore tab endpoint (#5617)",
+    "size": {
+     "src": 370,
+     "test": 719,
+     "test_files": 1,
+     "lex": 136,
+     "files": 5,
+     "pkgs": [
+      "bsky",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "5e0e11db6",
+    "date": "2026-10-11",
+    "subject": "\ud83c\udf0e Update `getEmbedExternalView` to use new hydration methods (#5636)",
+    "size": {
+     "src": 452,
+     "test": 1440,
+     "test_files": 4,
+     "lex": 36,
+     "files": 12,
+     "pkgs": [
+      "bsky",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "4c4211255",
+  "date": "2026-10-14",
+  "subject": "APP-3450: Read subscribed post parents from the grouped notifications lexicon (#12012)",
+  "nsids": [
+   "app.bsky.notification.getGroupedNotifications",
+   "tools.ozone.inbox.defs",
+   "tools.ozone.inbox.getNotificationPreferences",
+   "tools.ozone.inbox.putNotificationPreferences",
+   "tools.ozone.queue.defs",
+   "tools.ozone.report.defs"
+  ],
+  "sa_size": {
+   "src": 26,
+   "test": 56,
+   "test_files": 1,
+   "lex": 157,
+   "files": 3,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "7a8579897",
+    "date": "2026-09-25",
+    "subject": "stats: report lifecycle statistics (#5362)",
+    "size": {
+     "src": 802,
+     "test": 854,
+     "test_files": 2,
+     "lex": 102,
+     "files": 11,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "136e2145b",
+    "date": "2026-09-28",
+    "subject": "ozone/mod-inbox: New endpoint for appeals that integrates with queues (#5459)",
+    "size": {
+     "src": 1414,
+     "test": 1864,
+     "test_files": 5,
+     "lex": 279,
+     "files": 20,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests",
+      "pds/src",
+      "pds/tests"
+     ]
+    }
+   },
+   {
+    "c": "61c915a4b",
+    "date": "2026-09-30",
+    "subject": "notifications v2 (#5568)",
+    "size": {
+     "src": 1865,
+     "test": 1718,
+     "test_files": 4,
+     "lex": 360,
+     "files": 27,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "3cd9fa601",
+    "date": "2026-10-01",
+    "subject": "notifications v2: use union array for related views (#5577)",
+    "size": {
+     "src": 52,
+     "test": 434,
+     "test_files": 1,
+     "lex": 28,
+     "files": 6,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "38e2dc8ee",
+    "date": "2026-10-05",
+    "subject": "ozone: add report activity on unassign (#5558)",
+    "size": {
+     "src": 180,
+     "test": 294,
+     "test_files": 1,
+     "lex": 17,
+     "files": 3,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "38b10d1b8",
+    "date": "2026-10-07",
+    "subject": "Add moderation inbox notification endpoints (#5551)",
+    "size": {
+     "src": 1035,
+     "test": 1104,
+     "test_files": 5,
+     "lex": 376,
+     "files": 36,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "3013430ed",
+    "date": "2026-10-07",
+    "subject": "ozone/mod-inbox: viewer read endpoints (#5550)",
+    "size": {
+     "src": 1668,
+     "test": 1671,
+     "test_files": 8,
+     "lex": 556,
+     "files": 42,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests",
+      "pds/src"
+     ]
+    }
+   },
+   {
+    "c": "f06932715",
+    "date": "2026-10-08",
+    "subject": "ozone: report closure target (#5581)",
+    "size": {
+     "src": 187,
+     "test": 755,
+     "test_files": 2,
+     "lex": 69,
+     "files": 8,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "b023046f9",
+    "date": "2026-10-08",
+    "subject": "ozone: report priority levels (#5579)",
+    "size": {
+     "src": 338,
+     "test": 557,
+     "test_files": 2,
+     "lex": 25,
+     "files": 13,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "647cb4125",
+    "date": "2026-10-09",
+    "subject": "Reduce unnecessary profile hydration (APP-3339) (#5631)",
+    "size": {
+     "src": 385,
+     "test": 188,
+     "test_files": 2,
+     "lex": 4,
+     "files": 11,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "dbb0bb54a",
+    "date": "2026-10-09",
+    "subject": "Extend notification spotlighting to repost-related types (#5633)",
+    "size": {
+     "src": 266,
+     "test": 516,
+     "test_files": 1,
+     "lex": 68,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "7184ed744",
+    "date": "2026-10-13",
+    "subject": "Add per-category moderation inbox notification preferences (#5641)",
+    "size": {
+     "src": 79,
+     "test": 191,
+     "test_files": 1,
+     "lex": 32,
+     "files": 6,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "388dac9f7",
+    "date": "2026-10-14",
+    "subject": "Name the parent of a subscribed reply in grouped notifications (APP-3450) (#5656)",
+    "size": {
+     "src": 2,
+     "test": 56,
+     "test_files": 1,
+     "lex": 7,
+     "files": 3,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "8b84c1481",
+    "date": "2026-10-14",
+    "subject": "Shorten appeal outcome lexicon description (#5650)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 2,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "2db2f9d9c",
+    "date": "2026-10-14",
+    "subject": "Expose approved and denied moderation inbox appeal outcomes (#5642)",
+    "size": {
+     "src": 235,
+     "test": 370,
+     "test_files": 1,
+     "lex": 10,
+     "files": 9,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "e5b866596",
+  "date": "2026-10-14",
+  "subject": "Add shared plumbing for profile links (#11866)",
+  "nsids": [
+   "app.bsky.actor.defs",
+   "app.bsky.actor.link",
+   "app.bsky.actor.profile"
+  ],
+  "sa_size": {
+   "src": 99,
+   "test": 0,
+   "test_files": 0,
+   "lex": 111,
+   "files": 8,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "f0d4877a0",
+    "date": "2026-09-03",
+    "subject": "Add `updatedAt` to interests preference (#5481)",
+    "size": {
+     "src": 21,
+     "test": 16,
+     "test_files": 1,
+     "lex": 5,
+     "files": 3,
+     "pkgs": [
+      "api/src",
+      "api/tests"
+     ]
+    }
+   },
+   {
+    "c": "d70b673be",
+    "date": "2026-10-09",
+    "subject": "Add profile link record lexicons (#5610)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 71,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "f88250427",
+    "date": "2026-10-13",
+    "subject": "Hydrate labels on profile link records (#5647)",
+    "size": {
+     "src": 47,
+     "test": 550,
+     "test_files": 3,
+     "lex": 11,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "a8c7c43af",
+  "date": "2026-10-12",
+  "subject": "APP-3324: Bring Notifications v2 up to the new design sizes and badge icons (#11952)",
+  "nsids": [
+   "app.bsky.notification.getGroupedNotifications"
+  ],
+  "sa_size": {
+   "src": 635,
+   "test": 73,
+   "test_files": 2,
+   "lex": 122,
+   "files": 32,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "61c915a4b",
+    "date": "2026-09-30",
+    "subject": "notifications v2 (#5568)",
+    "size": {
+     "src": 1865,
+     "test": 1718,
+     "test_files": 4,
+     "lex": 360,
+     "files": 27,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "3cd9fa601",
+    "date": "2026-10-01",
+    "subject": "notifications v2: use union array for related views (#5577)",
+    "size": {
+     "src": 52,
+     "test": 434,
+     "test_files": 1,
+     "lex": 28,
+     "files": 6,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "647cb4125",
+    "date": "2026-10-09",
+    "subject": "Reduce unnecessary profile hydration (APP-3339) (#5631)",
+    "size": {
+     "src": 385,
+     "test": 188,
+     "test_files": 2,
+     "lex": 4,
+     "files": 11,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "dbb0bb54a",
+    "date": "2026-10-09",
+    "subject": "Extend notification spotlighting to repost-related types (#5633)",
+    "size": {
+     "src": 266,
+     "test": 516,
+     "test_files": 1,
+     "lex": 68,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "91592bfc2",
+  "date": "2026-10-12",
+  "subject": "Notifications V2 (#11933)",
+  "nsids": [
+   "app.bsky.notification.getGroupedNotifications"
+  ],
+  "sa_size": {
+   "src": 9907,
+   "test": 1817,
+   "test_files": 7,
+   "lex": 546,
+   "files": 66,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "61c915a4b",
+    "date": "2026-09-30",
+    "subject": "notifications v2 (#5568)",
+    "size": {
+     "src": 1865,
+     "test": 1718,
+     "test_files": 4,
+     "lex": 360,
+     "files": 27,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "3cd9fa601",
+    "date": "2026-10-01",
+    "subject": "notifications v2: use union array for related views (#5577)",
+    "size": {
+     "src": 52,
+     "test": 434,
+     "test_files": 1,
+     "lex": 28,
+     "files": 6,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "647cb4125",
+    "date": "2026-10-09",
+    "subject": "Reduce unnecessary profile hydration (APP-3339) (#5631)",
+    "size": {
+     "src": 385,
+     "test": 188,
+     "test_files": 2,
+     "lex": 4,
+     "files": 11,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "dbb0bb54a",
+    "date": "2026-10-09",
+    "subject": "Extend notification spotlighting to repost-related types (#5633)",
+    "size": {
+     "src": 266,
+     "test": 516,
+     "test_files": 1,
+     "lex": 68,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "8b0e6a067",
+  "date": "2026-10-09",
+  "subject": "Revert noty v2 for now (#11932)",
+  "nsids": [
+   "app.bsky.notification.getGroupedNotifications"
+  ],
+  "sa_size": {
+   "src": 9907,
+   "test": 1817,
+   "test_files": 7,
+   "lex": 546,
+   "files": 66,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "61c915a4b",
+    "date": "2026-09-30",
+    "subject": "notifications v2 (#5568)",
+    "size": {
+     "src": 1865,
+     "test": 1718,
+     "test_files": 4,
+     "lex": 360,
+     "files": 27,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "3cd9fa601",
+    "date": "2026-10-01",
+    "subject": "notifications v2: use union array for related views (#5577)",
+    "size": {
+     "src": 52,
+     "test": 434,
+     "test_files": 1,
+     "lex": 28,
+     "files": 6,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "647cb4125",
+    "date": "2026-10-09",
+    "subject": "Reduce unnecessary profile hydration (APP-3339) (#5631)",
+    "size": {
+     "src": 385,
+     "test": 188,
+     "test_files": 2,
+     "lex": 4,
+     "files": 11,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "dbb0bb54a",
+    "date": "2026-10-09",
+    "subject": "Extend notification spotlighting to repost-related types (#5633)",
+    "size": {
+     "src": 266,
+     "test": 516,
+     "test_files": 1,
+     "lex": 68,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "2173a1930",
+  "date": "2026-10-09",
+  "subject": "APP-3310: Notifications v2 notification rows (#11913)",
+  "nsids": [
+   "app.bsky.notification.getGroupedNotifications"
+  ],
+  "sa_size": {
+   "src": 6824,
+   "test": 1306,
+   "test_files": 5,
+   "lex": 546,
+   "files": 44,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "61c915a4b",
+    "date": "2026-09-30",
+    "subject": "notifications v2 (#5568)",
+    "size": {
+     "src": 1865,
+     "test": 1718,
+     "test_files": 4,
+     "lex": 360,
+     "files": 27,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "3cd9fa601",
+    "date": "2026-10-01",
+    "subject": "notifications v2: use union array for related views (#5577)",
+    "size": {
+     "src": 52,
+     "test": 434,
+     "test_files": 1,
+     "lex": 28,
+     "files": 6,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "647cb4125",
+    "date": "2026-10-09",
+    "subject": "Reduce unnecessary profile hydration (APP-3339) (#5631)",
+    "size": {
+     "src": 385,
+     "test": 188,
+     "test_files": 2,
+     "lex": 4,
+     "files": 11,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "dbb0bb54a",
+    "date": "2026-10-09",
+    "subject": "Extend notification spotlighting to repost-related types (#5633)",
+    "size": {
+     "src": 266,
+     "test": 516,
+     "test_files": 1,
+     "lex": 68,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "d36c5924c",
+  "date": "2026-10-09",
+  "subject": "Add OP thread metadata to embedded records (#11910)",
+  "nsids": [
+   "app.bsky.embed.record"
+  ],
+  "sa_size": {
+   "src": 19,
+   "test": 0,
+   "test_files": 0,
+   "lex": 8,
+   "files": 1,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "2ee3a27d7",
+    "date": "2026-10-08",
+    "subject": "Add OP thread metadata to embedded records (#5622)",
+    "size": {
+     "src": 16,
+     "test": 28,
+     "test_files": 1,
+     "lex": 8,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "8476b20e5",
+  "date": "2026-10-08",
+  "subject": "Add Ozone inbox lexicons to social app (#11839)",
+  "nsids": [
+   "app.bsky.embed.record",
+   "com.atproto.server.describeServer",
+   "com.atproto.server.getServiceAuth",
+   "tools.ozone.inbox.appealActionedSubject",
+   "tools.ozone.inbox.defs",
+   "tools.ozone.inbox.getAccountStatus",
+   "tools.ozone.inbox.getActionedSubject",
+   "tools.ozone.inbox.getNotificationPreferences",
+   "tools.ozone.inbox.getReport",
+   "tools.ozone.inbox.getUnreadCount",
+   "tools.ozone.inbox.listActionedSubjects",
+   "tools.ozone.inbox.listNotifications",
+   "tools.ozone.inbox.listReports",
+   "tools.ozone.inbox.putNotificationPreferences",
+   "tools.ozone.inbox.updateSeen",
+   "tools.ozone.moderation.defs",
+   "tools.ozone.queue.defs",
+   "tools.ozone.report.defs",
+   "tools.ozone.server.getCapabilities",
+   "tools.ozone.team.defs"
+  ],
+  "sa_size": {
+   "src": 4,
+   "test": 0,
+   "test_files": 0,
+   "lex": 3703,
+   "files": 1,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "7a8579897",
+    "date": "2026-09-25",
+    "subject": "stats: report lifecycle statistics (#5362)",
+    "size": {
+     "src": 802,
+     "test": 854,
+     "test_files": 2,
+     "lex": 102,
+     "files": 11,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "136e2145b",
+    "date": "2026-09-28",
+    "subject": "ozone/mod-inbox: New endpoint for appeals that integrates with queues (#5459)",
+    "size": {
+     "src": 1414,
+     "test": 1864,
+     "test_files": 5,
+     "lex": 279,
+     "files": 20,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests",
+      "pds/src",
+      "pds/tests"
+     ]
+    }
+   },
+   {
+    "c": "38e2dc8ee",
+    "date": "2026-10-05",
+    "subject": "ozone: add report activity on unassign (#5558)",
+    "size": {
+     "src": 180,
+     "test": 294,
+     "test_files": 1,
+     "lex": 17,
+     "files": 3,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "38b10d1b8",
+    "date": "2026-10-07",
+    "subject": "Add moderation inbox notification endpoints (#5551)",
+    "size": {
+     "src": 1035,
+     "test": 1104,
+     "test_files": 5,
+     "lex": 376,
+     "files": 36,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "3013430ed",
+    "date": "2026-10-07",
+    "subject": "ozone/mod-inbox: viewer read endpoints (#5550)",
+    "size": {
+     "src": 1668,
+     "test": 1671,
+     "test_files": 8,
+     "lex": 556,
+     "files": 42,
+     "pkgs": [
+      "ozone",
+      "ozone/src",
+      "ozone/tests",
+      "pds/src"
+     ]
+    }
+   },
+   {
+    "c": "2ee3a27d7",
+    "date": "2026-10-08",
+    "subject": "Add OP thread metadata to embedded records (#5622)",
+    "size": {
+     "src": 16,
+     "test": 28,
+     "test_files": 1,
+     "lex": 8,
+     "files": 5,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "f06932715",
+    "date": "2026-10-08",
+    "subject": "ozone: report closure target (#5581)",
+    "size": {
+     "src": 187,
+     "test": 755,
+     "test_files": 2,
+     "lex": 69,
+     "files": 8,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   },
+   {
+    "c": "b023046f9",
+    "date": "2026-10-08",
+    "subject": "ozone: report priority levels (#5579)",
+    "size": {
+     "src": 338,
+     "test": 557,
+     "test_files": 2,
+     "lex": 25,
+     "files": 13,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "1dba11a63",
+  "date": "2026-10-01",
+  "subject": "Quotes: Top / Latest tabs (#11771)",
+  "nsids": [
+   "app.bsky.feed.getQuotes"
+  ],
+  "sa_size": {
+   "src": 323,
+   "test": 0,
+   "test_files": 0,
+   "lex": 8,
+   "files": 7,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "b3d7c3391",
+    "date": "2026-09-28",
+    "subject": "Add sort parameter to app.bsky.feed.getQuotes (#5552)",
+    "size": {
+     "src": 2,
+     "test": 46,
+     "test_files": 1,
+     "lex": 7,
+     "files": 3,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "ada1bb896",
+  "date": "2026-09-30",
+  "subject": "Send appeals through Ozone inbox endpoint (#11770)",
+  "nsids": [
+   "tools.ozone.inbox.appealActionedSubject",
+   "tools.ozone.inbox.defs"
+  ],
+  "sa_size": {
+   "src": 42,
+   "test": 0,
+   "test_files": 0,
+   "lex": 260,
+   "files": 5,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "136e2145b",
+    "date": "2026-09-28",
+    "subject": "ozone/mod-inbox: New endpoint for appeals that integrates with queues (#5459)",
+    "size": {
+     "src": 1414,
+     "test": 1864,
+     "test_files": 5,
+     "lex": 279,
+     "files": 20,
+     "pkgs": [
+      "ozone/src",
+      "ozone/tests",
+      "pds/src",
+      "pds/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "bbc07f6e8",
+  "date": "2026-09-29",
+  "subject": "APP-3139: update installed lexicons (#11815)",
+  "nsids": [
+   "app.bsky.actor.defs",
+   "app.bsky.feed.defs",
+   "app.bsky.feed.getListFeed",
+   "app.bsky.feed.getTimeline",
+   "app.bsky.notification.getUnreadCount",
+   "app.bsky.notification.listNotifications",
+   "chat.bsky.convo.leaveConvo"
+  ],
+  "sa_size": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "lex": 45,
+   "files": 0,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "c40073196",
+    "date": "2026-08-20",
+    "subject": "AppView: hydrate known likers on post threads (#5427)",
+    "size": {
+     "src": 243,
+     "test": 26,
+     "test_files": 1,
+     "lex": 24,
+     "files": 10,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "f0d4877a0",
+    "date": "2026-09-03",
+    "subject": "Add `updatedAt` to interests preference (#5481)",
+    "size": {
+     "src": 21,
+     "test": 16,
+     "test_files": 1,
+     "lex": 5,
+     "files": 3,
+     "pkgs": [
+      "api/src",
+      "api/tests"
+     ]
+    }
+   },
+   {
+    "c": "f21072353",
+    "date": "2026-09-18",
+    "subject": "APP-3082: remove notification priority fields (#5531)",
+    "size": {
+     "src": 46,
+     "test": 111,
+     "test_files": 1,
+     "lex": 3,
+     "files": 4,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "be7301e55",
+    "date": "2026-09-21",
+    "subject": "APP-3082: deprecate notification priority fields (#5537)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 12,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "9c76c3422",
+    "date": "2026-09-21",
+    "subject": "APP-3082: deprecate notification seenAt parameter (#5538)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 6,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "4c725e670",
+    "date": "2026-09-25",
+    "subject": "Add OP thread numbering to feed lexicon (#5540)",
+    "size": {
+     "src": 7,
+     "test": 11,
+     "test_files": 1,
+     "lex": 8,
+     "files": 2,
+     "pkgs": [
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "cd736b3db",
+    "date": "2026-09-29",
+    "subject": "Add since and startCursor to getTimeline and getListFeed (#5493)",
+    "size": {
+     "src": 148,
+     "test": 833,
+     "test_files": 4,
+     "lex": 20,
+     "files": 10,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests",
+      "pds/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "0862ece59",
+  "date": "2026-09-23",
+  "subject": "Add logging for recommended feeds and starter packs (#11701)",
+  "nsids": [
+   "app.bsky.unspecced.getOnboardingSuggestedStarterPacks",
+   "app.bsky.unspecced.getSuggestedFeeds",
+   "app.bsky.unspecced.getSuggestedStarterPacks"
+  ],
+  "sa_size": {
+   "src": 389,
+   "test": 0,
+   "test_files": 0,
+   "lex": 12,
+   "files": 9,
+   "pkgs": []
+  },
+  "atproto": []
+ },
+ {
+  "sa": "68e56eaea",
+  "date": "2026-09-03",
+  "subject": "Add starter pack reference-list opt-out UI (#11578)",
+  "nsids": [
+   "app.bsky.graph.referencelistoptout"
+  ],
+  "sa_size": {
+   "src": 616,
+   "test": 266,
+   "test_files": 2,
+   "lex": 30,
+   "files": 13,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "60c439595",
+    "date": "2026-08-31",
+    "subject": "APP-2933: implement reference-list opt-outs in AppView (#5461)",
+    "size": {
+     "src": 337,
+     "test": 364,
+     "test_files": 2,
+     "lex": 38,
+     "files": 16,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "f288e18ba",
+  "date": "2026-09-02",
+  "subject": "Pull latest lexicons (video alt text fix) (#11631)",
+  "nsids": [
+   "app.bsky.feed.defs",
+   "app.bsky.graph.defs"
+  ],
+  "sa_size": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "lex": 64,
+   "files": 0,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "c40073196",
+    "date": "2026-08-20",
+    "subject": "AppView: hydrate known likers on post threads (#5427)",
+    "size": {
+     "src": 243,
+     "test": 26,
+     "test_files": 1,
+     "lex": 24,
+     "files": 10,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   },
+   {
+    "c": "60c439595",
+    "date": "2026-08-31",
+    "subject": "APP-2933: implement reference-list opt-outs in AppView (#5461)",
+    "size": {
+     "src": 337,
+     "test": 364,
+     "test_files": 2,
+     "lex": 38,
+     "files": 16,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "56efeee5e",
+  "date": "2026-09-01",
+  "subject": "Vendor updated lexicons, WILL FAIL UPDATE (#11630)",
+  "nsids": [
+   "app.bsky.embed.video"
+  ],
+  "sa_size": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "lex": 8,
+   "files": 0,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "b2de0ee1c",
+    "date": "2026-08-11",
+    "subject": "Increase video embed size limit to 300mb (#5373)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 4,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "1f3f67c4b",
+    "date": "2026-08-14",
+    "subject": "Remove character limits from video alt text (#5350)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 8,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ },
+ {
+  "sa": "c44f329b5",
+  "date": "2026-08-26",
+  "subject": "Update video embed lexicon (#11559)",
+  "nsids": [
+   "app.bsky.embed.video"
+  ],
+  "sa_size": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "lex": 4,
+   "files": 0,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "b2de0ee1c",
+    "date": "2026-08-11",
+    "subject": "Increase video embed size limit to 300mb (#5373)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 4,
+     "files": 0,
+     "pkgs": []
+    }
+   },
+   {
+    "c": "1f3f67c4b",
+    "date": "2026-08-14",
+    "subject": "Remove character limits from video alt text (#5350)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 8,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ },
+ {
+  "sa": "7750882fd",
+  "date": "2026-08-25",
+  "subject": "[APP-2864] Use hydrated known likers (#11541)",
+  "nsids": [
+   "app.bsky.feed.defs"
+  ],
+  "sa_size": {
+   "src": 88,
+   "test": 0,
+   "test_files": 0,
+   "lex": 27,
+   "files": 4,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "c40073196",
+    "date": "2026-08-20",
+    "subject": "AppView: hydrate known likers on post threads (#5427)",
+    "size": {
+     "src": 243,
+     "test": 26,
+     "test_files": 1,
+     "lex": 24,
+     "files": 10,
+     "pkgs": [
+      "bsky/proto",
+      "bsky/src",
+      "bsky/tests"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "sa": "0ba971b1f",
+  "date": "2026-08-16",
+  "subject": "APP-2774: Add algorithmic visibility setting (#11417)",
+  "nsids": [
+   "app.bsky.actor.contentVisibilityDeclaration"
+  ],
+  "sa_size": {
+   "src": 185,
+   "test": 0,
+   "test_files": 0,
+   "lex": 21,
+   "files": 6,
+   "pkgs": []
+  },
+  "atproto": [
+   {
+    "c": "05305a7a1",
+    "date": "2026-08-12",
+    "subject": "Add content visibility lexicon (#5372)",
+    "size": {
+     "src": 0,
+     "test": 0,
+     "test_files": 0,
+     "lex": 21,
+     "files": 0,
+     "pkgs": []
+    }
+   }
+  ]
+ }
+]
