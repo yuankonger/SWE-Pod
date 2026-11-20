@@ -19,6 +19,13 @@
 # The people's classifier is asked through the same gateway as the model (OPENAI_BASE_URL and OPENAI_API_KEY in .env).
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Harbor: the tasks are validated on 0.26 (uv tool install harbor==0.26.0). Other versions start the harness in other
+# ways, so a run on one is refused unless ANY_HARBOR is set, and is then not a run of the task as validated.
+harbor_version=$(harbor --version 2>/dev/null | tail -1)
+case "$harbor_version" in 0.26.*) ;; *) [ -n "${ANY_HARBOR:-}" ] || { echo "not started: Harbor $harbor_version is installed, and the task is validated on Harbor 0.26 (uv tool install harbor==0.26.0); set ANY_HARBOR=1 to run anyway" >&2; exit 3; } ;; esac
+case "$harbor_version" in 0.[0-9].*|0.1[0-9].*|0.2[0-3].*) agent_flag=--agent-import-path ;; *) agent_flag=--agent ;; esac
+# Harbor 0.26 binds a run's log folders to this machine only when asked; the judge writes beside them
+case "$agent_flag" in --agent) mounts="--ek auto_mounting=true" ;; *) mounts="" ;; esac
 arm=$1; variant=$2; job=${3:-coworker-$arm-$variant-$(date +%m%d-%H%M)}
 task=${TASK:-harbor/customer_attributes_coworker}
 cap=${CAP:-25}
@@ -32,7 +39,7 @@ python3 -c "import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.arg
 seat=$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]+'/environment/docker-compose.yaml').read().split('\n',1)[1])['services']['main']['environment']['SEAT'])" "$task")
 if [ -z "${UNFROZEN:-}" ]; then python3 tools/freeze.py verify "$task" || { echo "not started: freeze the task, or set UNFROZEN=1 for a diagnostic run" >&2; exit 3; }; fi
 mkdir -p runs/harbor/frozen "runs/harbor/$job/meter"
-python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$task" > "runs/harbor/frozen/$job.txt" 2>/dev/null || echo unfrozen > "runs/harbor/frozen/$job.txt"
+{ [ -z "${UNFROZEN:-}" ] && python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$task" > "runs/harbor/frozen/$job.txt" 2>/dev/null; } || echo unfrozen > "runs/harbor/frozen/$job.txt"
 python3 -c "import json,sys; json.dump({'arm': sys.argv[1], 'variant': sys.argv[2], 'task': sys.argv[3], 'cap_usd': float(sys.argv[4]), 'model': sys.argv[5]}, open(sys.argv[6], 'w'), indent=1)" \
   "$arm" "$variant" "$task" "$cap" "${MODEL:-claude-opus-5-5}" "runs/harbor/$job/episode.json"
 hours=$(python3 -c "import re,sys; print(round(float(re.search(r'\[agent\]\s*timeout_sec = ([0-9.]+)', open(sys.argv[1]+'/task.toml').read()).group(1))/3600, 1))" "$task")
@@ -50,7 +57,7 @@ harbor_python=$(head -1 "$(command -v harbor)" | sed 's/^#!//')
 trap 'kill $meter 2>/dev/null; python3 tools/run_measures.py "runs/harbor/$job" > "runs/harbor/$job/measures.txt" 2>&1 || true; "$harbor_python" tools/export_trajectories.py "runs/harbor/$job" --task "$task" > "runs/harbor/$job/exported.txt" 2>&1 || true' EXIT
 export METER="http://host.docker.internal:${METER_PORT:-8318}/seat"
 export PYTHONPATH="$PWD/tools${PYTHONPATH:+:$PYTHONPATH}"
-harbor run -p "$task" --agent-import-path harbor_team:TeamClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $limits \
+harbor run -p "$task" $agent_flag harbor_team:TeamClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $mounts $limits \
   --ak seats="main=$seat" --ak messaging="$messaging" --ak max_budget_usd="$cap" \
   --ak seat_notes="$PWD/$note" --ak seat_cap="$cap" --ak seat_total="$cap" --ak seat_hours="$hours" \
   --ak disallowed_tools="WebSearch,WebFetch,Agent,Task,Workflow" --ak reasoning_effort=high --ak thinking_display=summarized

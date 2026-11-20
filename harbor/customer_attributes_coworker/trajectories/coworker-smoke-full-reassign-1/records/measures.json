@@ -1,0 +1,104 @@
+{
+ "job": "coworker-smoke-full-reassign-1",
+ "outcome": {
+  "reward": 0.9485,
+  "minutes": 47.2,
+  "seat_says": 0.9485,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 2832,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 19.63,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 11677,
+   "cache_read": 26466001,
+   "cache_write": 789482,
+   "output": 161113,
+   "read": 27267160
+  },
+  "seats": {
+   "core": {
+    "input": 11677,
+    "cache_read": 26466001,
+    "cache_write": 789482,
+    "output": 161113,
+    "requests": 110,
+    "refused": 1,
+    "peak_context_tokens": 402040,
+    "contexts": 1,
+    "side_contexts": 1,
+    "largest_contexts": [
+     {
+      "requests": 109,
+      "peak_context_tokens": 402040,
+      "output": 161113,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 47.2,
+    "working_minutes": 47.0,
+    "waits": [],
+    "cache_rewritten_after_waits": 0
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 47.2
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 2
+    },
+    "pushes_refused": {},
+    "fetches": 1
+   }
+  },
+  "messages": {
+   "core": 1,
+   "maya": 1
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 3,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 1
+ },
+ "contract": {
+  "first_published_minute": 50.1,
+  "publications": [
+   {
+    "minute": 50.1,
+    "gained_fields": 53,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 0,
+  "messages": 2
+ }
+}

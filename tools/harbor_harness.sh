@@ -20,6 +20,13 @@
 # (OPENAI_API_KEY in .env). From inside a container the gateway is at host.docker.internal.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Harbor: the tasks are validated on 0.26 (uv tool install harbor==0.26.0). Other versions start the harness in other
+# ways, so a run on one is refused unless ANY_HARBOR is set, and is then not a run of the task as validated.
+harbor_version=$(harbor --version 2>/dev/null | tail -1)
+case "$harbor_version" in 0.26.*) ;; *) [ -n "${ANY_HARBOR:-}" ] || { echo "not started: Harbor $harbor_version is installed, and the task is validated on Harbor 0.26 (uv tool install harbor==0.26.0); set ANY_HARBOR=1 to run anyway" >&2; exit 3; } ;; esac
+case "$harbor_version" in 0.[0-9].*|0.1[0-9].*|0.2[0-3].*) agent_flag=--agent-import-path ;; *) agent_flag=--agent ;; esac
+# Harbor 0.26 binds a run's log folders to this machine only when asked; the judge writes beside them
+case "$agent_flag" in --agent) mounts="--ek auto_mounting=true" ;; *) mounts="" ;; esac
 harness=$1; condition=$2; job=${3:-company-$harness-$condition-$(date +%m%d-%H%M)}
 task=${TASK:-harbor/customer_attributes_company}      # TASK=harbor/payments_partial_capture SEATS=main=core,seat-payments=payments ISOLATED=true
 cap=${CAP:-50}
@@ -33,7 +40,7 @@ cap=${CAP:-50}
 case "$condition" in team|team_no_messaging) frozen="${task}_team" ;; *) frozen="$task" ;; esac
 if [ -z "${UNFROZEN:-}" ]; then python3 tools/freeze.py verify "$frozen" || { echo "not started: freeze the task, or set UNFROZEN=1 for a diagnostic run" >&2; exit 3; }; fi
 mkdir -p runs/harbor/frozen
-python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$frozen" > "runs/harbor/frozen/$job.txt" 2>/dev/null || echo unfrozen > "runs/harbor/frozen/$job.txt"
+{ [ -z "${UNFROZEN:-}" ] && python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$frozen" > "runs/harbor/frozen/$job.txt" 2>/dev/null; } || echo unfrozen > "runs/harbor/frozen/$job.txt"
 hours=$(python3 -c "import re,sys; print(round(float(re.search(r'\[agent\]\s*timeout_sec = ([0-9.]+)', open(sys.argv[1]+'/task.toml').read()).group(1))/3600, 1))" "$frozen")
 # Working time is the task's agent timeout; a wait for the model service's limit to lift is not counted in it. Harbor's
 # own timeout is widened (SLACK times) to leave room for such waits; the seat ends itself before Harbor would, and a
@@ -64,14 +71,14 @@ case "$harness" in
       seats=${SEATS:-main=core,seat-dashboard=dashboard}
       n=$(echo "$seats" | tr ',' '\n' | wc -l | tr -d ' ')
       export PYTHONPATH="$PWD/tools${PYTHONPATH:+:$PYTHONPATH}"
-      harbor run -p "${task}_team" --agent-import-path harbor_team:TeamClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $limits \
+      harbor run -p "${task}_team" $agent_flag harbor_team:TeamClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $mounts $limits \
         --ak seats="$seats" --ak messaging="$messaging" --ak isolated="${ISOLATED:-false}" --ak max_budget_usd="$(python3 -c "print(round($cap / $n, 2))")" \
         --ak seat_notes="$PWD/${task}_team/seats/$condition" --ak seat_cap="$(python3 -c "print(round($cap / $n, 2))")" --ak seat_total="$cap" --ak seat_hours="$hours" \
         --ak disallowed_tools="$denied" --ak reasoning_effort=high --ak thinking_display=summarized
       exit $?
     esac
     export PYTHONPATH="$PWD/tools${PYTHONPATH:+:$PYTHONPATH}"
-    harbor run -p "$task" --agent-import-path harbor_team:SeatClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $limits \
+    harbor run -p "$task" $agent_flag harbor_team:SeatClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $mounts $limits \
       --ak max_budget_usd="$cap" --ak disallowed_tools="$denied" --ak reasoning_effort=high --ak thinking_display=summarized \
       --ak seat_notes="$PWD/$task/seats/$condition.md" --ak seat_cap="$cap" --ak seat_total="$cap" --ak seat_hours="$hours"
     ;;
@@ -87,7 +94,7 @@ case "$harness" in
     export PYTHONPATH="$PWD/tools${PYTHONPATH:+:$PYTHONPATH}"
     mkdir -p "runs/harbor/$job"
     python3 tools/codex_cap.py "runs/harbor/$job" "$cap" ${PRICES:-4.00 0.20 20.00} > "runs/harbor/$job/cap.log" 2>&1 &
-    exec harbor run -p "$task" --agent-import-path harbor_codex:SeatCodex -m "${MODEL:-gpt-6-luna}" -o runs/harbor --job-name "$job" -y \
+    exec harbor run -p "$task" $agent_flag harbor_codex:SeatCodex -m "${MODEL:-gpt-6-luna}" -o runs/harbor --job-name "$job" -y $mounts \
       --ak disable="$off" --ak reasoning_effort=high \
       --ak config="web_search=disabled,model_provider=gateway,model_providers.gateway.name=gateway,model_providers.gateway.base_url=$gateway,model_providers.gateway.env_key=OPENAI_API_KEY,model_providers.gateway.wire_api=responses"
     ;;

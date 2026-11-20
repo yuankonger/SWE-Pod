@@ -69,7 +69,8 @@ def export(job, task, review=None):
         config = json.load(f)
     agent = config["agent"]
     model = agent.get("model_name")
-    team = "TeamClaudeCode" in (agent.get("import_path") or "")
+    # where Harbor records which agent ran: `import_path` (0.3), `name` (0.26, which takes the path as --agent)
+    team = "TeamClaudeCode" in "{} {}".format(agent.get("import_path") or "", agent.get("name") or "")
     task = task or config["task"]["path"]
     out = os.path.join(task, "trajectories", name)
     kept_review = None      # a review written into an earlier export is kept when the run is exported again

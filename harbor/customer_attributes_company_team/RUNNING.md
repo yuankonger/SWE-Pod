@@ -3,6 +3,17 @@
 This folder is a [Harbor](https://github.com/laude-institute/harbor) task. The `_team` folder next to it is the same
 task for a fixed team: one seat per repository owner.
 
+## Harbor version
+
+Validated on **Harbor 0.26.0**: `uv tool install harbor==0.26.0` (or `pip install harbor==0.26.0`). Harbor changed how
+it starts a harness between versions, and the seat and team agents here depend on that, so run this task on that
+version. `tools/harbor_harness.sh` refuses to start on another one. (Runs published before 2026-11-20 were made on
+Harbor 0.3.0, which the agents still support.)
+
+Every `harbor run` of this task needs `--ek auto_mounting=true`: Harbor 0.26 does not bind a run's log
+folders to this machine unless asked, and the company's judge writes its result beside them. The commands below
+have it; `docker compose` stops with a message saying so when it is missing.
+
 ## What runs
 
 `docker compose` starts the company beside the agent's seat. All containers but the seat run the same image, built
@@ -23,7 +34,7 @@ from two pinned public images. Nothing needs to be built beforehand.
 
 Solo, with any harness Harbor has:
 
-    harbor run -p customer_attributes_company -a claude-code -m <model>
+    harbor run -p customer_attributes_company --ek auto_mounting=true -a claude-code -m <model>
 
 The seat and team agents used for the published runs are in `agents/harbor_team.py`. They add a seat note to the
 harness's system prompt, deny subagents in solo, and start one harness per seat in a team. A rate limit on the model
@@ -33,9 +44,9 @@ with `--ak work_sec=14400 --ak wall_sec=42300 --ak resume_within_sec=38700`). Ea
 `agent/.../seat-run.json`; a seat the model service stopped (`stopped_from_outside: true`) makes the run incomplete,
 whatever the judge's score:
 
-    PYTHONPATH=agents harbor run -p customer_attributes_company --agent-import-path harbor_team:SeatClaudeCode -m <model> \
+    PYTHONPATH=agents harbor run -p customer_attributes_company --ek auto_mounting=true --agent harbor_team:SeatClaudeCode -m <model> \
         --ak seat_notes=customer_attributes_company/seats/solo.md --ak max_budget_usd=50
-    PYTHONPATH=agents harbor run -p customer_attributes_company_team --agent-import-path harbor_team:TeamClaudeCode -m <model> \
+    PYTHONPATH=agents harbor run -p customer_attributes_company_team --ek auto_mounting=true --agent harbor_team:TeamClaudeCode -m <model> \
         --ak seats=main=core,seat-dashboard=dashboard --ak messaging=true --ak seat_notes=customer_attributes_company_team/seats/team \
         --ak max_budget_usd=25
 

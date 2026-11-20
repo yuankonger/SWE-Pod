@@ -58,7 +58,7 @@
         "/opt/seedco/judge.py"
       ],
       "volumes": [
-        "${HOST_VERIFIER_LOGS_PATH}/../judge:/judge-out"
+        "${HOST_VERIFIER_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/../judge:/judge-out"
       ],
       "environment": {
         "JUDGE": "{\"token\": \"judge-3b9e51c07a2d\", \"git\": \"http://verifier:verifier-c41f09be73@git:8080\", \"repositories\": [\"core\", \"dashboard\"], \"user\": \"scorer\"}"
@@ -235,7 +235,7 @@
         "infinity"
       ],
       "volumes": [
-        "${HOST_AGENT_LOGS_PATH}/dashboard:/logs/agent"
+        "${HOST_AGENT_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/dashboard:/logs/agent"
       ],
       "deploy": {
         "resources": {

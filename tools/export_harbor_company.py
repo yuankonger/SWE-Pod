@@ -528,7 +528,7 @@ def main():
     }
     # The model meter (tools/model_meter.py): a harness given http://meter:8318/seat/<seat> as its model service is
     # measured there, whichever harness it is. METER_UPSTREAM is where the meter passes requests on to.
-    services["judge"] = {"build": build, "command": ["python3", "/opt/seedco/judge.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH}/../judge:/judge-out"],
+    services["judge"] = {"build": build, "command": ["python3", "/opt/seedco/judge.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/../judge:/judge-out"],
                          "environment": {"JUDGE": json.dumps({"token": JUDGE_TOKEN, "git": git_url("verifier"), "repositories": owners, "user": "scorer"})},
                          "depends_on": {"git": {"condition": "service_healthy"}},
                          "healthcheck": {"test": ["CMD-SHELL", "curl -sf http://127.0.0.1:8095/ready > /dev/null"], "interval": "5s", "timeout": "5s", "retries": 120}}
@@ -556,7 +556,7 @@ def main():
                                                                 "admin": CHAT_ADMIN})}}
         # The people's sidecar asks a model what a message is about (sidecars/people.py). Where that model is and its key
         # come from whoever starts the run, and are in this container's environment only.
-        services["people"] = {"build": build, "command": ["python3", "/opt/seedco/people.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH}/../people:/people-out"],
+        services["people"] = {"build": build, "command": ["python3", "/opt/seedco/people.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/../people:/people-out"],
                               "depends_on": {"chat": {"condition": "service_started"}}, "extra_hosts": ["host.docker.internal:host-gateway"],
                               "environment": {"SEEDCO_VARIANT": variant,
                                               "PEOPLE": json.dumps({"chat": "http://chat:8080", "file": "/opt/seedco/people.json", "out": "/people-out",
@@ -565,7 +565,7 @@ def main():
             json.dump(people, f, indent=1)
     if a.team:      # the first owner sits at Harbor's own seat; every other owner gets one like it
         for owner in owners[1:]:
-            services["seat-" + owner] = dict(seat(owner), build=build, command=["sleep", "infinity"], volumes=["${HOST_AGENT_LOGS_PATH}/" + owner + ":/logs/agent"],
+            services["seat-" + owner] = dict(seat(owner), build=build, command=["sleep", "infinity"], volumes=["${HOST_AGENT_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/" + owner + ":/logs/agent"],
                                              deploy={"resources": {"limits": {"memory": SEAT_MEMORY}}})
         services["chat"] = {"build": build, "command": ["python3", "/opt/seedco/chat.py"],
                             "environment": {"CHAT": json.dumps({"tokens": {o: tokens[o] for o in owners}, "admin": CHAT_ADMIN})}}

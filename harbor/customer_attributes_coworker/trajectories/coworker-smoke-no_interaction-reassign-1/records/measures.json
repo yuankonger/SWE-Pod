@@ -1,0 +1,108 @@
+{
+ "job": "coworker-smoke-no_interaction-reassign-1",
+ "outcome": {
+  "reward": 0.9286,
+  "minutes": 215.5,
+  "seat_says": 0.9286,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 3207,
+    "paused_s": 9725,
+    "pauses": 2,
+    "work_limit_s": 14400.0,
+    "spent_usd": 15.99,
+    "ended_by_runner": [
+     "a rate limit ended its turn while a background job kept the harness running"
+    ]
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 264,
+   "cache_read": 32400647,
+   "cache_write": 1200750,
+   "output": 162530,
+   "read": 33601661
+  },
+  "seats": {
+   "core": {
+    "input": 264,
+    "cache_read": 32400647,
+    "cache_write": 1200750,
+    "output": 162530,
+    "requests": 132,
+    "refused": 2,
+    "peak_context_tokens": 404260,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 132,
+      "peak_context_tokens": 404260,
+      "output": 162530,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 215.5,
+    "working_minutes": 53.0,
+    "waits": [
+     {
+      "minutes": 162.3,
+      "cache_rewritten": 397642
+     }
+    ],
+    "cache_rewritten_after_waits": 397642
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 215.5
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 1
+   }
+  },
+  "messages": {}
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 2
+ },
+ "contract": {
+  "first_published_minute": 208.0,
+  "publications": [
+   {
+    "minute": 208.0,
+    "gained_fields": 53,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 0,
+  "messages": 0
+ }
+}

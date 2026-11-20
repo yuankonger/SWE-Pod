@@ -1,13 +1,13 @@
 {
- "id": "392308cfde11119b",
+ "id": "ca2285b887d376ed",
  "files": {
   "DATASHEET.md": "4052d89442eec78e53a5b26c676d9fcee6e737c8dbe78c5e58977f33cb2325fd",
-  "RUNNING.md": "3432da0b892643f6d1db577ef4fa2bd2a355a694a1f7abdf709e94b099b52723",
+  "RUNNING.md": "6c16b6fec1b32451f378b02f682a0af1a7ed114b8ec1e5b27f1660a5fadfe106",
   "instruction.md": "45c698b27181d8a1589ce5830237caa7456c45fa941b4023dff9b1a03b646043",
   "task.toml": "d4fef77d87b20ad970d1a54e4fc4f2ee47b03e1566e32aaa122f2c6feb6645d2",
-  "agents/harbor_team.py": "25672a9e381146e2aa97760cc12a99877832d39343e4a39aa97482a55de73d6a",
+  "agents/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
   "environment/Dockerfile": "406c7effdc5a3fb8c1da29cd02fbb3f36cb2f50f3c5fbcf3d74c1c4d1cd8ac75",
-  "environment/docker-compose.yaml": "9a9d3fc6d7e26d309c29ff37e95594d4eacabbcc20f24e71cb7863b72769ff6a",
+  "environment/docker-compose.yaml": "c2577d7d80dbe0e1dcc07d4412ef5a9fa7f09c2c5d76bded8508b4865119551c",
   "environment/sidecars/chat.py": "aed21a3ae2c1f1ddaf20fd662871485c27df876688f506bea45d14c96e789973",
   "environment/sidecars/ci.py": "11c98c471493e29263ce90fc119075972e97296513e3d8b48c368cc12ccf6f23",
   "environment/sidecars/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
@@ -30635,13 +30635,13 @@
   "tests/hidden/usage.json": "2061fab8b5e017fbf4ffd3a102f270b6c75bb4a4dde680e046cf427302944b10"
  },
  "runners": {
-  "tools/harbor_team.py": "25672a9e381146e2aa97760cc12a99877832d39343e4a39aa97482a55de73d6a",
-  "tools/harbor_harness.sh": "fb3e2ec197bb77788c3ba126ea17f5df9e35572028b1c62275ab10b6a7adf651"
+  "tools/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
+  "tools/harbor_harness.sh": "3a31c38ed6394444893a677604606fdf64a17bd6f01a7eb2cbda757e86038437"
  },
  "images": {
-  "python:3.14.5-bookworm@sha256:d1552003e0eb6e4a2c57fcc17c1b1f14fca6b00b1b709bb0e4eb82f21bce5c8c": "sha256:d1552003e0eb6e4a2c57fcc17c1b1f14fca6b00b1b709bb0e4eb82f21bce5c8c",
-  "node:24.19.0-bookworm@sha256:4196d66a565c6f195728d9952f161f4adfe2ad753052a08b7ec7f1c5a6bda42b": "sha256:4196d66a565c6f195728d9952f161f4adfe2ad753052a08b7ec7f1c5a6bda42b",
+  "python:3.14.5-bookworm@sha256:d1552003e0eb6e4a2c57fcc17c1b1f14fca6b00b1b709bb0e4eb82f21bce5c8c": "not here",
+  "node:24.19.0-bookworm@sha256:4196d66a565c6f195728d9952f161f4adfe2ad753052a08b7ec7f1c5a6bda42b": "not here",
   "base-core": "not here"
  },
- "frozen_at": "2026-11-20T02:25:59Z"
+ "frozen_at": "2026-11-20T23:45:33Z"
 }

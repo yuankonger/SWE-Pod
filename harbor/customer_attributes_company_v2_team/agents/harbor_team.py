@@ -25,8 +25,30 @@ import shlex
 import subprocess
 import time
 
-from harbor.agents.installed.base import CliFlag, NonZeroAgentExitCodeError
+from harbor.agents.installed.base import NonZeroAgentExitCodeError
 from harbor.agents.installed.claude_code import ClaudeCode
+
+# Harbor changed how an agent declares its options and how it starts the harness (0.26: options on a model,
+# the brief piped in on standard input; before: CLI_FLAGS, the brief as an argument). Both are handled here.
+OPTIONS_ON_MODEL = getattr(ClaudeCode, "options_model", None) is not None
+INSTRUCTION_VAR = "CLAUDE_CODE_INSTRUCTION_"      # 0.26: the environment variable the brief is passed in
+
+
+def is_launch(command):
+    """Whether this command starts the harness on the brief (not its setup, and not a session taken up again)."""
+    return "claude --verbose" in command and "--print" in command and "--resume " not in command
+
+
+def taken_up_again(command, env, session):
+    """The command and environment that take up `session` again with RESUMED in place of the brief, appending to
+    the same log."""
+    if "--print -- " in command:      # the brief is an argument
+        again = "--resume {} --print -- {} 2>&1 </dev/null | tee -a ".format(session, shlex.quote(RESUMED))
+        return re.sub(r"--print -- .* 2>&1 </dev/null \| tee ", lambda _: again, command, flags=re.S), env
+    if command.count("--print 2>&1 | tee ") != 1 or not any(k.startswith(INSTRUCTION_VAR) for k in env or {}):
+        raise RuntimeError("the harness was started in a way this runner does not know how to resume")
+    command = command.replace("--print 2>&1 | tee ", "--resume {} --print 2>&1 | tee -a ".format(session))
+    return command, {k: (RESUMED if k.startswith(INSTRUCTION_VAR) else v) for k, v in env.items()}
 
 SEAT = """
 
@@ -86,6 +108,25 @@ CHAT = ("curl -s -m 10 -X POST -H 'Content-Type: application/json' "
         "-d \"{{\\\"name\\\": \\\"$SEAT\\\", \\\"token\\\": \\\"$SEAT_TOKEN\\\"{more}}}\" http://chat:8080/{what} >/dev/null 2>&1 || true")
 
 
+if OPTIONS_ON_MODEL:
+    from typing import Any
+
+    class SeatOptions(ClaudeCode.options_model):
+        """Harbor 0.26 refuses an option the agent's model does not name. These are the runner's own (read by the
+        constructors below, where they are described); none of them becomes a flag of the harness."""
+        resume_within_sec: Any = None
+        resume_wait_sec: Any = None
+        work_sec: Any = None
+        wall_sec: Any = None
+        seat_notes: Any = None
+        seat_cap: Any = None
+        seat_total: Any = None
+        seat_hours: Any = None
+        seats: Any = None
+        messaging: Any = None
+        isolated: Any = None
+
+
 class SeatClaudeCode(ClaudeCode):
     """Claude Code as Harbor runs it, with two additions.
 
@@ -96,7 +137,11 @@ class SeatClaudeCode(ClaudeCode):
     lifts: after the time the refusal names, or `resume_wait_sec` when it names none. What is left of the spend cap
     carries over. A wait that would end later than `resume_within_sec` after the seat started is not begun. In a
     team the chat is told, so the others see the seat as paused and not as finished."""
-    CLI_FLAGS = ClaudeCode.CLI_FLAGS + [CliFlag("thinking_display", cli="--thinking-display", type="str")]
+    if OPTIONS_ON_MODEL:
+        options_model = SeatOptions
+    if not OPTIONS_ON_MODEL:      # later versions of Harbor have the option themselves, under the same name
+        from harbor.agents.installed.base import CliFlag
+        CLI_FLAGS = ClaudeCode.CLI_FLAGS + [CliFlag("thinking_display", cli="--thinking-display", type="str")]
 
     def __init__(self, *args, resume_within_sec=12000, resume_wait_sec=600, work_sec=None, wall_sec=None, seat_notes=None, seat_cap="", seat_total="", seat_hours="", **kwargs):
         super().__init__(*args, **kwargs)
@@ -128,13 +173,13 @@ class SeatClaudeCode(ClaudeCode):
         return note
 
     async def exec_as_agent(self, environment, command, env=None, cwd=None, timeout_sec=None):
-        note = self.seat_note(getattr(environment, "_service", "main")) if "--print -- " in command and "--resume " not in command else None
+        note = self.seat_note(getattr(environment, "_service", "main")) if is_launch(command) else None
         if note:
-            command = command.replace("--print -- ", "--append-system-prompt {} --print -- ".format(shlex.quote(note)), 1)
+            command = command.replace("--print", "--append-system-prompt {} --print".format(shlex.quote(note)), 1)
             await environment.exec("mkdir -p /logs/agent && cat > /logs/agent/seat-note.md <<'SEAT_NOTE_END'\n{}\nSEAT_NOTE_END".format(note))
         if os.environ.get("METER") and env and env.get("ANTHROPIC_BASE_URL"):      # each seat reaches the model through the meter, under its own name
             env = dict(env, ANTHROPIC_BASE_URL="{}/{}".format(os.environ["METER"].rstrip("/"), self._owner(getattr(environment, "_service", "main"))))
-        if "--print -- " in command and "--resume " not in command:
+        if is_launch(command):
             self._launched[getattr(environment, "_service", "main")] = (command, env, cwd)
         return await super().exec_as_agent(environment, command, env=env, cwd=cwd, timeout_sec=timeout_sec)
 
@@ -284,8 +329,7 @@ class SeatClaudeCode(ClaudeCode):
             await environment.exec(CHAT.format(what="resumed", more=""))
             waited += 1
             command, env, cwd = self._launched[seat]
-            again = "--resume {} --print -- {} 2>&1 </dev/null | tee -a ".format(records[-1]["session_id"], shlex.quote(RESUMED))
-            command = re.sub(r"--print -- .* 2>&1 </dev/null \| tee ", lambda _: again, command, flags=re.S)
+            command, env = taken_up_again(command, env, records[-1]["session_id"])
             spent = self._spent(records)
             command = re.sub(r"--max-budget-usd (\S+)", lambda m: "--max-budget-usd {:.2f}".format(max(0.01, float(m.group(1)) - spent)), command)
             left = self._work - (time.time() - started - paused)

@@ -2,6 +2,17 @@
 
 This folder is a [Harbor](https://github.com/laude-institute/harbor) task.
 
+## Harbor version
+
+Validated on **Harbor 0.26.0**: `uv tool install harbor==0.26.0` (or `pip install harbor==0.26.0`). Harbor changed how
+it starts a harness between versions, and the seat and team agents here depend on that, so run this task on that
+version. `tools/coworker_harness.sh` refuses to start on another one. (Runs published before 2026-11-20 were made on
+Harbor 0.3.0, which the agents still support.)
+
+Every `harbor run` of this task needs `--ek auto_mounting=true`: Harbor 0.26 does not bind a run's log
+folders to this machine unless asked, and the company's judge writes its result beside them. The commands below
+have it; `docker compose` stops with a message saying so when it is missing.
+
 ## What runs
 
 `docker compose` starts the company beside the agent's seat. All containers but the seat run the same image, built
@@ -36,7 +47,7 @@ people's container only. The script starts only on a task that is as frozen. Eve
 Without the script, the same with Harbor directly (`agents/harbor_team.py`):
 
     VARIANT=<value> PEOPLE_MODEL_URL=<OpenAI-format base url> PEOPLE_MODEL_KEY=<key> PYTHONPATH=agents \
-      harbor run -p customer_attributes_coworker --agent-import-path harbor_team:TeamClaudeCode -m <model> \
+      harbor run -p customer_attributes_coworker --ek auto_mounting=true --agent harbor_team:TeamClaudeCode -m <model> \
         --ak seats=main=core --ak messaging=true --ak seat_notes=customer_attributes_coworker/seats/coworker/<arm>.md \
         --ak max_budget_usd=25
 
