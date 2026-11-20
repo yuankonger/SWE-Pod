@@ -1,0 +1,7706 @@
+[
+ {
+  "frontend": {
+   "src": 14,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "media-player"
+   ],
+   "ws_calls": [],
+   "pr": 27873,
+   "date": "2026-08-24",
+   "title": "Allow media selector to optionally select a media directory (#27873)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "src": 394,
+    "test": 623,
+    "test_files": 3,
+    "files": 12,
+    "areas": [
+     "collection_image"
+    ],
+    "pr": 156192,
+    "date": "2026-08-24",
+    "title": "Add 'Collection image' integration (#156192)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 406,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "calendar",
+    "lovelace"
+   ],
+   "ws_calls": [
+    "calendar/event/subscribe"
+   ],
+   "pr": 27906,
+   "date": "2026-04-07",
+   "title": "Use websocket subscription for calendar events (#27906)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 169,
+    "test": 234,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "calendar"
+    ],
+    "pr": 156340,
+    "date": "2026-04-07",
+    "title": "Add websocket subscription support for calendar events (#156340)",
+    "ws_added": [
+     "calendar/event/subscribe"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 6,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "entity",
+    "humidifier"
+   ],
+   "ws_calls": [],
+   "pr": 28005,
+   "date": "2026-01-10",
+   "title": "Add target_humidity_step to humidifier (#28005)",
+   "user": "LG-ThinQ-Integration"
+  },
+  "core": [
+   {
+    "src": 23,
+    "test": 4,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "demo",
+     "google_assistant",
+     "humidifier"
+    ],
+    "pr": 156906,
+    "date": "2026-01-08",
+    "title": "Add target_humidity_step attribute to humidifier (#156906)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 263,
+   "test": 0,
+   "test_files": 0,
+   "files": 10,
+   "areas": [
+    "config",
+    "lovelace",
+    "panel"
+   ],
+   "ws_calls": [],
+   "pr": 28446,
+   "date": "2026-01-27",
+   "title": "Set home as default dashboard (#28446)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 164,
+    "test": 316,
+    "test_files": 2,
+    "files": 7,
+    "areas": [
+     "frontend",
+     "lovelace",
+     "onboarding"
+    ],
+    "pr": 158265,
+    "date": "2026-01-27",
+    "title": "Migrate default Lovelace panel to dashboard system (#158265)",
+    "ws_added": [
+     "frontend/get_system_data",
+     "lovelace/config",
+     "lovelace/config/delete",
+     "lovelace/config/save",
+     "lovelace/dashboards/delete",
+     "lovelace/dashboards/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1051,
+   "test": 209,
+   "test_files": 1,
+   "files": 9,
+   "areas": [
+    "config",
+    "matter-lock"
+   ],
+   "ws_calls": [],
+   "pr": 28672,
+   "date": "2026-03-13",
+   "title": "Matter lock manager (#28672)",
+   "user": "Ahbrown41"
+  },
+  "core": [
+   {
+    "src": 1568,
+    "test": 2151,
+    "test_files": 1,
+    "files": 7,
+    "areas": [
+     "matter"
+    ],
+    "pr": 161936,
+    "date": "2026-02-28",
+    "title": "Add Matter lock user and credential management services (#161936)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 7,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 28721,
+   "date": "2026-01-20",
+   "title": "Allow the main entry type button to be translatable (#28721)",
+   "user": "joostlek"
+  },
+  "core": [
+   {
+    "src": 10,
+    "test": 0,
+    "test_files": 0,
+    "files": 3,
+    "areas": [
+     "spotify"
+    ],
+    "pr": 159901,
+    "date": "2026-01-20",
+    "title": "Make add entry translatable (#159901)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "climate"
+   ],
+   "ws_calls": [],
+   "pr": 28834,
+   "date": "2026-02-03",
+   "title": "Expose target_humidity_step value to climate (#28834)",
+   "user": "CoMPaTech"
+  },
+  "core": [
+   {
+    "src": 23,
+    "test": 4,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "demo",
+     "google_assistant",
+     "humidifier"
+    ],
+    "pr": 156906,
+    "date": "2026-01-08",
+    "title": "Add target_humidity_step attribute to humidifier (#156906)",
+    "ws_added": []
+   },
+   {
+    "src": 16,
+    "test": 15,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "climate",
+     "demo"
+    ],
+    "pr": 160418,
+    "date": "2026-02-03",
+    "title": "Add target_humidity_step attribute to climate (#160418)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 589,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config",
+    "energy"
+   ],
+   "ws_calls": [],
+   "pr": 28845,
+   "date": "2026-01-28",
+   "title": "Add non standard power sensor support (#28845)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 479,
+    "test": 1914,
+    "test_files": 3,
+    "files": 6,
+    "areas": [
+     "energy"
+    ],
+    "pr": 160432,
+    "date": "2026-01-28",
+    "title": "Add non standard power sensor support (#160432)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 38,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "ha-selector"
+   ],
+   "ws_calls": [],
+   "pr": 28880,
+   "date": "2026-01-09",
+   "title": "Duration selector: migrate legacy duration formats (#28880)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "src": 2,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [
+     "timer"
+    ],
+    "pr": 160391,
+    "date": "2026-01-09",
+    "title": "Use duration selector for timer service (#160391)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 286,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "calendar",
+    "config",
+    "entity",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 28882,
+   "date": "2026-01-27",
+   "title": "Add color setting for calendar entities (#28882)",
+   "user": "Misiu"
+  },
+  "core": [
+   {
+    "pr": 88139,
+    "missing": true
+   },
+   {
+    "src": 26,
+    "test": 64,
+    "test_files": 3,
+    "files": 4,
+    "areas": [
+     "calendar"
+    ],
+    "pr": 145606,
+    "date": "2026-01-27",
+    "title": "Add initial_color property to CalendarEntity (#145606)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 158,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "ha-duration-input",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 28909,
+   "date": "2026-01-10",
+   "title": "Implement allow_negative for duration selector (#28909)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "pr": 116134,
+    "missing": true
+   },
+   {
+    "src": 3,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [
+     "timer"
+    ],
+    "pr": 160645,
+    "date": "2026-01-14",
+    "title": "Duration selector for timer.change (#160645)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 105,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 29104,
+   "date": "2026-01-28",
+   "title": "Add device database labs feature (#29104)",
+   "user": "stvncode"
+  },
+  "core": [
+   {
+    "src": 82,
+    "test": 105,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "analytics"
+    ],
+    "pr": 160068,
+    "date": "2026-01-28",
+    "title": "Enable snapshot analytics as labs feature (#160068)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 823,
+   "test": 0,
+   "test_files": 0,
+   "files": 29,
+   "areas": [
+    "config",
+    "ha-sidebar",
+    "my",
+    "panel",
+    "{ => config}"
+   ],
+   "ws_calls": [],
+   "pr": 29221,
+   "date": "2026-01-28",
+   "title": "Move developer tools panel to config panel (#29221)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 24,
+    "test": 26,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "frontend",
+     "mqtt"
+    ],
+    "pr": 161789,
+    "date": "2026-01-28",
+    "title": "Remove developer tools panel, add redirects (#161789)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 44,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "lovelace"
+   ],
+   "ws_calls": [
+    "lovelace/info"
+   ],
+   "pr": 29240,
+   "date": "2026-01-29",
+   "title": "Fix default lovelace yaml loading (#29240)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 116,
+    "test": 81,
+    "test_files": 3,
+    "files": 9,
+    "areas": [
+     "lovelace"
+    ],
+    "pr": 161816,
+    "date": "2026-01-29",
+    "title": "Allow lovelace path for dashboard in yaml and fix yaml dashboard migration (#161816)",
+    "ws_added": [
+     "lovelace/info"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 687,
+   "test": 0,
+   "test_files": 0,
+   "files": 9,
+   "areas": [
+    "config",
+    "entity",
+    "ha-vacuum-segment-area-mapper",
+    "more-info",
+    "vacuum"
+   ],
+   "ws_calls": [
+    "vacuum/get_segments"
+   ],
+   "pr": 29343,
+   "date": "2026-02-18",
+   "title": "Add support for vacuum segment mapping to areas (#29343)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 258,
+    "test": 430,
+    "test_files": 4,
+    "files": 10,
+    "areas": [
+     "demo",
+     "vacuum"
+    ],
+    "pr": 149315,
+    "date": "2026-02-18",
+    "title": "Add clean_area action to vacuum (#149315)",
+    "ws_added": [
+     "vacuum/get_segments"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3221,
+   "test": 0,
+   "test_files": 0,
+   "files": 21,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 29389,
+   "date": "2026-02-16",
+   "title": "Migrate grid connections to single objects with import/export/power (#29389)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 474,
+    "test": 1009,
+    "test_files": 5,
+    "files": 8,
+    "areas": [
+     "energy"
+    ],
+    "pr": 162200,
+    "date": "2026-02-16",
+    "title": "Migrate grid connections to single objects with import/export/power (#162200)",
+    "ws_added": [
+     "grid"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 511,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "profile"
+   ],
+   "ws_calls": [
+    "auth/long_lived_access_token"
+   ],
+   "pr": 29440,
+   "date": "2026-02-09",
+   "title": "Migrate profile dialogs to wa, refactor LL access token dialog (#29440)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 6,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [
+     "auth"
+    ],
+    "pr": 162635,
+    "date": "2026-02-09",
+    "title": "Add translation for MFA code (#162635)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 606,
+   "test": 0,
+   "test_files": 0,
+   "files": 19,
+   "areas": [
+    "climate",
+    "config",
+    "home",
+    "light",
+    "lovelace",
+    "notfound",
+    "panel",
+    "security"
+   ],
+   "ws_calls": [
+    "frontend/update_panel"
+   ],
+   "pr": 29572,
+   "date": "2026-02-23",
+   "title": "Add configuration to built-in panels (#29572)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 104,
+    "test": 237,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "frontend"
+    ],
+    "pr": 162742,
+    "date": "2026-02-23",
+    "title": "Add configurable panel properties to frontend (#162742)",
+    "ws_added": [
+     "frontend/update_panel"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 204,
+   "test": 134,
+   "test_files": 1,
+   "files": 8,
+   "areas": [
+    "ha-selector",
+    "ha-service-control",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 29636,
+   "date": "2026-07-18",
+   "title": "Add manufacturer, model, and model_id filtering to entity filter selector (#29636)",
+   "user": "Skaronator"
+  },
+  "core": [
+   {
+    "src": 27,
+    "test": 36,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 162989,
+    "date": "2026-07-17",
+    "title": "Add manufacturer, model, and model_id filtering to entity filter selector (#162989)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 167,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "energy"
+   ],
+   "ws_calls": [],
+   "pr": 29693,
+   "date": "2026-02-24",
+   "title": "Add flow rate picker to gas, water, and water device energy dialogs (#29693)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 54,
+    "test": 617,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "energy"
+    ],
+    "pr": 163274,
+    "date": "2026-02-19",
+    "title": "Add flow rate (stat_rate) tracking for gas and water (#163274)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 29,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 29698,
+   "date": "2026-02-18",
+   "title": "Assign no-stale to Tasks/Epic/Opportunity issue type (#29698)",
+   "user": "silamon"
+  },
+  "core": [
+   {
+    "src": 20,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [],
+    "pr": 163080,
+    "date": "2026-02-15",
+    "title": "Assign no-stale to Tasks/Epic/Opportunity issue type (#163080)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 512,
+   "test": 0,
+   "test_files": 0,
+   "files": 7,
+   "areas": [
+    "backup_manager",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 29748,
+   "date": "2026-03-09",
+   "title": "Report progress for backup upload (#29748)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 77,
+    "test": 75,
+    "test_files": 2,
+    "files": 20,
+    "areas": [
+     "aws_s3",
+     "azure_storage",
+     "backblaze_b2",
+     "backup",
+     "cloud",
+     "cloudflare_r2",
+     "google_drive",
+     "hassio",
+     "idrive_e2",
+     "kitchen_sink",
+     "onedrive",
+     "onedrive_for_business",
+     "sftp_storage",
+     "synology_dsm",
+     "webdav"
+    ],
+    "pr": 163608,
+    "date": "2026-03-09",
+    "title": "Allow backups to report the upload progress (#163608)",
+    "ws_added": [
+     "backup/generate",
+     "backup/subscribe_events"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 21,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "ha-duration-input",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 29760,
+   "date": "2026-02-23",
+   "title": "Allow to disable seconds in DurationSelector (#29760)",
+   "user": "eifinger"
+  },
+  "core": [
+   {
+    "src": 75,
+    "test": 65,
+    "test_files": 3,
+    "files": 9,
+    "areas": [
+     "waze_travel_time"
+    ],
+    "pr": 161803,
+    "date": "2026-02-26",
+    "title": "Add time_delta option to waze_travel_time (#161803)",
+    "ws_added": []
+   },
+   {
+    "src": 3,
+    "test": 6,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 163803,
+    "date": "2026-02-24",
+    "title": "Allow to disable seconds in DurationSelector (#163803)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 6,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "ha-selector"
+   ],
+   "ws_calls": [],
+   "pr": 29790,
+   "date": "2026-02-24",
+   "title": "Handle selector edge case for `[]`  (#29790)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "pr": 163881,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 177,
+   "test": 133,
+   "test_files": 1,
+   "files": 12,
+   "areas": [
+    "config",
+    "entity",
+    "ha-selector",
+    "lovelace",
+    "media-player"
+   ],
+   "ws_calls": [
+    "brands/access_token"
+   ],
+   "pr": 29799,
+   "date": "2026-02-25",
+   "title": "Adjust brands assets to proxy brand images through local API (#29799)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 408,
+    "test": 979,
+    "test_files": 12,
+    "files": 34,
+    "areas": [
+     "brands",
+     "cambridge_audio",
+     "cast",
+     "demo",
+     "esphome",
+     "forked_daapd",
+     "hassio",
+     "kodi",
+     "lovelace",
+     "media_source",
+     "plex",
+     "roku",
+     "russound_rio",
+     "sonos",
+     "spotify",
+     "template",
+     "tts",
+     "update"
+    ],
+    "pr": 163960,
+    "date": "2026-02-25",
+    "title": "Add brands system integration to proxy brand images through local API (#163960)",
+    "ws_added": [
+     "brands/access_token"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 29800,
+   "date": "2026-02-25",
+   "title": "Add vacuum mapping not configured issue (#29800)",
+   "user": "arturpragacz"
+  },
+  "core": [
+   {
+    "src": 74,
+    "test": 104,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "vacuum"
+    ],
+    "pr": 163965,
+    "date": "2026-02-25",
+    "title": "Add vacuum area mapping not configured issue (#163965)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 6,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "ha-sidebar"
+   ],
+   "ws_calls": [],
+   "pr": 29815,
+   "date": "2026-02-25",
+   "title": "Use show in sidebar property instead of checking title (#29815)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 38,
+    "test": 25,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "frontend",
+     "hassio",
+     "lovelace"
+    ],
+    "pr": 164025,
+    "date": "2026-02-25",
+    "title": "Use show in sidebar property instead of removing panel title and icon (#164025)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "files": 0,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 29830,
+   "date": "2026-02-25",
+   "title": "Rename \"Z-Wave JS\" to \"Z-Wave\" when not referring to the project/org (#29830)",
+   "user": "AlCalzone"
+  },
+  "core": [
+   {
+    "pr": 75136,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 29876,
+   "date": "2026-02-27",
+   "title": "Revert \"Add vacuum mapping not configured issue\" (#29876)",
+   "user": "edenhaus"
+  },
+  "core": [
+   {
+    "src": 47,
+    "test": 74,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "vacuum"
+    ],
+    "pr": 164259,
+    "date": "2026-02-27",
+    "title": "Remove vacuum area mapping not configured issue (#164259)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 28,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "more-info"
+   ],
+   "ws_calls": [],
+   "pr": 30094,
+   "date": "2026-03-11",
+   "title": "Use group entities attribute (#30094)",
+   "user": "arturpragacz"
+  },
+  "core": [
+   {
+    "src": 270,
+    "test": 383,
+    "test_files": 1,
+    "files": 7,
+    "areas": [
+     "group",
+     "zha"
+    ],
+    "pr": 160860,
+    "date": "2026-03-10",
+    "title": "Improve group entities (#160860)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 100,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "backup_manager",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 30106,
+   "date": "2026-03-12",
+   "title": "Add \"cleaning_up\" backup stage (#30106)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 8,
+    "test": 128,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "backup",
+     "hassio"
+    ],
+    "pr": 165349,
+    "date": "2026-03-12",
+    "title": "Add \"cleaning_up\" stage to backup (#165349)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1207,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "config",
+    "zwave_js"
+   ],
+   "ws_calls": [],
+   "pr": 30115,
+   "date": "2026-03-12",
+   "title": "Remove Z-Wave Installer panel (#30115)",
+   "user": "AlCalzone"
+  },
+  "core": [
+   {
+    "src": 40,
+    "test": 32,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 165388,
+    "date": "2026-03-12",
+    "title": "Remove Z-Wave Installer panel (#165388)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 447,
+   "test": 115,
+   "test_files": 2,
+   "files": 18,
+   "areas": [
+    "config",
+    "entity",
+    "lovelace",
+    "more-info",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 30147,
+   "date": "2026-03-17",
+   "title": "Simplify entity name computation (#30147)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 377,
+    "test": 872,
+    "test_files": 13,
+    "files": 20,
+    "areas": [
+     "assist_pipeline",
+     "config",
+     "conversation",
+     "diagnostics",
+     "google_assistant",
+     "intent",
+     "intent_script",
+     "zwave_js"
+    ],
+    "pr": 162763,
+    "date": "2026-03-17",
+    "title": "Rework user-given entity name logic (#162763)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1668,
+   "test": 0,
+   "test_files": 0,
+   "files": 13,
+   "areas": [
+    "entity",
+    "lovelace",
+    "more-info",
+    "valve"
+   ],
+   "ws_calls": [],
+   "pr": 30190,
+   "date": "2026-03-18",
+   "title": "Valve favorites (#30190)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 20,
+    "test": 28,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "demo"
+    ],
+    "pr": 165803,
+    "date": "2026-03-17",
+    "title": "Demo valve registry entry and device (#165803)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 57,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "ha-conversation-agent-picker"
+   ],
+   "ws_calls": [],
+   "pr": 30194,
+   "date": "2026-03-18",
+   "title": "Fix missing conversation language picker in new pipeline dialog (#30194)",
+   "user": "qusaismael"
+  },
+  "core": [
+   {
+    "pr": 165287,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 187,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "ha-aliases-editor",
+    "ha-multi-textfield"
+   ],
+   "ws_calls": [],
+   "pr": 30201,
+   "date": "2026-03-18",
+   "title": "Add entity name alias toggle and drag-to-reorder aliases in voice settings (#30201)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 377,
+    "test": 872,
+    "test_files": 13,
+    "files": 20,
+    "areas": [
+     "assist_pipeline",
+     "config",
+     "conversation",
+     "diagnostics",
+     "google_assistant",
+     "intent",
+     "intent_script",
+     "zwave_js"
+    ],
+    "pr": 162763,
+    "date": "2026-03-17",
+    "title": "Rework user-given entity name logic (#162763)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 14,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 30211,
+   "date": "2026-03-18",
+   "title": "Add uom filter to entity selector (#30211)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 3,
+    "test": 22,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 165914,
+    "date": "2026-03-18",
+    "title": "Add unit of measurement to entity selector filter (#165914)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 11,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "icons",
+    "scene"
+   ],
+   "ws_calls": [],
+   "pr": 30321,
+   "date": "2026-03-25",
+   "title": "Add support for infrared domain (#30321)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 486,
+    "test": 313,
+    "test_files": 5,
+    "files": 23,
+    "areas": [
+     "infrared",
+     "kitchen_sink"
+    ],
+    "pr": 162251,
+    "date": "2026-02-26",
+    "title": "Add infrared entity integration (#162251)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 311,
+   "test": 0,
+   "test_files": 0,
+   "files": 12,
+   "areas": [
+    "config",
+    "ha-select-box",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 30322,
+   "date": "2026-04-29",
+   "title": "Add automation behavior selector (#30322)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 63,
+    "test": 40,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 166484,
+    "date": "2026-04-29",
+    "title": "Add automation behavior selector (#166484)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 319,
+   "test": 115,
+   "test_files": 2,
+   "files": 18,
+   "areas": [
+    "config",
+    "entity",
+    "lovelace",
+    "more-info",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 30384,
+   "date": "2026-03-27",
+   "title": "Revert entity naming change (#30384)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 99,
+    "test": 559,
+    "test_files": 3,
+    "files": 5,
+    "areas": [
+     "diagnostics",
+     "zwave_js"
+    ],
+    "pr": 166696,
+    "date": "2026-03-27",
+    "title": "Use legacy naming for entities (#166696)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 76,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config",
+    "ha-service-control",
+    "ha-settings-row"
+   ],
+   "ws_calls": [],
+   "pr": 51315,
+   "date": "2026-03-31",
+   "title": "Remove target description (#51315)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 604,
+    "test": 0,
+    "test_files": 0,
+    "files": 38,
+    "areas": [
+     "air_quality",
+     "alarm_control_panel",
+     "assist_satellite",
+     "battery",
+     "calendar",
+     "climate",
+     "counter",
+     "cover",
+     "device_tracker",
+     "door",
+     "fan",
+     "garage_door",
+     "gate",
+     "humidifier",
+     "humidity",
+     "illuminance",
+     "lawn_mower",
+     "light",
+     "lock",
+     "media_player",
+     "moisture",
+     "motion",
+     "occupancy",
+     "person",
+     "power",
+     "remote",
+     "schedule",
+     "select",
+     "siren",
+     "switch",
+     "temperature",
+     "text",
+     "timer",
+     "update",
+     "vacuum",
+     "valve",
+     "water_heater",
+     "window"
+    ],
+    "pr": 166955,
+    "date": "2026-03-31",
+    "title": "Remove redundant field descriptions from triggers and conditions (#166955)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1997,
+   "test": 110,
+   "test_files": 3,
+   "files": 153,
+   "areas": [
+    "chart",
+    "config",
+    "config-flow",
+    "device",
+    "error_log",
+    "ha-addon-picker",
+    "ha-area-controls-picker",
+    "ha-config-entry-picker",
+    "ha-domain-icon",
+    "ha-filter-devices",
+    "ha-filter-domains",
+    "ha-filter-integrations",
+    "ha-hls-player",
+    "ha-mount-picker",
+    "ha-navigation-picker",
+    "ha-suggest-with-ai-button",
+    "icons",
+    "logbook",
+    "lovelace",
+    "matter",
+    "media-browser",
+    "media-player",
+    "more-info",
+    "my",
+    "profile",
+    "quick-bar",
+    "quick_bar",
+    "restart",
+    "target-picker",
+    "todo",
+    "voice-assistant-setup",
+    "zwave_js"
+   ],
+   "ws_calls": [
+    "zwave_js/subscribe_rebuild_routes_progress"
+   ],
+   "pr": 51361,
+   "date": "2026-04-02",
+   "title": "Z-Wave rebuild routes add detail progress (#51361)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 21,
+    "test": 6,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 167178,
+    "date": "2026-04-03",
+    "title": "Fix zwave_js subscribe_rebuild_routes_progress initial event (#167178)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 6,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "ha-dialog",
+    "make-dialog-manager"
+   ],
+   "ws_calls": [],
+   "pr": 51369,
+   "date": "2026-04-03",
+   "title": "Fix next_flow dialog closing immediately after rendering (#51369)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 165091,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config-flow"
+   ],
+   "ws_calls": [],
+   "pr": 51389,
+   "date": "2026-04-07",
+   "title": "fix flowType in showSubConfigFlowDialog in next_flow flows (#51389)",
+   "user": "iluvdata"
+  },
+  "core": [
+   {
+    "pr": 165091,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 15,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 51486,
+   "date": "2026-04-20",
+   "title": "Fix inconsistency with template binary sensors (#51486)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 21,
+    "test": 85,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "template"
+    ],
+    "pr": 167775,
+    "date": "2026-04-14",
+    "title": "Fix device_class removal in template binary sensors (#167775)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 215,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "ha-selector",
+    "selector",
+    "usb"
+   ],
+   "ws_calls": [
+    "usb/list_serial_ports"
+   ],
+   "pr": 51573,
+   "date": "2026-04-16",
+   "title": "Add SerialSelector (#51573)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 165,
+    "test_files": 6,
+    "files": 8,
+    "areas": [
+     "homeassistant_connect_zbt2",
+     "homeassistant_sky_connect",
+     "usb"
+    ],
+    "pr": 168263,
+    "date": "2026-04-16",
+    "title": "Add SerialSelector (#168263)",
+    "ws_added": [
+     "usb/list_serial_ports"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1400,
+   "test": 474,
+   "test_files": 2,
+   "files": 8,
+   "areas": [
+    "config",
+    "zwave_js-credentials"
+   ],
+   "ws_calls": [],
+   "pr": 51591,
+   "date": "2026-05-20",
+   "title": "Add Z-Wave credential mangement (#51591)",
+   "user": "AlCalzone"
+  },
+  "core": [
+   {
+    "src": 1112,
+    "test": 1398,
+    "test_files": 1,
+    "files": 9,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 168360,
+    "date": "2026-05-20",
+    "title": "Add support for Z-Wave credential management (#168360)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 628,
+   "test": 0,
+   "test_files": 0,
+   "files": 7,
+   "areas": [
+    "ha-form",
+    "ha-generic-picker",
+    "ha-picker-combo-box",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 51655,
+   "date": "2026-04-22",
+   "title": "Update name and look and feel of Serial Port Selector (#51655)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 20,
+    "test": 6,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "denon_rs232",
+     "russound_rio"
+    ],
+    "pr": 168744,
+    "date": "2026-04-22",
+    "title": "Rename SerialSelector to SerialPortSelector (#168744)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 152,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "ha-selector"
+   ],
+   "ws_calls": [],
+   "pr": 51673,
+   "date": "2026-04-23",
+   "title": "Improve serial proxies look in serial port selector (#51673)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 159,
+    "test": 220,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 168817,
+    "date": "2026-04-22",
+    "title": "Register optimized ESPHome serial proxy transport with serialx (#168817)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 38,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "ha-selector",
+    "ha-target-picker",
+    "selector",
+    "target",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 51677,
+   "date": "2026-04-24",
+   "title": "Target picker respect primaryEntitiesOnly from selector (#51677)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "pr": 168102,
+    "missing": true
+   },
+   {
+    "src": 44,
+    "test": 46,
+    "test_files": 3,
+    "files": 7,
+    "areas": [
+     "battery"
+    ],
+    "pr": 168857,
+    "date": "2026-04-28",
+    "title": "Allow targeting non-primary entities in triggers (#168857)",
+    "ws_added": []
+   },
+   {
+    "src": 85,
+    "test": 119,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 168860,
+    "date": "2026-04-24",
+    "title": "Allow extracting non-primary entities in websocket command (#168860)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 22,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "icons",
+    "scene"
+   ],
+   "ws_calls": [],
+   "pr": 51693,
+   "date": "2026-04-24",
+   "title": "Add radio_frequency domain entity platform (#51693)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 331,
+    "test": 339,
+    "test_files": 4,
+    "files": 15,
+    "areas": [
+     "kitchen_sink",
+     "radio_frequency"
+    ],
+    "pr": 168447,
+    "date": "2026-04-24",
+    "title": "Add radio_frequency entity integration (#168447)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 19,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "target",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 51729,
+   "date": "2026-04-28",
+   "title": "Fix target picker secondary entities support (#51729)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 46,
+    "test_files": 3,
+    "files": 7,
+    "areas": [
+     "battery"
+    ],
+    "pr": 168857,
+    "date": "2026-04-28",
+    "title": "Allow targeting non-primary entities in triggers (#168857)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 93,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "config",
+    "config-flow",
+    "data_entry_flow"
+   ],
+   "ws_calls": [],
+   "pr": 51744,
+   "date": "2026-08-20",
+   "title": "Add `RepairsFlow` as a `next_flow` from a `RepairsFlow` (#51744)",
+   "user": "iluvdata"
+  },
+  "core": [
+   {
+    "pr": 165091,
+    "missing": true
+   },
+   {
+    "src": 173,
+    "test": 396,
+    "test_files": 2,
+    "files": 7,
+    "areas": [
+     "repairs"
+    ],
+    "pr": 172489,
+    "date": "2026-08-20",
+    "title": "Add `next_flow` to `RepairsFlow` (#172489)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 231,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config-flow",
+    "ha-form",
+    "ha-selector",
+    "selector",
+    "usb"
+   ],
+   "ws_calls": [],
+   "pr": 51773,
+   "date": "2026-04-28",
+   "title": "Add recommended ports to serial selector (#51773)",
+   "user": "puddly"
+  },
+  "core": [
+   {
+    "src": 41,
+    "test": 131,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "usb",
+     "zha"
+    ],
+    "pr": 169387,
+    "date": "2026-04-28",
+    "title": "Include matching integrations in scanned ports WS API (#169387)",
+    "ws_added": [
+     "usb/list_serial_ports"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 127,
+   "test": 32,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 51812,
+   "date": "2026-05-12",
+   "title": "Show battery state of charge on the energy distribution card (#51812)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 4,
+    "test": 27,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "energy"
+    ],
+    "pr": 169550,
+    "date": "2026-05-12",
+    "title": "Add battery state of charge to energy preferences (#169550)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 92,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 51970,
+   "date": "2026-05-11",
+   "title": "Add backup locations filter (#51970)",
+   "user": "LordMike"
+  },
+  "core": [
+   {
+    "pr": 170192,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 179,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "automation",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 52004,
+   "date": "2026-05-13",
+   "title": "Add automation live condition tests (#52004)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 52,
+    "test": 104,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 170385,
+    "date": "2026-05-13",
+    "title": "Add websocket command subscribe_condition (#170385)",
+    "ws_added": [
+     "subscribe_condition"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 168,
+   "test": 0,
+   "test_files": 0,
+   "files": 10,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 52011,
+   "date": "2026-05-13",
+   "title": "Make gas & water sources nameable (#52011)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "src": 8,
+    "test": 2,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "energy"
+    ],
+    "pr": 170447,
+    "date": "2026-05-13",
+    "title": "Make gas & water sources nameable (#170447)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 346,
+   "test": 0,
+   "test_files": 0,
+   "files": 11,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 52051,
+   "date": "2026-05-19",
+   "title": "Make energy electric sources nameable (#52051)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "src": 12,
+    "test": 3,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "energy"
+    ],
+    "pr": 170658,
+    "date": "2026-05-19",
+    "title": "Make energy electric sources nameable (#170658)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 744,
+   "test": 12,
+   "test_files": 1,
+   "files": 35,
+   "areas": [
+    "automation",
+    "config",
+    "device",
+    "generic",
+    "ha-settings-row",
+    "ha-textarea",
+    "script"
+   ],
+   "ws_calls": [],
+   "pr": 52090,
+   "date": "2026-05-21",
+   "title": "Add automation item comments (#52090)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 5,
+    "test": 53,
+    "test_files": 1,
+    "files": 3,
+    "areas": [],
+    "pr": 171091,
+    "date": "2026-05-21",
+    "title": "Add comment optional attribute to automation items (#171091)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 10,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "lovelace",
+    "more-info"
+   ],
+   "ws_calls": [],
+   "pr": 52094,
+   "date": "2026-05-18",
+   "title": "Allow media player source card feature when list is empty (#52094)",
+   "user": "bhamiltoncx"
+  },
+  "core": [
+   {
+    "pr": 171046,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 27,
+   "test": 65,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "bluetooth",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 52192,
+   "date": "2026-05-25",
+   "title": "Teach Bluetooth UI about auto scanning mode (#52192)",
+   "user": "bdraco"
+  },
+  "core": [
+   {
+    "src": 103,
+    "test": 83,
+    "test_files": 4,
+    "files": 9,
+    "areas": [
+     "bluetooth"
+    ],
+    "pr": 171985,
+    "date": "2026-05-23",
+    "title": "Change default Bluetooth scanning mode to Auto (#171985)",
+    "ws_added": []
+   },
+   {
+    "src": 199,
+    "test": 364,
+    "test_files": 2,
+    "files": 7,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 171996,
+    "date": "2026-05-23",
+    "title": "Change default ESPHome bluetooth proxy scanning mode to Auto (#171996)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 52,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "entity"
+   ],
+   "ws_calls": [],
+   "pr": 52211,
+   "date": "2026-05-27",
+   "title": "Add associated zone option for device trackers (#52211)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 151,
+    "test": 329,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "device_tracker"
+    ],
+    "pr": 172157,
+    "date": "2026-05-27",
+    "title": "Add entity option to associate scanner tracker with any zone (#172157)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 142,
+   "test": 0,
+   "test_files": 0,
+   "files": 30,
+   "areas": [
+    "calendar",
+    "config",
+    "config-flow",
+    "config_flow",
+    "frontend",
+    "options_flow",
+    "profile",
+    "sub_config_flow",
+    "todo"
+   ],
+   "ws_calls": [],
+   "pr": 52212,
+   "date": "2026-05-27",
+   "title": "Remove advanced mode completely (#52212)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 6,
+    "test": 54,
+    "test_files": 5,
+    "files": 8,
+    "areas": [
+     "config",
+     "dnsip",
+     "group"
+    ],
+    "pr": 172249,
+    "date": "2026-05-27",
+    "title": "Remove `show_advanced_options` from data entry flow API (#172249)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 368,
+   "test": 0,
+   "test_files": 0,
+   "files": 22,
+   "areas": [
+    "automation",
+    "config",
+    "device",
+    "script"
+   ],
+   "ws_calls": [],
+   "pr": 52219,
+   "date": "2026-05-27",
+   "title": "Rename automation comments to note (#52219)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 13,
+    "test": 24,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "ihc"
+    ],
+    "pr": 172312,
+    "date": "2026-05-27",
+    "title": "Rename automation comments to note (#172312)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 53,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "config",
+    "ha-select-box",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 52224,
+   "date": "2026-05-27",
+   "title": "Rename automation trigger behavior options (#52224)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 132,
+    "test": 724,
+    "test_files": 36,
+    "files": 74,
+    "areas": [
+     "air_quality",
+     "alarm_control_panel",
+     "assist_satellite",
+     "battery",
+     "climate",
+     "counter",
+     "cover",
+     "door",
+     "fan",
+     "garage_door",
+     "gate",
+     "humidifier",
+     "humidity",
+     "illuminance",
+     "lawn_mower",
+     "light",
+     "lock",
+     "media_player",
+     "moisture",
+     "motion",
+     "occupancy",
+     "power",
+     "remote",
+     "schedule",
+     "siren",
+     "switch",
+     "temperature",
+     "timer",
+     "update",
+     "vacuum",
+     "valve",
+     "water_heater",
+     "window"
+    ],
+    "pr": 172348,
+    "date": "2026-05-27",
+    "title": "Rename trigger behavior options (#172348)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 26,
+   "test": 43,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "config",
+    "zwave_js-credentials"
+   ],
+   "ws_calls": [],
+   "pr": 52339,
+   "date": "2026-07-09",
+   "title": "Z-Wave: create users with credentials in a single API call (#52339)",
+   "user": "AlCalzone"
+  },
+  "core": [
+   {
+    "src": 338,
+    "test": 462,
+    "test_files": 1,
+    "files": 6,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 172740,
+    "date": "2026-07-09",
+    "title": "Support Z-Wave locks that require coupled users and credentials (#172740)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 80,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 52355,
+   "date": "2026-07-27",
+   "title": "Add battery capacity option for weighted state of charge (#52355)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 6,
+    "test": 26,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "energy"
+    ],
+    "pr": 172817,
+    "date": "2026-07-26",
+    "title": "Add capacity to battery energy source (#172817)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 11,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "automation"
+   ],
+   "ws_calls": [],
+   "pr": 52360,
+   "date": "2026-06-02",
+   "title": "Migrate trigger behavior (#52360)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 15,
+    "test": 46,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 172822,
+    "date": "2026-06-02",
+    "title": "Make the renamed trigger behavior options backwards compatible (#172822)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 29,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "trace"
+   ],
+   "ws_calls": [],
+   "pr": 52412,
+   "date": "2026-06-04",
+   "title": "Show template errors in traces (#52412)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 42,
+    "test": 44,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 172917,
+    "date": "2026-06-04",
+    "title": "Always include template errors in trace (#172917)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 462,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "config",
+    "icons",
+    "radio_frequency"
+   ],
+   "ws_calls": [
+    "radio_frequency/list"
+   ],
+   "pr": 52464,
+   "date": "2026-06-18",
+   "title": "Add radio frequency panel (#52464)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 76,
+    "test": 98,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "radio_frequency"
+    ],
+    "pr": 173134,
+    "date": "2026-06-17",
+    "title": "Add API to query radio frequency information (#173134)",
+    "ws_added": [
+     "radio_frequency/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 562,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "config",
+    "infrared",
+    "integration"
+   ],
+   "ws_calls": [],
+   "pr": 52465,
+   "date": "2026-06-18",
+   "title": "Add infrared panel (#52465)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "pr": 173135,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 172,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config",
+    "error_log"
+   ],
+   "ws_calls": [],
+   "pr": 52523,
+   "date": "2026-06-26",
+   "title": "Handle disabled core log file (#52523)",
+   "user": "adamsteen"
+  },
+  "core": [
+   {
+    "src": 48,
+    "test": 89,
+    "test_files": 2,
+    "files": 5,
+    "areas": [],
+    "pr": 170374,
+    "date": "2026-06-26",
+    "title": "Allow disabling managed log file (#170374)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 518,
+   "test": 307,
+   "test_files": 6,
+   "files": 30,
+   "areas": [
+    "config",
+    "history",
+    "logbook",
+    "lovelace",
+    "more-info",
+    "sensor",
+    "sensor_numeric_device_classes"
+   ],
+   "ws_calls": [],
+   "pr": 52663,
+   "date": "2026-06-16",
+   "title": "Fix flash of unformatted entity states on first load (#52663)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 0,
+    "test_files": 0,
+    "files": 3,
+    "areas": [],
+    "pr": 173919,
+    "date": "2026-06-16",
+    "title": "Publish numeric sensor device classes as generated sensor.json (#173919)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 168,
+   "test": 169,
+   "test_files": 2,
+   "files": 4,
+   "areas": [
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 52698,
+   "date": "2026-06-20",
+   "title": "Split negative untracked energy into a toggleable series (#52698)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 125362,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 240,
+   "test": 0,
+   "test_files": 0,
+   "files": 11,
+   "areas": [
+    "config",
+    "ha-trace-picker",
+    "logbook",
+    "trace"
+   ],
+   "ws_calls": [],
+   "pr": 52708,
+   "date": "2026-06-22",
+   "title": "Add support for not triggered traces (#52708)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 320,
+    "test": 362,
+    "test_files": 3,
+    "files": 15,
+    "areas": [
+     "automation",
+     "calendar",
+     "timer",
+     "todo",
+     "trace",
+     "zone",
+     "zwave_js"
+    ],
+    "pr": 174116,
+    "date": "2026-06-22",
+    "title": "Trigger add did not trigger callback (#174116)",
+    "ws_added": [
+     "trace/get",
+     "trace/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 196,
+   "test": 24,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "config",
+    "recorder"
+   ],
+   "ws_calls": [
+    "recorder/entity_options/get"
+   ],
+   "pr": 52709,
+   "date": "2026-06-24",
+   "title": "Show warning when priming will not work for condition (#52709)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 80,
+    "test": 43,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "recorder"
+    ],
+    "pr": 174134,
+    "date": "2026-06-25",
+    "title": "Add WS command recorder/entity_options/get (#174134)",
+    "ws_added": [
+     "recorder/entity_options/get"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "maintenance"
+   ],
+   "ws_calls": [],
+   "pr": 52734,
+   "date": "2026-06-19",
+   "title": "Include diagnostic battery binary sensors in maintenance view (#52734)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "pr": 173866,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 68,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "zwave_js"
+   ],
+   "ws_calls": [],
+   "pr": 52795,
+   "date": "2026-06-22",
+   "title": "Show circular progress when interviewing Z-Wave devices (#52795)",
+   "user": "AlCalzone"
+  },
+  "core": [
+   {
+    "src": 42,
+    "test": 57,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 174434,
+    "date": "2026-07-28",
+    "title": "Forward Z-Wave `interview progress` event (#174434)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 30,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "logbook"
+   ],
+   "ws_calls": [],
+   "pr": 52863,
+   "date": "2026-07-01",
+   "title": "Show the event type in the logbook for event entities (#52863)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 51,
+    "test": 103,
+    "test_files": 3,
+    "files": 9,
+    "areas": [
+     "event",
+     "logbook",
+     "recorder"
+    ],
+    "pr": 174808,
+    "date": "2026-07-01",
+    "title": "Expose selected state attributes in the logbook (#174808)",
+    "ws_added": [
+     "logbook/event_stream"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2298,
+   "test": 2306,
+   "test_files": 6,
+   "files": 43,
+   "areas": [
+    "automation",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 52904,
+   "date": "2026-09-08",
+   "title": "Delegate dashboard visibility conditions to core (#52904)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 1,
+    "test": 56,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 175123,
+    "date": "2026-09-04",
+    "title": "Allow non-admins to subscribe to conditions over the websocket (#175123)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 592,
+   "test": 90,
+   "test_files": 3,
+   "files": 34,
+   "areas": [
+    "compute-navigation-path-info",
+    "config",
+    "my"
+   ],
+   "ws_calls": [],
+   "pr": 52927,
+   "date": "2026-07-02",
+   "title": "Developer Tools -> Tools: Frontend panels (#52927)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 33,
+    "test": 25,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "frontend",
+     "mqtt"
+    ],
+    "pr": 175281,
+    "date": "2026-07-21",
+    "title": "Developer Tools -> Tools: Redirect URLs to /config/tools (#175281)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 36,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "more-info",
+    "vacuum"
+   ],
+   "ws_calls": [],
+   "pr": 53005,
+   "date": "2026-08-16",
+   "title": "Remove deprecated battery props from vacuum (#53005)",
+   "user": "gjohansson-ST"
+  },
+  "core": [
+   {
+    "src": 250,
+    "test": 340,
+    "test_files": 6,
+    "files": 10,
+    "areas": [
+     "google_assistant",
+     "mqtt",
+     "vacuum"
+    ],
+    "pr": 175682,
+    "date": "2026-08-15",
+    "title": "Remove deprecated battery properties from vacuum (#175682)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 136,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "zwave_js"
+   ],
+   "ws_calls": [
+    "zwave_js/subscribe_config_parameter_updates"
+   ],
+   "pr": 53013,
+   "date": "2026-07-30",
+   "title": "Add live updates to Z-Wave JS node config parameters (#53013)",
+   "user": "raman325"
+  },
+  "core": [
+   {
+    "src": 54,
+    "test": 101,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 175726,
+    "date": "2026-07-30",
+    "title": "Add zwave_js/subscribe_config_parameter_updates WS command (#175726)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 830,
+   "test": 0,
+   "test_files": 0,
+   "files": 9,
+   "areas": [
+    "config",
+    "http",
+    "http-pending-config",
+    "input"
+   ],
+   "ws_calls": [
+    "http/config",
+    "http/config/configure",
+    "http/config/promote"
+   ],
+   "pr": 53022,
+   "date": "2026-07-07",
+   "title": "Merge Port 8123 feature branch to dev (#53022)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 686,
+    "test": 945,
+    "test_files": 10,
+    "files": 16,
+    "areas": [
+     "conversation",
+     "hassio",
+     "http"
+    ],
+    "pr": 174270,
+    "date": "2026-07-07",
+    "title": "Merge Port 8123 feature branch to dev (#174270)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5465,
+   "test": 318,
+   "test_files": 2,
+   "files": 29,
+   "areas": [
+    "backup",
+    "cloud",
+    "config",
+    "webhook"
+   ],
+   "ws_calls": [
+    "cloud/onboarding/complete",
+    "cloud/onboarding/postpone"
+   ],
+   "pr": 53025,
+   "date": "2026-07-07",
+   "title": "Redesign cloud page (#53025)",
+   "user": "klejejs"
+  },
+  "core": [
+   {
+    "src": 89,
+    "test": 106,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "cloud"
+    ],
+    "pr": 175762,
+    "date": "2026-07-07",
+    "title": "Add cloud page onbording prefs (#175762)",
+    "ws_added": [
+     "cloud/onboarding/complete",
+     "cloud/onboarding/postpone",
+     "cloud/status"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "hassio"
+   ],
+   "ws_calls": [],
+   "pr": 53162,
+   "date": "2026-07-17",
+   "title": "Use /store/reload instead of legacy /addons/reload alias when checking for add-on updates (#53162)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 19,
+    "test": 50,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "hassio"
+    ],
+    "pr": 176648,
+    "date": "2026-07-17",
+    "title": "Refresh add-on update entities after store reload through Supervisor API proxy (#176648)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 109,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "http"
+   ],
+   "ws_calls": [],
+   "pr": 53166,
+   "date": "2026-07-23",
+   "title": "Surface active HTTP config slot and reverted pending state (#53166)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 345,
+    "test": 422,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "http"
+    ],
+    "pr": 176525,
+    "date": "2026-07-23",
+    "title": "Persist active HTTP config slot and keep reverted pending config (#176525)",
+    "ws_added": [
+     "http/config/configure",
+     "http/config/promote"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 126,
+   "test": 303,
+   "test_files": 2,
+   "files": 12,
+   "areas": [
+    "config-flow",
+    "ha-form",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 53168,
+   "date": "2026-07-22",
+   "title": "Rename ha-form conditional field to `visible` and skip it in config flow submission (#53168)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 310,
+    "test": 437,
+    "test_files": 2,
+    "files": 4,
+    "areas": [],
+    "pr": 176703,
+    "date": "2026-10-20",
+    "title": "Add conditional field visibility to config and options flows (#176703)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1371,
+   "test": 0,
+   "test_files": 0,
+   "files": 16,
+   "areas": [
+    "config",
+    "device",
+    "ha-target-picker",
+    "target-picker"
+   ],
+   "ws_calls": [
+    "config/device_registry/list_composite_splits"
+   ],
+   "pr": 53169,
+   "date": "2026-07-28",
+   "title": "Surface replaced composite devices in device and target pickers (#53169)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 48,
+    "test": 160,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "config"
+    ],
+    "pr": 176693,
+    "date": "2026-07-28",
+    "title": "Add WS command config/device_registry/list_composite_splits (#176693)",
+    "ws_added": [
+     "config/device_registry/list_composite_splits"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 29,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 53216,
+   "date": "2026-07-21",
+   "title": "Use registry for Alexa name override (#53216)",
+   "user": "arturpragacz"
+  },
+  "core": [
+   {
+    "src": 14,
+    "test": 11,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "alexa"
+    ],
+    "pr": 176926,
+    "date": "2026-07-21",
+    "title": "Use registry for Alexa name override (#176926)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 947,
+   "test": 769,
+   "test_files": 1,
+   "files": 6,
+   "areas": [
+    "config",
+    "matter"
+   ],
+   "ws_calls": [
+    "matter/network_topology",
+    "matter/subscribe_network_topology"
+   ],
+   "pr": 53247,
+   "date": "2026-08-19",
+   "title": "Add Matter network topology visualization page (#53247)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 152,
+    "test": 246,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "matter"
+    ],
+    "pr": 177114,
+    "date": "2026-08-19",
+    "title": "Add Matter network topology WebSocket API (#177114)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 543,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "media-player",
+    "media_source"
+   ],
+   "ws_calls": [
+    "media_source/search_media"
+   ],
+   "pr": 53258,
+   "date": "2026-07-27",
+   "title": "Add search functionality to media browser (#53258)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 3,
+    "test": 77,
+    "test_files": 9,
+    "files": 10,
+    "areas": [
+     "androidtv_remote",
+     "bang_olufsen",
+     "cast",
+     "denon_rs232",
+     "dlna_dmr",
+     "fully_kiosk",
+     "jellyfin",
+     "media_player",
+     "motioneye"
+    ],
+    "pr": 177146,
+    "date": "2026-07-23",
+    "title": "Add search_media_classes to media browser (#177146)",
+    "ws_added": [
+     "media_player/browse_media"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 679,
+   "test": 0,
+   "test_files": 0,
+   "files": 10,
+   "areas": [
+    "buttons",
+    "chips",
+    "config",
+    "entity",
+    "entity_id_format"
+   ],
+   "ws_calls": [
+    "config/entity_registry/settings/get",
+    "config/entity_registry/settings/update"
+   ],
+   "pr": 53268,
+   "date": "2026-07-28",
+   "title": "Add entity ID format setting for new entities (#53268)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 144,
+    "test": 535,
+    "test_files": 3,
+    "files": 5,
+    "areas": [
+     "config"
+    ],
+    "pr": 177140,
+    "date": "2026-07-28",
+    "title": "Add setting to customise entity ID generation (#177140)",
+    "ws_added": [
+     "config/entity_registry/settings/get",
+     "config/entity_registry/settings/update"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 219,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "device"
+   ],
+   "ws_calls": [
+    "config/device_registry/list_linked_devices"
+   ],
+   "pr": 53363,
+   "date": "2026-07-29",
+   "title": "Add link on the device page to shared hardware devices (#53363)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 39,
+    "test": 80,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "config"
+    ],
+    "pr": 177449,
+    "date": "2026-07-29",
+    "title": "Add WS command config/device_registry/list_linked_devices (#177449)",
+    "ws_added": [
+     "config/device_registry/list_linked_devices"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 92,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "ws-slugify"
+   ],
+   "ws_calls": [],
+   "pr": 53394,
+   "date": "2026-07-31",
+   "title": "Use backend slugify for the entity ID format preview (#53394)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 13,
+    "test": 11,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 177623,
+    "date": "2026-07-31",
+    "title": "Add slugify websocket command (#177623)",
+    "ws_added": [
+     "slugify"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 61,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "media-player",
+    "media_source"
+   ],
+   "ws_calls": [
+    "media_player/search_media"
+   ],
+   "pr": 53402,
+   "date": "2026-07-30",
+   "title": "Search a media player's own library from the media browser (#53402)",
+   "user": "marcelveldt"
+  },
+  "core": [
+   {
+    "src": 58,
+    "test": 211,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "music_assistant"
+    ],
+    "pr": 177649,
+    "date": "2026-07-30",
+    "title": "Fix search not showing up in the Music Assistant media browser (#177649)",
+    "ws_added": [
+     "media_player/search_media"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 34,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "ha-filter-devices",
+    "ha-filter-floor-areas",
+    "search"
+   ],
+   "ws_calls": [],
+   "pr": 53444,
+   "date": "2026-09-14",
+   "title": "Show disabled entities when filtering entities by device or area (#53444)",
+   "user": "shbatm"
+  },
+  "core": [
+   {
+    "src": 18,
+    "test": 200,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "search"
+    ],
+    "pr": 178024,
+    "date": "2026-09-14",
+    "title": "Include disabled entities in search/related when requested (#178024)",
+    "ws_added": [
+     "search/related"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 53572,
+   "date": "2026-08-24",
+   "title": "Add supported_speeds parameter for cover movement actions (#53572)",
+   "user": "wollew"
+  },
+  "core": [
+   {
+    "src": 180,
+    "test": 169,
+    "test_files": 4,
+    "files": 10,
+    "areas": [
+     "cover",
+     "demo"
+    ],
+    "pr": 176231,
+    "date": "2026-08-24",
+    "title": "Add optional speed parameter to cover movement actions (#176231)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 43,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "device"
+   ],
+   "ws_calls": [
+    "config/device_registry/remove"
+   ],
+   "pr": 53594,
+   "date": "2026-08-11",
+   "title": "Replace remove device command (#53594)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 89,
+    "test": 198,
+    "test_files": 3,
+    "files": 4,
+    "areas": [
+     "config"
+    ],
+    "pr": 178319,
+    "date": "2026-08-11",
+    "title": "Add WS command config/device_registry/remove (#178319)",
+    "ws_added": [
+     "config/device_registry/remove",
+     "config/device_registry/remove_config_entry"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 236,
+   "test": 250,
+   "test_files": 5,
+   "files": 28,
+   "areas": [
+    "config",
+    "device",
+    "ws-device_registry"
+   ],
+   "ws_calls": [
+    "config/device_registry/list"
+   ],
+   "pr": 53617,
+   "date": "2026-08-13",
+   "title": "Add child devices to the device registry (#53617)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 2333,
+    "test": 4645,
+    "test_files": 27,
+    "files": 106,
+    "areas": [
+     "alexa_devices",
+     "analytics",
+     "assist_pipeline",
+     "avea",
+     "bluetooth",
+     "bsblan",
+     "cloud",
+     "config",
+     "conversation",
+     "deconz",
+     "derivative",
+     "device_tracker",
+     "diagnostics",
+     "dlna_dmr",
+     "generic_hygrostat",
+     "generic_thermostat",
+     "google_assistant",
+     "hassio",
+     "history_stats",
+     "homeassistant",
+     "homekit",
+     "homekit_controller",
+     "hue",
+     "integration",
+     "intelliclima",
+     "intent",
+     "kitchen_sink",
+     "lcn",
+     "lg_netcast",
+     "matter",
+     "mold_indicator",
+     "motioneye",
+     "nanoleaf",
+     "netatmo",
+     "nexia",
+     "ntfy",
+     "nut",
+     "opendisplay",
+     "overkiz",
+     "portainer",
+     "prometheus",
+     "reolink",
+     "samsungtv",
+     "search",
+     "simplisafe",
+     "statistics",
+     "switchbee",
+     "telegram_bot",
+     "teslemetry",
+     "threshold",
+     "trend",
+     "unifi",
+     "unifiprotect",
+     "upnp",
+     "utility_meter",
+     "webostv",
+     "xiaomi_ble",
+     "yolink",
+     "zha",
+     "zwave_js"
+    ],
+    "pr": 178666,
+    "date": "2026-08-13",
+    "title": "Add child devices (#178666)",
+    "ws_added": [
+     "config/device_registry/list",
+     "config/device_registry/list_linked_devices",
+     "config/device_registry/update"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 976,
+   "test": 66,
+   "test_files": 1,
+   "files": 17,
+   "areas": [
+    "config",
+    "device",
+    "ha-target-picker",
+    "ha-tree-indicator",
+    "selector",
+    "target"
+   ],
+   "ws_calls": [],
+   "pr": 53619,
+   "date": "2026-08-13",
+   "title": "Child devices UI (#53619)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 2333,
+    "test": 4645,
+    "test_files": 27,
+    "files": 106,
+    "areas": [
+     "alexa_devices",
+     "analytics",
+     "assist_pipeline",
+     "avea",
+     "bluetooth",
+     "bsblan",
+     "cloud",
+     "config",
+     "conversation",
+     "deconz",
+     "derivative",
+     "device_tracker",
+     "diagnostics",
+     "dlna_dmr",
+     "generic_hygrostat",
+     "generic_thermostat",
+     "google_assistant",
+     "hassio",
+     "history_stats",
+     "homeassistant",
+     "homekit",
+     "homekit_controller",
+     "hue",
+     "integration",
+     "intelliclima",
+     "intent",
+     "kitchen_sink",
+     "lcn",
+     "lg_netcast",
+     "matter",
+     "mold_indicator",
+     "motioneye",
+     "nanoleaf",
+     "netatmo",
+     "nexia",
+     "ntfy",
+     "nut",
+     "opendisplay",
+     "overkiz",
+     "portainer",
+     "prometheus",
+     "reolink",
+     "samsungtv",
+     "search",
+     "simplisafe",
+     "statistics",
+     "switchbee",
+     "telegram_bot",
+     "teslemetry",
+     "threshold",
+     "trend",
+     "unifi",
+     "unifiprotect",
+     "upnp",
+     "utility_meter",
+     "webostv",
+     "xiaomi_ble",
+     "yolink",
+     "zha",
+     "zwave_js"
+    ],
+    "pr": 178666,
+    "date": "2026-08-13",
+    "title": "Add child devices (#178666)",
+    "ws_added": [
+     "config/device_registry/list",
+     "config/device_registry/list_linked_devices",
+     "config/device_registry/update"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 8,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "ha-selector"
+   ],
+   "ws_calls": [],
+   "pr": 53648,
+   "date": "2026-08-16",
+   "title": "Fix choose selector minor issues (#53648)",
+   "user": "karwosts"
+  },
+  "core": [
+   {
+    "pr": 179197,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 328,
+   "test": 82,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 53672,
+   "date": "2026-08-26",
+   "title": "Add device class selector (#53672)",
+   "user": "jbouwh"
+  },
+  "core": [
+   {
+    "src": 270,
+    "test": 32,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "mqtt"
+    ],
+    "pr": 179331,
+    "date": "2026-08-26",
+    "title": "Add device class selector (#179331)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 15,
+   "test": 58,
+   "test_files": 1,
+   "files": 2,
+   "areas": [
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 53675,
+   "date": "2026-08-17",
+   "title": "Log console error when a dashboard resource fails to load (#53675)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 179316,
+    "missing": true
+   },
+   {
+    "src": 52,
+    "test": 71,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "lovelace"
+    ],
+    "pr": 179357,
+    "date": "2026-08-24",
+    "title": "Warn when a Lovelace YAML resource points to a missing local file (#179357)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 178,
+   "test": 63,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "config",
+    "zwave_js"
+   ],
+   "ws_calls": [],
+   "pr": 53676,
+   "date": "2026-08-18",
+   "title": "Fix Z-Wave network visualization showing wrong route edges (#53676)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 161100,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 125,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "zwave_js"
+   ],
+   "ws_calls": [
+    "zwave_js/network_neighbors"
+   ],
+   "pr": 53677,
+   "date": "2026-08-27",
+   "title": "Show Z-Wave neighbor connections in the network visualization (#53677)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 161100,
+    "missing": true
+   },
+   {
+    "src": 100,
+    "test": 507,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "zwave_js"
+    ],
+    "pr": 179363,
+    "date": "2026-08-27",
+    "title": "Add Z-Wave JS WebSocket command to get network neighbors (#179363)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 16,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 53681,
+   "date": "2026-08-17",
+   "title": "Fall back to option key for untranslated repair menu options (#53681)",
+   "user": "agners"
+  },
+  "core": [
+   {
+    "src": 35,
+    "test": 154,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "hassio"
+    ],
+    "pr": 179369,
+    "date": "2026-08-20",
+    "title": "Add move local data option to hassio mount failed repair (#179369)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 861,
+   "test": 0,
+   "test_files": 0,
+   "files": 6,
+   "areas": [
+    "config",
+    "usb"
+   ],
+   "ws_calls": [
+    "usb/list_serial_ports"
+   ],
+   "pr": 53699,
+   "date": "2026-08-24",
+   "title": "Add a serial panel (#53699)",
+   "user": "puddly"
+  },
+  "core": [
+   {
+    "src": 365,
+    "test": 600,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "usb"
+    ],
+    "pr": 179524,
+    "date": "2026-08-21",
+    "title": "USB Websocket API to list serial ports (#179524)",
+    "ws_added": [
+     "usb/list_serial_ports"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 19,
+   "test": 71,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 53739,
+   "date": "2026-09-28",
+   "title": "Add default support to object selector fields (#53739)",
+   "user": "nokside"
+  },
+  "core": [
+   {
+    "src": 2,
+    "test": 28,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 179810,
+    "date": "2026-09-28",
+    "title": "Add default support to object selector fields (#179810)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 918,
+   "test": 0,
+   "test_files": 0,
+   "files": 14,
+   "areas": [
+    "device_classes",
+    "entity",
+    "lovelace",
+    "sensor",
+    "sensor_entity_constants",
+    "sensor_numeric_device_classes"
+   ],
+   "ws_calls": [],
+   "pr": 53748,
+   "date": "2026-08-25",
+   "title": "Expand sensor entity constants and add device classes (#53748)",
+   "user": "jbouwh"
+  },
+  "core": [
+   {
+    "src": 102,
+    "test": 0,
+    "test_files": 0,
+    "files": 4,
+    "areas": [],
+    "pr": 179591,
+    "date": "2026-08-25",
+    "title": "Generate frontend device class, sensor state class and units (#179591)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 658,
+   "test": 137,
+   "test_files": 4,
+   "files": 30,
+   "areas": [
+    "config",
+    "entity",
+    "ha-area-controls-picker",
+    "ha-code-editor",
+    "logbook",
+    "lovelace",
+    "media-player",
+    "more-info",
+    "selector",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 53766,
+   "date": "2026-09-10",
+   "title": "Add parent device to entity context (#53766)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 2333,
+    "test": 4645,
+    "test_files": 27,
+    "files": 106,
+    "areas": [
+     "alexa_devices",
+     "analytics",
+     "assist_pipeline",
+     "avea",
+     "bluetooth",
+     "bsblan",
+     "cloud",
+     "config",
+     "conversation",
+     "deconz",
+     "derivative",
+     "device_tracker",
+     "diagnostics",
+     "dlna_dmr",
+     "generic_hygrostat",
+     "generic_thermostat",
+     "google_assistant",
+     "hassio",
+     "history_stats",
+     "homeassistant",
+     "homekit",
+     "homekit_controller",
+     "hue",
+     "integration",
+     "intelliclima",
+     "intent",
+     "kitchen_sink",
+     "lcn",
+     "lg_netcast",
+     "matter",
+     "mold_indicator",
+     "motioneye",
+     "nanoleaf",
+     "netatmo",
+     "nexia",
+     "ntfy",
+     "nut",
+     "opendisplay",
+     "overkiz",
+     "portainer",
+     "prometheus",
+     "reolink",
+     "samsungtv",
+     "search",
+     "simplisafe",
+     "statistics",
+     "switchbee",
+     "telegram_bot",
+     "teslemetry",
+     "threshold",
+     "trend",
+     "unifi",
+     "unifiprotect",
+     "upnp",
+     "utility_meter",
+     "webostv",
+     "xiaomi_ble",
+     "yolink",
+     "zha",
+     "zwave_js"
+    ],
+    "pr": 178666,
+    "date": "2026-08-13",
+    "title": "Add child devices (#178666)",
+    "ws_added": [
+     "config/device_registry/list",
+     "config/device_registry/list_linked_devices",
+     "config/device_registry/update"
+    ]
+   },
+   {
+    "src": 24,
+    "test": 77,
+    "test_files": 5,
+    "files": 6,
+    "areas": [
+     "guntamatic",
+     "kitchen_sink"
+    ],
+    "pr": 179996,
+    "date": "2026-09-10",
+    "title": "Add parent device name part to generated entity IDs (#179996)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2417,
+   "test": 576,
+   "test_files": 1,
+   "files": 13,
+   "areas": [
+    "config",
+    "config_flow",
+    "esphome",
+    "esphome-device-setup",
+    "esphome_setup",
+    "frontend",
+    "hassio",
+    "usb"
+   ],
+   "ws_calls": [
+    "esphome/get_device_capabilities"
+   ],
+   "pr": 53781,
+   "date": "2026-09-30",
+   "title": "Add ESPHome device setup checklist (#53781)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 365,
+    "test": 600,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "usb"
+    ],
+    "pr": 179524,
+    "date": "2026-08-21",
+    "title": "USB Websocket API to list serial ports (#179524)",
+    "ws_added": [
+     "usb/list_serial_ports"
+    ]
+   },
+   {
+    "src": 126,
+    "test": 326,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 180135,
+    "date": "2026-09-29",
+    "title": "Add esphome/get_device_capabilities websocket command (#180135)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1638,
+   "test": 0,
+   "test_files": 0,
+   "files": 13,
+   "areas": [
+    "cloud",
+    "config"
+   ],
+   "ws_calls": [
+    "cloud/attempt_auto_login_now",
+    "cloud/cancel_auto_login",
+    "cloud/resend_auto_login_confirm",
+    "cloud/subscribe_events"
+   ],
+   "pr": 53790,
+   "date": "2026-08-26",
+   "title": "Improve cloud login/sign up pages, add auto login (#53790)",
+   "user": "klejejs"
+  },
+  "core": [
+   {
+    "src": 395,
+    "test": 738,
+    "test_files": 3,
+    "files": 9,
+    "areas": [
+     "cloud"
+    ],
+    "pr": 180105,
+    "date": "2026-08-25",
+    "title": "Cloud register auto login (#180105)",
+    "ws_added": [
+     "cloud/attempt_auto_login_now",
+     "cloud/cancel_auto_login",
+     "cloud/remove_data",
+     "cloud/resend_auto_login_confirm",
+     "cloud/status",
+     "cloud/subscribe_events"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 12,
+   "test": 1,
+   "test_files": 1,
+   "files": 6,
+   "areas": [
+    "config",
+    "config_entries"
+   ],
+   "ws_calls": [],
+   "pr": 53791,
+   "date": "2026-08-26",
+   "title": "Allow cross domain translations for config entry setup errors (#53791)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 14,
+    "test": 80,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "config"
+    ],
+    "pr": 180192,
+    "date": "2026-08-26",
+    "title": "Persist the translation domain for config entry setup errors (#180192)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 265,
+   "test": 187,
+   "test_files": 1,
+   "files": 8,
+   "areas": [
+    "config",
+    "device"
+   ],
+   "ws_calls": [],
+   "pr": 53805,
+   "date": "2026-08-27",
+   "title": "Keep the automation config when replacing a device in device automations (#53805)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "pr": 178332,
+    "missing": true
+   },
+   {
+    "pr": 179627,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 186,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "device",
+    "ha-generic-picker",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 53807,
+   "date": "2026-08-26",
+   "title": "Clarify the replaced device state in pickers and target rows (#53807)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "pr": 178332,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 617,
+   "test": 569,
+   "test_files": 3,
+   "files": 10,
+   "areas": [
+    "map",
+    "map_tiles"
+   ],
+   "ws_calls": [
+    "map_tiles/access_token"
+   ],
+   "pr": 53845,
+   "date": "2026-09-01",
+   "title": "Load the base map through core's tile proxy (#53845)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 624,
+    "test": 896,
+    "test_files": 3,
+    "files": 10,
+    "areas": [
+     "map_tiles"
+    ],
+    "pr": 180441,
+    "date": "2026-08-31",
+    "title": "Add map tiles integration to proxy the OpenStreetMap base map (#180441)",
+    "ws_added": [
+     "map_tiles/access_token"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1827,
+   "test": 0,
+   "test_files": 0,
+   "files": 9,
+   "areas": [
+    "cloud",
+    "config",
+    "voice-assistant-setup"
+   ],
+   "ws_calls": [],
+   "pr": 53854,
+   "date": "2026-09-01",
+   "title": "Use the cloud auto-login flow in the voice satellite wizard (#53854)",
+   "user": "klejejs"
+  },
+  "core": [
+   {
+    "src": 58,
+    "test": 405,
+    "test_files": 4,
+    "files": 8,
+    "areas": [
+     "cloud"
+    ],
+    "pr": 180423,
+    "date": "2026-08-28",
+    "title": "Read cloud auto-login state from the hass-nabucasa controller (#180423)",
+    "ws_added": [
+     "cloud/attempt_auto_login_now",
+     "cloud/remove_data",
+     "cloud/resend_auto_login_confirm",
+     "cloud/subscribe_events"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 3,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "entity"
+   ],
+   "ws_calls": [],
+   "pr": 53855,
+   "date": "2026-08-28",
+   "title": "Remove vacuum battery_level attribute unit (#53855)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 250,
+    "test": 340,
+    "test_files": 6,
+    "files": 10,
+    "areas": [
+     "google_assistant",
+     "mqtt",
+     "vacuum"
+    ],
+    "pr": 175682,
+    "date": "2026-08-15",
+    "title": "Remove deprecated battery properties from vacuum (#175682)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 10,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "ha-selector",
+    "lovelace",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 53866,
+   "date": "2026-08-29",
+   "title": "Make the media selector clear button follow image_upload (#53866)",
+   "user": "parkghost"
+  },
+  "core": [
+   {
+    "src": 22,
+    "test": 47,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 180452,
+    "date": "2026-09-19",
+    "title": "Allow image_upload in the media selector config (#180452)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 291,
+   "test": 0,
+   "test_files": 0,
+   "files": 8,
+   "areas": [
+    "entity",
+    "ha-form",
+    "ha-selector",
+    "ha-state-class-picker",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 53880,
+   "date": "2026-09-03",
+   "title": "Add reusable state class selector (#53880)",
+   "user": "jbouwh"
+  },
+  "core": [
+   {
+    "src": 166,
+    "test": 67,
+    "test_files": 1,
+    "files": 14,
+    "areas": [
+     "history_stats",
+     "knx",
+     "mqtt",
+     "scrape",
+     "sql",
+     "template"
+    ],
+    "pr": 180667,
+    "date": "2026-09-05",
+    "title": "Add state class selector (#180667)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 352,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config",
+    "llm"
+   ],
+   "ws_calls": [
+    "llm/api/list"
+   ],
+   "pr": 53906,
+   "date": "2026-09-02",
+   "title": "Rename AI tasks settings to AI and add Model Context Protocol card (#53906)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 135,
+    "test": 169,
+    "test_files": 3,
+    "files": 5,
+    "areas": [
+     "mcp_server"
+    ],
+    "pr": 180629,
+    "date": "2026-08-30",
+    "title": "Add options flow to MCP Server integration (#180629)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 75,
+   "test": 0,
+   "test_files": 0,
+   "files": 9,
+   "areas": [
+    "ha-lawn_mower-action-button",
+    "lawn_mower",
+    "lovelace",
+    "more-info"
+   ],
+   "ws_calls": [],
+   "pr": 53957,
+   "date": "2026-09-11",
+   "title": "Add idle state and stop action to lawn mower (#53957)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 72,
+    "test": 52,
+    "test_files": 5,
+    "files": 14,
+    "areas": [
+     "kitchen_sink",
+     "lawn_mower",
+     "mqtt"
+    ],
+    "pr": 181188,
+    "date": "2026-09-11",
+    "title": "Add idle state and stop action to lawn mower entity (#181188)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 9,
+   "test": 47,
+   "test_files": 3,
+   "files": 10,
+   "areas": [
+    "config",
+    "device_classes",
+    "security"
+   ],
+   "ws_calls": [],
+   "pr": 53989,
+   "date": "2026-09-14",
+   "title": "Support glass break binary sensors (#53989)",
+   "user": "catellie"
+  },
+  "core": [
+   {
+    "src": 28,
+    "test": 18,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "binary_sensor"
+    ],
+    "pr": 181332,
+    "date": "2026-09-14",
+    "title": "Add glass break device class for binary_sensor (#181332)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 179,
+   "test": 15,
+   "test_files": 1,
+   "files": 10,
+   "areas": [
+    "config",
+    "more-info",
+    "zha"
+   ],
+   "ws_calls": [],
+   "pr": 54021,
+   "date": "2026-09-29",
+   "title": "Add a switch to use the device name for entities (#54021)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 2,
+    "test": 48,
+    "test_files": 2,
+    "files": 3,
+    "areas": [],
+    "pr": 181576,
+    "date": "2026-09-29",
+    "title": "Fix friendly names for empty entity name overrides (#181576)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 727,
+   "test": 0,
+   "test_files": 0,
+   "files": 10,
+   "areas": [
+    "config",
+    "modbus"
+   ],
+   "ws_calls": [
+    "modbus/connections/list"
+   ],
+   "pr": 54036,
+   "date": "2026-09-09",
+   "title": "Add a Modbus panel (#54036)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 110,
+    "test": 240,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "modbus"
+    ],
+    "pr": 179937,
+    "date": "2026-09-09",
+    "title": "Expose the Modbus connections over a websocket API (#179937)",
+    "ws_added": [
+     "modbus/connections/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 54050,
+   "date": "2026-09-08",
+   "title": "Add timedelta_string template completion (#54050)",
+   "user": "cnotin"
+  },
+  "core": [
+   {
+    "src": 38,
+    "test": 60,
+    "test_files": 2,
+    "files": 4,
+    "areas": [],
+    "pr": 169773,
+    "date": "2026-09-08",
+    "title": "Add timedelta_string template function similar to time_since/time_until/relative_time (#169773)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 54056,
+   "date": "2026-09-08",
+   "title": "Add 'timedelta_string' to documented Jinja completions (#54056)",
+   "user": "cnotin"
+  },
+  "core": [
+   {
+    "src": 38,
+    "test": 60,
+    "test_files": 2,
+    "files": 4,
+    "areas": [],
+    "pr": 169773,
+    "date": "2026-09-08",
+    "title": "Add timedelta_string template function similar to time_since/time_until/relative_time (#169773)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 210,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "chips",
+    "config",
+    "entity_id_format"
+   ],
+   "ws_calls": [],
+   "pr": 54060,
+   "date": "2026-09-10",
+   "title": "Add parent device to entity ID format (#54060)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 24,
+    "test": 77,
+    "test_files": 5,
+    "files": 6,
+    "areas": [
+     "guntamatic",
+     "kitchen_sink"
+    ],
+    "pr": 179996,
+    "date": "2026-09-10",
+    "title": "Add parent device name part to generated entity IDs (#179996)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 667,
+   "test": 134,
+   "test_files": 2,
+   "files": 11,
+   "areas": [
+    "ha-base-time-input",
+    "ha-duration-input",
+    "ha-select",
+    "ha-selector",
+    "selector"
+   ],
+   "ws_calls": [],
+   "pr": 54111,
+   "date": "2026-10-02",
+   "title": "Add signed and offset modes to the duration selector (#54111)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 58,
+    "test": 40,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 181884,
+    "date": "2026-10-02",
+    "title": "Add signed and offset modes to the duration selector (#181884)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 74,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "modbus"
+   ],
+   "ws_calls": [],
+   "pr": 54134,
+   "date": "2026-09-13",
+   "title": "Show YAML-configured Modbus hubs in the Modbus panel (#54134)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 67,
+    "test": 195,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "modbus"
+    ],
+    "pr": 182024,
+    "date": "2026-09-13",
+    "title": "Include YAML hubs in the Modbus connections list (#182024)",
+    "ws_added": [
+     "modbus/connections/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 232,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "lovelace",
+    "more-info"
+   ],
+   "ws_calls": [],
+   "pr": 54188,
+   "date": "2026-09-15",
+   "title": "Show toggle for fan entity only if TURN_ON or TURN_OFF is supported (#54188)",
+   "user": "rokam"
+  },
+  "core": [
+   {
+    "pr": 182162,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 136,
+   "test": 116,
+   "test_files": 1,
+   "files": 9,
+   "areas": [
+    "config",
+    "device",
+    "entity",
+    "lovelace",
+    "registry",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 54193,
+   "date": "2026-09-29",
+   "title": "Omit owners in another area from entity context (#54193)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 105,
+    "test": 234,
+    "test_files": 7,
+    "files": 11,
+    "areas": [
+     "cloud",
+     "config",
+     "google_assistant"
+    ],
+    "pr": 181551,
+    "date": "2026-09-29",
+    "title": "Add next_name_part to registry entries (#181551)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 64,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54235,
+   "date": "2026-09-29",
+   "title": "Use the device area when the entity uses the device name (#54235)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 105,
+    "test": 234,
+    "test_files": 7,
+    "files": 11,
+    "areas": [
+     "cloud",
+     "config",
+     "google_assistant"
+    ],
+    "pr": 181551,
+    "date": "2026-09-29",
+    "title": "Add next_name_part to registry entries (#181551)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 44,
+   "test": 100,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "assist_pipeline",
+    "config",
+    "user"
+   ],
+   "ws_calls": [],
+   "pr": 54276,
+   "date": "2026-09-27",
+   "title": "Add a user picker to an assist pipeline (#54276)",
+   "user": "felixschndr"
+  },
+  "core": [
+   {
+    "src": 52,
+    "test": 187,
+    "test_files": 4,
+    "files": 7,
+    "areas": [
+     "assist_pipeline",
+     "cloud"
+    ],
+    "pr": 182750,
+    "date": "2026-09-27",
+    "title": "Add user_id to assist pipelines (#182750)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 18,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "assist_pipeline",
+    "chat_log",
+    "ha-assist-chat"
+   ],
+   "ws_calls": [],
+   "pr": 54294,
+   "date": "2026-09-21",
+   "title": "Use the tool result field in the chat log (#54294)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 78,
+    "test": 413,
+    "test_files": 15,
+    "files": 20,
+    "areas": [
+     "anthropic",
+     "climate",
+     "cloud",
+     "conversation",
+     "google_generative_ai_conversation",
+     "litellm",
+     "llama_cpp",
+     "mcp_server",
+     "ollama",
+     "open_router",
+     "openai_conversation",
+     "ovhcloud_ai_endpoints"
+    ],
+    "pr": 182487,
+    "date": "2026-09-17",
+    "title": "Add ToolResult type to the LLM API (#182487)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 15,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 54303,
+   "date": "2026-09-21",
+   "title": "Add field IDs to the bug report form (#54303)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 10,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [],
+    "pr": 182854,
+    "date": "2026-09-21",
+    "title": "Add field IDs to the bug report form (#182854)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 378,
+   "test": 362,
+   "test_files": 3,
+   "files": 10,
+   "areas": [
+    "config",
+    "integration",
+    "system_health",
+    "system_log",
+    "system_log_report"
+   ],
+   "ws_calls": [],
+   "pr": 54305,
+   "date": "2026-09-22",
+   "title": "Add a bug report link to log details (#54305)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 10,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [],
+    "pr": 182854,
+    "date": "2026-09-21",
+    "title": "Add field IDs to the bug report form (#182854)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 44,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54349,
+   "date": "2026-09-27",
+   "title": "Enable the MCP server in one click (#54349)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 121,
+    "test": 206,
+    "test_files": 4,
+    "files": 9,
+    "areas": [
+     "mcp_server"
+    ],
+    "pr": 183054,
+    "date": "2026-09-27",
+    "title": "Add option to expose all LLM APIs in the MCP server (#183054)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 24,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 54382,
+   "date": "2026-09-27",
+   "title": "Move GitHub Actions updates from Dependabot to Renovate (#54382)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 21,
+    "test": 0,
+    "test_files": 0,
+    "files": 1,
+    "areas": [],
+    "pr": 182668,
+    "date": "2026-09-19",
+    "title": "Migrate GitHub Actions updates from Dependabot to Renovate (#182668)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 35,
+   "test": 53,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "auth"
+   ],
+   "ws_calls": [],
+   "pr": 54389,
+   "date": "2026-09-27",
+   "title": "Forward PKCE code_challenge parameters in login flow (#54389)",
+   "user": "allenporter"
+  },
+  "core": [
+   {
+    "src": 173,
+    "test": 225,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "auth"
+    ],
+    "pr": 181957,
+    "date": "2026-09-26",
+    "title": "Support PKCE S256 in OAuth server (#181957)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 550,
+   "test": 258,
+   "test_files": 3,
+   "files": 15,
+   "areas": [
+    "config",
+    "ha-form",
+    "ha-selector",
+    "ha-unit-of-measurement-picker",
+    "selector",
+    "sensor",
+    "sensor_entity_constants"
+   ],
+   "ws_calls": [],
+   "pr": 54391,
+   "date": "2026-10-08",
+   "title": "Add unit of measurement selector (#54391)",
+   "user": "jbouwh"
+  },
+  "core": [
+   {
+    "src": 211,
+    "test": 546,
+    "test_files": 5,
+    "files": 7,
+    "areas": [
+     "blueprint",
+     "mqtt"
+    ],
+    "pr": 183337,
+    "date": "2026-10-08",
+    "title": "Add unit of measurement selector (#183337)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 451,
+   "test": 52,
+   "test_files": 1,
+   "files": 11,
+   "areas": [
+    "config",
+    "ha-media-item-picker",
+    "ha-picture-upload",
+    "image_upload",
+    "lovelace",
+    "person",
+    "profile"
+   ],
+   "ws_calls": [
+    "person/update_own_profile"
+   ],
+   "pr": 54400,
+   "date": "2026-09-29",
+   "title": "Let users edit their own name and picture from their profile (#54400)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 112,
+    "test": 246,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "person"
+    ],
+    "pr": 183368,
+    "date": "2026-09-29",
+    "title": "Allow users to update their own name and picture (#183368)",
+    "ws_added": [
+     "person/update_own_profile"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5868,
+   "test": 5119,
+   "test_files": 23,
+   "files": 62,
+   "areas": [
+    "config",
+    "config_flow",
+    "custom_icons",
+    "ha-markdown",
+    "ha-markdown-element",
+    "ha-tab",
+    "marketplace",
+    "my"
+   ],
+   "ws_calls": [
+    "marketplace/github/connect",
+    "marketplace/info",
+    "marketplace/repositories/add",
+    "marketplace/repositories/clear_new",
+    "marketplace/repositories/detect",
+    "marketplace/repositories/list",
+    "marketplace/repositories/remove",
+    "marketplace/repository/info",
+    "marketplace/repository/install",
+    "marketplace/repository/refresh",
+    "marketplace/repository/releases",
+    "marketplace/repository/uninstall",
+    "marketplace/subscribe",
+    "marketplace/warning/accept"
+   ],
+   "pr": 54437,
+   "date": "2026-10-01",
+   "title": "Add Marketplace panel (#54437)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 10907,
+    "test": 16321,
+    "test_files": 44,
+    "files": 104,
+    "areas": [
+     "marketplace"
+    ],
+    "pr": 183502,
+    "date": "2026-10-01",
+    "title": "Add Marketplace integration (#183502)",
+    "ws_added": [
+     "marketplace/critical/acknowledge",
+     "marketplace/critical/list",
+     "marketplace/github/connect",
+     "marketplace/info",
+     "marketplace/repositories/add",
+     "marketplace/repositories/clear_new",
+     "marketplace/repositories/detect",
+     "marketplace/repositories/list",
+     "marketplace/repositories/remove",
+     "marketplace/repositories/removed",
+     "marketplace/repository/beta",
+     "marketplace/repository/ignore",
+     "marketplace/repository/info",
+     "marketplace/repository/install",
+     "marketplace/repository/refresh",
+     "marketplace/repository/releases",
+     "marketplace/repository/uninstall",
+     "marketplace/repository/version",
+     "marketplace/subscribe",
+     "marketplace/warning/accept",
+     "update/release_notes"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 33,
+   "test": 44,
+   "test_files": 3,
+   "files": 6,
+   "areas": [
+    "map_tiles"
+   ],
+   "ws_calls": [],
+   "pr": 54452,
+   "date": "2026-09-29",
+   "title": "Send the map tiles token in a header, so tile URLs stop rotating (#54452)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 17,
+    "test": 47,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "map_tiles"
+    ],
+    "pr": 183611,
+    "date": "2026-09-29",
+    "title": "Accept the map tiles access token in a header (#183611)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 37,
+   "test": 7,
+   "test_files": 2,
+   "files": 6,
+   "areas": [
+    "config",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 54454,
+   "date": "2026-09-30",
+   "title": "Fix computed entity name in voice settings (#54454)",
+   "user": "arturpragacz"
+  },
+  "core": [
+   {
+    "src": 40,
+    "test": 51,
+    "test_files": 1,
+    "files": 3,
+    "areas": [],
+    "pr": 183610,
+    "date": "2026-09-30",
+    "title": "Include parent device in computed entity name (#183610)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 40,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "calendar"
+   ],
+   "ws_calls": [],
+   "pr": 54457,
+   "date": "2026-09-30",
+   "title": "Mark tentative calendar events (#54457)",
+   "user": "1358"
+  },
+  "core": [
+   {
+    "src": 71,
+    "test": 186,
+    "test_files": 4,
+    "files": 9,
+    "areas": [
+     "caldav",
+     "calendar",
+     "google",
+     "local_calendar",
+     "todoist"
+    ],
+    "pr": 179312,
+    "date": "2026-09-01",
+    "title": "Add event status to calendar events (#179312)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 413,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 54490,
+   "date": "2026-10-01",
+   "title": "Add dependency review workflow (#54490)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 1621,
+    "test": 1026,
+    "test_files": 7,
+    "files": 21,
+    "areas": [],
+    "pr": 171466,
+    "date": "2026-05-20",
+    "title": "Reduce token usage by moving deterministic checks to python (#171466)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 12,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54503,
+   "date": "2026-10-01",
+   "title": "Fix area switch for entities without their own name (#54503)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 126,
+    "test": 271,
+    "test_files": 11,
+    "files": 13,
+    "areas": [
+     "cloud",
+     "config",
+     "homeassistant",
+     "logbook",
+     "search",
+     "todo"
+    ],
+    "pr": 182458,
+    "date": "2026-09-28",
+    "title": "Reject and report an area set on a device's main entity (#182458)",
+    "ws_added": [
+     "config/entity_registry/update"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 30,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54506,
+   "date": "2026-10-02",
+   "title": "Use optional short issue title localization to repairs dialog (#54506)",
+   "user": "wendevlin"
+  },
+  "core": [
+   {
+    "src": 7,
+    "test": 1,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "automation"
+    ],
+    "pr": 183883,
+    "date": "2026-10-02",
+    "title": "issue_schema: Add optional  short_title translations (#183883)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 163,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 54507,
+   "date": "2026-10-01",
+   "title": "Resolve split devices in the logbook card (#54507)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "src": 48,
+    "test": 160,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "config"
+    ],
+    "pr": 176693,
+    "date": "2026-07-28",
+    "title": "Add WS command config/device_registry/list_composite_splits (#176693)",
+    "ws_added": [
+     "config/device_registry/list_composite_splits"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 80,
+   "test": 79,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "esphome-device-setup",
+    "esphome_setup"
+   ],
+   "ws_calls": [],
+   "pr": 54513,
+   "date": "2026-10-01",
+   "title": "Detect the ESPHome Z-Wave discovery flow by the device MAC (#54513)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 15,
+    "test": 49,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 183886,
+    "date": "2026-10-01",
+    "title": "Keep the ESPHome Z-Wave home ID current after a home ID change (#183886)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 26,
+   "test": 26,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "auth"
+   ],
+   "ws_calls": [],
+   "pr": 54548,
+   "date": "2026-10-06",
+   "title": "Forward OAuth authorization parameters to the login flow (#54548)",
+   "user": "hunterjm"
+  },
+  "core": [
+   {
+    "src": 14,
+    "test": 75,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "auth"
+    ],
+    "pr": 184255,
+    "date": "2026-10-05",
+    "title": "Validate OAuth request parameters and S256 challenges (#184255)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 39,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "http"
+   ],
+   "ws_calls": [],
+   "pr": 54559,
+   "date": "2026-10-12",
+   "title": "Offer versioned SSL profiles in the HTTP server settings (#54559)",
+   "user": "Markus98"
+  },
+  "core": [
+   {
+    "pr": 176202,
+    "missing": true
+   },
+   {
+    "src": 378,
+    "test": 558,
+    "test_files": 4,
+    "files": 11,
+    "areas": [
+     "http",
+     "mqtt",
+     "repairs"
+    ],
+    "pr": 183916,
+    "date": "2026-10-12",
+    "title": "Version http SSL profiles and offer upgrade to Mozilla v6 via repair (#183916)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 56,
+   "test": 29,
+   "test_files": 2,
+   "files": 5,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54585,
+   "date": "2026-10-05",
+   "title": "Treat an entity name equal to its device name as no own name (#54585)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 126,
+    "test": 271,
+    "test_files": 11,
+    "files": 13,
+    "areas": [
+     "cloud",
+     "config",
+     "homeassistant",
+     "logbook",
+     "search",
+     "todo"
+    ],
+    "pr": 182458,
+    "date": "2026-09-28",
+    "title": "Reject and report an area set on a device's main entity (#182458)",
+    "ws_added": [
+     "config/entity_registry/update"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 25,
+   "test": 73,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "logbook"
+   ],
+   "ws_calls": [],
+   "pr": 54592,
+   "date": "2026-10-14",
+   "title": "Link each run in the activity details to its own trace (#54592)",
+   "user": "Xyolyp"
+  },
+  "core": [
+   {
+    "src": 49,
+    "test": 378,
+    "test_files": 5,
+    "files": 13,
+    "areas": [
+     "automation",
+     "logbook",
+     "script",
+     "trace"
+    ],
+    "pr": 184957,
+    "date": "2026-10-14",
+    "title": "Add the run to automation triggered and script started events (#184957)",
+    "ws_added": [
+     "logbook/get_events",
+     "trace/get",
+     "trace/list"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 38,
+   "test": 43,
+   "test_files": 3,
+   "files": 5,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54633,
+   "date": "2026-10-07",
+   "title": "Consider next name part when unprefixing entity name (#54633)",
+   "user": "arturpragacz"
+  },
+  "core": [
+   {
+    "src": 3,
+    "test": 13,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 184526,
+    "date": "2026-10-07",
+    "title": "Consider next name part when unprefixing entity name (#184526)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 990,
+   "test": 27,
+   "test_files": 1,
+   "files": 10,
+   "areas": [
+    "camera",
+    "ha-camera-stream",
+    "ha-web-rtc-player",
+    "more-info"
+   ],
+   "ws_calls": [
+    "webrtc/stream/start",
+    "webrtc/stream/stop"
+   ],
+   "pr": 54660,
+   "date": "2026-10-22",
+   "title": "Add two way audio support (frontend) (#54660)",
+   "user": "starkillerOG"
+  },
+  "core": [
+   {
+    "pr": 127851,
+    "missing": true
+   },
+   {
+    "src": 70,
+    "test": 167,
+    "test_files": 2,
+    "files": 8,
+    "areas": [
+     "camera",
+     "reolink"
+    ],
+    "pr": 184716,
+    "date": "2026-10-22",
+    "title": "Add two way audio camera support (#184716)",
+    "ws_added": [
+     "camera/capabilities"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 95,
+   "test": 0,
+   "test_files": 0,
+   "files": 5,
+   "areas": [
+    "config",
+    "esphome-device-setup",
+    "integrations",
+    "usb"
+   ],
+   "ws_calls": [
+    "usb/list_serial_integrations"
+   ],
+   "pr": 54668,
+   "date": "2026-10-08",
+   "title": "Show only serial integrations when setting up an ESPHome serial port (#54668)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 114,
+    "test": 78,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "usb"
+    ],
+    "pr": 184720,
+    "date": "2026-10-09",
+    "title": "Add websocket command to list serial port integrations (#184720)",
+    "ws_added": [
+     "usb/list_serial_integrations"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 118,
+   "test": 221,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "energy",
+    "recorder"
+   ],
+   "ws_calls": [],
+   "pr": 54677,
+   "date": "2026-10-09",
+   "title": "Show energy gas in the unit of its sources (#54677)",
+   "user": "virtitnerd"
+  },
+  "core": [
+   {
+    "src": 11,
+    "test": 4,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "number",
+     "sensor",
+     "template"
+    ],
+    "pr": 179953,
+    "date": "2026-09-16",
+    "title": "Add therm (thm) as a native UnitOfEnergy unit (#179953)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 18,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "zha"
+   ],
+   "ws_calls": [],
+   "pr": 54684,
+   "date": "2026-10-08",
+   "title": "Fix ZHA reconfigure dialog errors after closing and on reconnect (#54684)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 1,
+    "test": 8,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "zha"
+    ],
+    "pr": 184812,
+    "date": "2026-10-08",
+    "title": "Send a result for the ZHA reconfigure websocket subscription (#184812)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 51,
+   "test": 25,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "app",
+    "hassio"
+   ],
+   "ws_calls": [
+    "supervisor/ingress/info",
+    "supervisor/ingress/session",
+    "supervisor/ingress/validate_session"
+   ],
+   "pr": 54695,
+   "date": "2026-10-26",
+   "title": "Use dedicated websocket commands for app ingress sessions (#54695)",
+   "user": "agners"
+  },
+  "core": [
+   {
+    "src": 106,
+    "test": 195,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "hassio"
+    ],
+    "pr": 184773,
+    "date": "2026-10-23",
+    "title": "Add dedicated websocket commands for add-on ingress sessions (#184773)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 191,
+   "test": 165,
+   "test_files": 2,
+   "files": 8,
+   "areas": [
+    "automation",
+    "automation_i18n",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54703,
+   "date": "2026-10-23",
+   "title": "Use the offset duration mode for sun and calendar offsets (#54703)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 235,
+    "test": 87,
+    "test_files": 2,
+    "files": 8,
+    "areas": [
+     "calendar",
+     "sun"
+    ],
+    "pr": 184855,
+    "date": "2026-10-23",
+    "title": "Use a signed offset in sun and calendar triggers (#184855)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 479,
+   "test": 262,
+   "test_files": 4,
+   "files": 27,
+   "areas": [
+    "config",
+    "entity",
+    "ha-code-editor",
+    "ha-picker-combo-box",
+    "ha-selector",
+    "infrared",
+    "lovelace",
+    "more-info"
+   ],
+   "ws_calls": [],
+   "pr": 54725,
+   "date": "2026-10-12",
+   "title": "Finalize the entity naming migration (#54725)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 183,
+    "test": 622,
+    "test_files": 7,
+    "files": 10,
+    "areas": [
+     "config",
+     "conversation",
+     "diagnostics",
+     "zwave_js"
+    ],
+    "pr": 184340,
+    "date": "2026-10-12",
+    "title": "Migrate user-given entity names (#184340)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 37,
+   "test": 20,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "marketplace"
+   ],
+   "ws_calls": [],
+   "pr": 54740,
+   "date": "2026-10-08",
+   "title": "Load Marketplace icons through the Marketplace brands view (#54740)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 152,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "brands"
+    ],
+    "pr": 185001,
+    "date": "2026-10-08",
+    "title": "Add a Marketplace view to the brands integration (#185001)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 73,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "input_number"
+   ],
+   "ws_calls": [],
+   "pr": 54785,
+   "date": "2026-10-14",
+   "title": "Use unit of measurement selector and add device class to input number helper (#54785)",
+   "user": "jbouwh"
+  },
+  "core": [
+   {
+    "src": 56,
+    "test": 382,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "input_number"
+    ],
+    "pr": 185417,
+    "date": "2026-10-14",
+    "title": "Add device class support to input_number (#185417)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 593,
+   "test": 411,
+   "test_files": 1,
+   "files": 6,
+   "areas": [
+    "config",
+    "error_log",
+    "ha-ansi-to-html"
+   ],
+   "ws_calls": [
+    "system_log/subscribe_raw",
+    "text/plain"
+   ],
+   "pr": 54809,
+   "date": "2026-10-14",
+   "title": "Add live log dialog to integration page (#54809)",
+   "user": "erwindouna"
+  },
+  "core": [
+   {
+    "src": 289,
+    "test": 294,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "system_log"
+    ],
+    "pr": 185595,
+    "date": "2026-10-10",
+    "title": "Add live log stream to system log (#185595)",
+    "ws_added": [
+     "system_log/subscribe_raw"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 24,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54811,
+   "date": "2026-10-11",
+   "title": "Close the previous ZHA permit subscription on search again (#54811)",
+   "user": "pdecat"
+  },
+  "core": [
+   {
+    "pr": 185602,
+    "missing": true
+   },
+   {
+    "src": 22,
+    "test": 113,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "zha"
+    ],
+    "pr": 185604,
+    "date": "2026-10-21",
+    "title": "Restore ZHA log levels only when the last permit session ends (#185604)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 809,
+   "test": 164,
+   "test_files": 2,
+   "files": 9,
+   "areas": [
+    "config",
+    "error_log",
+    "log_backlog",
+    "my"
+   ],
+   "ws_calls": [
+    "text/plain"
+   ],
+   "pr": 54815,
+   "date": "2026-10-22",
+   "title": "Filter the logs page by integration (#54815)",
+   "user": "erwindouna"
+  },
+  "core": [
+   {
+    "src": 289,
+    "test": 294,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "system_log"
+    ],
+    "pr": 185595,
+    "date": "2026-10-10",
+    "title": "Add live log stream to system log (#185595)",
+    "ws_added": [
+     "system_log/subscribe_raw"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 745,
+   "test": 215,
+   "test_files": 3,
+   "files": 21,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 54821,
+   "date": "2026-10-27",
+   "title": "Add home total option to energy dashboard (#54821)",
+   "user": "Jump-333"
+  },
+  "core": [
+   {
+    "src": 55,
+    "test": 188,
+    "test_files": 3,
+    "files": 5,
+    "areas": [
+     "energy"
+    ],
+    "pr": 185730,
+    "date": "2026-10-27",
+    "title": "Add home total option to energy dashboard (#185730)",
+    "ws_added": [
+     "energy/get_prefs",
+     "energy/save_prefs"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 58,
+   "test": 60,
+   "test_files": 1,
+   "files": 4,
+   "areas": [
+    "backup",
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54847,
+   "date": "2026-10-12",
+   "title": "Show translated backup agent errors (#54847)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 43,
+    "test": 180,
+    "test_files": 16,
+    "files": 19,
+    "areas": [
+     "aws_s3",
+     "azure_storage",
+     "backblaze_b2",
+     "backup",
+     "cloud",
+     "cloudflare_r2",
+     "dropbox",
+     "google_drive",
+     "hassio",
+     "idrive_e2",
+     "onedrive",
+     "onedrive_for_business",
+     "sftp_storage",
+     "synology_dsm",
+     "webdav"
+    ],
+    "pr": 185956,
+    "date": "2026-10-12",
+    "title": "Add translations for backup agent errors (#185956)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 117,
+   "test": 0,
+   "test_files": 0,
+   "files": 12,
+   "areas": [
+    "config",
+    "config-flow",
+    "ha-form",
+    "ha-selector",
+    "ha-service-control",
+    "repairs-flow"
+   ],
+   "ws_calls": [],
+   "pr": 54864,
+   "date": "2026-10-16",
+   "title": "Show translated overview labels in ObjectSelector (#54864)",
+   "user": "gjohansson-ST"
+  },
+  "core": [
+   {
+    "src": 26,
+    "test": 19,
+    "test_files": 1,
+    "files": 2,
+    "areas": [],
+    "pr": 170436,
+    "date": "2026-10-16",
+    "title": "Allow overview_label translation for object selector fields (#170436)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 56,
+   "test": 193,
+   "test_files": 1,
+   "files": 2,
+   "areas": [
+    "config-flow"
+   ],
+   "ws_calls": [],
+   "pr": 54866,
+   "date": "2026-10-19",
+   "title": "Fetch the flow after subscribing to progress events (#54866)",
+   "user": "raman325"
+  },
+  "core": [
+   {
+    "pr": 107668,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 339,
+   "test": 0,
+   "test_files": 0,
+   "files": 4,
+   "areas": [
+    "config",
+    "recorder"
+   ],
+   "ws_calls": [],
+   "pr": 54875,
+   "date": "2026-10-15",
+   "title": "Add dialog to delete statistics in a time range (#54875)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 87,
+    "test": 214,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "recorder"
+    ],
+    "pr": 186071,
+    "date": "2026-10-14",
+    "title": "Add time range to recorder/clear_statistics (#186071)",
+    "ws_added": [
+     "recorder/clear_statistics"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 856,
+   "test": 68,
+   "test_files": 3,
+   "files": 83,
+   "areas": [
+    "automation_i18n",
+    "calendar",
+    "config",
+    "config-flow",
+    "device",
+    "entity",
+    "ha-code-editor",
+    "ha-filter-devices",
+    "ha-stt-picker",
+    "ha-tts-picker",
+    "logbook",
+    "lovelace",
+    "map",
+    "more-info",
+    "notifications",
+    "script_i18n",
+    "target-picker",
+    "todo",
+    "trace",
+    "update",
+    "voice-assistant-setup",
+    "zone"
+   ],
+   "ws_calls": [],
+   "pr": 54891,
+   "date": "2026-10-14",
+   "title": "Use the entity name formatter for all entity names (#54891)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 183,
+    "test": 622,
+    "test_files": 7,
+    "files": 10,
+    "areas": [
+     "config",
+     "conversation",
+     "diagnostics",
+     "zwave_js"
+    ],
+    "pr": 184340,
+    "date": "2026-10-12",
+    "title": "Migrate user-given entity names (#184340)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2015,
+   "test": 251,
+   "test_files": 3,
+   "files": 13,
+   "areas": [
+    "config",
+    "debug_console"
+   ],
+   "ws_calls": [
+    "debug_console/check_input",
+    "debug_console/clear",
+    "debug_console/complete",
+    "debug_console/execute",
+    "debug_console/get_attribute",
+    "debug_console/info",
+    "debug_console/inspect",
+    "debug_console/signature",
+    "debug_console/stop",
+    "debug_console/warning/accept"
+   ],
+   "pr": 54937,
+   "date": "2026-10-16",
+   "title": "Add Debug console to the Tools panel (#54937)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 2104,
+    "test": 2999,
+    "test_files": 9,
+    "files": 22,
+    "areas": [
+     "debug_console"
+    ],
+    "pr": 186547,
+    "date": "2026-10-16",
+    "title": "Add Debug console integration (#186547)",
+    "ws_added": [
+     "debug_console/check_input",
+     "debug_console/clear",
+     "debug_console/complete",
+     "debug_console/execute",
+     "debug_console/get_attribute",
+     "debug_console/info",
+     "debug_console/inspect",
+     "debug_console/signature",
+     "debug_console/stop",
+     "debug_console/warning/accept"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 16,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54970,
+   "date": "2026-10-16",
+   "title": "Only list the backup's own locations in the upload progress (#54970)",
+   "user": "KapJI"
+  },
+  "core": [
+   {
+    "src": 2,
+    "test": 53,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "backup"
+    ],
+    "pr": 186688,
+    "date": "2026-10-16",
+    "title": "Send a backup upload progress event when each agent upload starts (#186688)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 187,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "esphome-device-setup",
+    "esphome_setup"
+   ],
+   "ws_calls": [],
+   "pr": 54973,
+   "date": "2026-10-18",
+   "title": "Set up Music Assistant through its config flow in the ESPHome wizard (#54973)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 370,
+    "test": 655,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "music_assistant"
+    ],
+    "pr": 184948,
+    "date": "2026-10-09",
+    "title": "Install app in Music Assistant config flow (#184948)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 54983,
+   "date": "2026-10-18",
+   "title": "Show the local apps folder toggle in backup settings (#54983)",
+   "user": "kleinc80"
+  },
+  "core": [
+   {
+    "pr": 137569,
+    "missing": true
+   },
+   {
+    "pr": 162962,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2139,
+   "test": 234,
+   "test_files": 4,
+   "files": 28,
+   "areas": [
+    "chart",
+    "config",
+    "data-table",
+    "lorawan"
+   ],
+   "ws_calls": [
+    "lorawan/devices/list",
+    "lorawan/devices/subscribe"
+   ],
+   "pr": 54998,
+   "date": "2026-10-17",
+   "title": "Add LoRaWAN connectivity panel (#54998)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 273,
+    "test": 490,
+    "test_files": 2,
+    "files": 6,
+    "areas": [
+     "lorawan"
+    ],
+    "pr": 186906,
+    "date": "2026-10-17",
+    "title": "Expose LoRaWAN devices and connection metadata (#186906)",
+    "ws_added": [
+     "lorawan/devices/list",
+     "lorawan/devices/subscribe"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 292,
+   "test": 48,
+   "test_files": 1,
+   "files": 9,
+   "areas": [
+    "automation",
+    "config",
+    "ha-service-control",
+    "ha-target-picker",
+    "lovelace",
+    "script",
+    "selector",
+    "target"
+   ],
+   "ws_calls": [],
+   "pr": 55051,
+   "date": "2026-10-22",
+   "title": "Support exclude block in targets (#55051)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 245,
+    "test": 620,
+    "test_files": 7,
+    "files": 16,
+    "areas": [
+     "automation",
+     "homeassistant",
+     "script",
+     "websocket_api"
+    ],
+    "pr": 187290,
+    "date": "2026-10-22",
+    "title": "Allow target to exclude entities (#187290)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 818,
+   "test": 38,
+   "test_files": 1,
+   "files": 10,
+   "areas": [
+    "config",
+    "logbook"
+   ],
+   "ws_calls": [
+    "logbook/get_action_calls"
+   ],
+   "pr": 55078,
+   "date": "2026-10-26",
+   "title": "Add action history page to tools (#55078)",
+   "user": "joostlek"
+  },
+  "core": [
+   {
+    "src": 204,
+    "test": 300,
+    "test_files": 1,
+    "files": 5,
+    "areas": [
+     "logbook"
+    ],
+    "pr": 187344,
+    "date": "2026-10-23",
+    "title": "Add logbook websocket command to get action calls (#187344)",
+    "ws_added": [
+     "logbook/get_action_calls"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1870,
+   "test": 200,
+   "test_files": 2,
+   "files": 18,
+   "areas": [
+    "config",
+    "ha-selector",
+    "ha-service-control",
+    "ha-target-picker",
+    "lovelace",
+    "script",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 55091,
+   "date": "2026-10-22",
+   "title": "Add exclusions to the target picker (#55091)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 245,
+    "test": 620,
+    "test_files": 7,
+    "files": 16,
+    "areas": [
+     "automation",
+     "homeassistant",
+     "script",
+     "websocket_api"
+    ],
+    "pr": 187290,
+    "date": "2026-10-22",
+    "title": "Allow target to exclude entities (#187290)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 125,
+   "test": 245,
+   "test_files": 2,
+   "files": 7,
+   "areas": [
+    "config",
+    "ha-service-control",
+    "selector",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 55102,
+   "date": "2026-10-23",
+   "title": "Add translation_key filter to entity selectors (#55102)",
+   "user": "DaanVervacke"
+  },
+  "core": [
+   {
+    "pr": 187450,
+    "missing": true
+   },
+   {
+    "pr": 187477,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 185,
+   "test": 165,
+   "test_files": 1,
+   "files": 8,
+   "areas": [
+    "blueprint",
+    "config",
+    "config-flow",
+    "ha-form"
+   ],
+   "ws_calls": [],
+   "pr": 55116,
+   "date": "2026-10-21",
+   "title": "Add conditional inputs to blueprints (#55116)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 122,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "blueprint"
+    ],
+    "pr": 187538,
+    "date": "2026-10-21",
+    "title": "Add conditional visibility to blueprint inputs (#187538)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 606,
+   "test": 364,
+   "test_files": 2,
+   "files": 10,
+   "areas": [
+    "ha-target-picker",
+    "target-picker"
+   ],
+   "ws_calls": [],
+   "pr": 55123,
+   "date": "2026-10-22",
+   "title": "Allow to exclude from the target details (#55123)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 245,
+    "test": 620,
+    "test_files": 7,
+    "files": 16,
+    "areas": [
+     "automation",
+     "homeassistant",
+     "script",
+     "websocket_api"
+    ],
+    "pr": 187290,
+    "date": "2026-10-22",
+    "title": "Allow target to exclude entities (#187290)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 210,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "config",
+    "expose"
+   ],
+   "ws_calls": [],
+   "pr": 55204,
+   "date": "2026-10-28",
+   "title": "Add bulk expose to voice assistants on the entities table (#55204)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 59,
+    "test": 90,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "homeassistant"
+    ],
+    "pr": 188809,
+    "date": "2026-10-26",
+    "title": "Return changed entity IDs from expose entity websocket command (#188809)",
+    "ws_added": [
+     "homeassistant/expose_entity"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 104,
+   "test": 113,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config",
+    "hassio"
+   ],
+   "ws_calls": [
+    "supervisor/api"
+   ],
+   "pr": 55205,
+   "date": "2026-10-26",
+   "title": "Show progress and result when checking for app updates (#55205)",
+   "user": "craig-b"
+  },
+  "core": [
+   {
+    "pr": 184453,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 518,
+   "test": 288,
+   "test_files": 1,
+   "files": 7,
+   "areas": [
+    "config",
+    "esphome",
+    "esphome-device-setup",
+    "esphome_setup"
+   ],
+   "ws_calls": [
+    "esphome/get_device_wizard"
+   ],
+   "pr": 55211,
+   "date": "2026-10-23",
+   "title": "Find ESPHome setup switches through the device wizard (#55211)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 153,
+    "test": 305,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 188123,
+    "date": "2026-10-23",
+    "title": "Add ESPHome device wizard websocket command (#188123)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 35,
+   "test": 60,
+   "test_files": 1,
+   "files": 2,
+   "areas": [
+    "history"
+   ],
+   "ws_calls": [],
+   "pr": 55268,
+   "date": "2026-10-26",
+   "title": "Fix extra unit-less statistics chart in history graphs (#55268)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "pr": 159080,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 72,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "ai_task"
+   ],
+   "ws_calls": [],
+   "pr": 55281,
+   "date": "2026-10-26",
+   "title": "Add AI Task evaluate types and method (#55281)",
+   "user": "balloob"
+  },
+  "core": [
+   {
+    "src": 387,
+    "test": 628,
+    "test_files": 4,
+    "files": 14,
+    "areas": [
+     "ai_task"
+    ],
+    "pr": 184952,
+    "date": "2026-10-13",
+    "title": "Add evaluation tasks to AI Task (#184952)",
+    "ws_added": [
+     "ai_task/preferences/set"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 73,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 55320,
+   "date": "2026-10-27",
+   "title": "Rename \"Use device name\" to \"Main entity of the device\" (#55320)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "pr": 188716,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 333,
+   "test": 21,
+   "test_files": 1,
+   "files": 12,
+   "areas": [
+    "config",
+    "zha"
+   ],
+   "ws_calls": [],
+   "pr": 55322,
+   "date": "2026-10-28",
+   "title": "Add Zigbee Green Power support to ZHA (#55322)",
+   "user": "puddly"
+  },
+  "core": [
+   {
+    "src": 300,
+    "test": 658,
+    "test_files": 29,
+    "files": 37,
+    "areas": [
+     "zha"
+    ],
+    "pr": 189000,
+    "date": "2026-10-28",
+    "title": "Bump ZHA to 2.4.1, zha-quirks to 2.4.0 (#189000)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 567,
+   "test": 23,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config"
+   ],
+   "ws_calls": [],
+   "pr": 55360,
+   "date": "2026-10-28",
+   "title": "Offer gas and water sensors from flow rates (#55360)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 125,
+    "test": 203,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "integration"
+    ],
+    "pr": 174545,
+    "date": "2026-10-14",
+    "title": "Add Device Class config option to Integral Sensor (#174545)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 89,
+   "test": 0,
+   "test_files": 0,
+   "files": 3,
+   "areas": [
+    "more-info",
+    "update"
+   ],
+   "ws_calls": [],
+   "pr": 55388,
+   "date": "2026-11-18",
+   "title": "Show update release notes messages in the more info dialog (#55388)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 258,
+    "test": 433,
+    "test_files": 19,
+    "files": 24,
+    "areas": [
+     "esphome",
+     "hassio",
+     "homeassistant_hardware",
+     "iron_os",
+     "lamarzocco",
+     "marketplace",
+     "ntfy",
+     "plex",
+     "proxmoxve",
+     "reolink",
+     "smlight",
+     "synology_dsm",
+     "tplink_omada",
+     "update",
+     "uptime_kuma",
+     "wattwaechter",
+     "zha",
+     "zwave_js"
+    ],
+    "pr": 178125,
+    "date": "2026-11-17",
+    "title": "Add release notes messages for update entities (#178125)",
+    "ws_added": [
+     "update/release_notes"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 0,
+   "test": 0,
+   "test_files": 0,
+   "files": 0,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 55401,
+   "date": "2026-10-28",
+   "title": "Rename the MCP card URL labels (#55401)",
+   "user": "piitaya"
+  },
+  "core": [
+   {
+    "src": 44,
+    "test": 0,
+    "test_files": 0,
+    "files": 10,
+    "areas": [
+     "anthropic",
+     "google_generative_ai_conversation",
+     "litellm",
+     "llama_cpp",
+     "mcp_server",
+     "ollama",
+     "open_router",
+     "openai_conversation",
+     "ovhcloud_ai_endpoints"
+    ],
+    "pr": 189240,
+    "date": "2026-10-28",
+    "title": "Rename the Control Home Assistant field to AI tools (#189240)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 175,
+   "test": 91,
+   "test_files": 1,
+   "files": 6,
+   "areas": [
+    "ha-device-class-picker",
+    "ha-selector",
+    "selector",
+    "sensor"
+   ],
+   "ws_calls": [],
+   "pr": 55422,
+   "date": "2026-11-05",
+   "title": "Filter the device classes by the chosen unit (#55422)",
+   "user": "Xyolyp"
+  },
+  "core": [
+   {
+    "pr": 189355,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 124,
+   "test": 1,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config",
+    "ha-ansi-to-html",
+    "skeleton"
+   ],
+   "ws_calls": [],
+   "pr": 55443,
+   "date": "2026-11-02",
+   "title": "Show a skeleton while the live log loads (#55443)",
+   "user": "erwindouna"
+  },
+  "core": [
+   {
+    "src": 111,
+    "test": 120,
+    "test_files": 2,
+    "files": 5,
+    "areas": [
+     "hassio",
+     "system_log"
+    ],
+    "pr": 189404,
+    "date": "2026-10-29",
+    "title": "Read the Supervisor log for the integration log history (#189404)",
+    "ws_added": [
+     "system_log/subscribe_raw"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 2,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 55447,
+   "date": "2026-10-29",
+   "title": "Simplify OpenStreetMap attribution (#55447)",
+   "user": "grischard"
+  },
+  "core": [
+   {
+    "src": 6,
+    "test": 2,
+    "test_files": 1,
+    "files": 2,
+    "areas": [
+     "map_tiles"
+    ],
+    "pr": 189449,
+    "date": "2026-11-01",
+    "title": "Simplify OSM attribution in const.py (#189449)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 8,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [],
+   "ws_calls": [],
+   "pr": 55459,
+   "date": "2026-10-29",
+   "title": "Update the PR template for the contributors docs (#55459)",
+   "user": "timmo001"
+  },
+  "core": [
+   {
+    "src": 6,
+    "test": 0,
+    "test_files": 0,
+    "files": 3,
+    "areas": [],
+    "pr": 186909,
+    "date": "2026-10-16",
+    "title": "Rename developer docs to contributors docs (#186909)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1063,
+   "test": 78,
+   "test_files": 6,
+   "files": 29,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 55533,
+   "date": "2026-11-06",
+   "title": "Individual devices to gas in energy dashboard (#55533)",
+   "user": "Jump-333"
+  },
+  "core": [
+   {
+    "src": 34,
+    "test": 211,
+    "test_files": 5,
+    "files": 8,
+    "areas": [
+     "energy"
+    ],
+    "pr": 189891,
+    "date": "2026-11-06",
+    "title": "Allow individual devices for gas (#189891)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5,
+   "test": 63,
+   "test_files": 2,
+   "files": 3,
+   "areas": [],
+   "ws_calls": [
+    "config/core/update"
+   ],
+   "pr": 55535,
+   "date": "2026-11-02",
+   "title": "Fix onboarding using US customary units when the location is detected (#55535)",
+   "user": "jimjaeger"
+  },
+  "core": [
+   {
+    "pr": 182792,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1106,
+   "test": 328,
+   "test_files": 2,
+   "files": 20,
+   "areas": [
+    "automation",
+    "config",
+    "ha-target-picker",
+    "target",
+    "target-picker",
+    "trace"
+   ],
+   "ws_calls": [],
+   "pr": 55585,
+   "date": "2026-11-04",
+   "title": "Let core work out what target exclusions take out (#55585)",
+   "user": "jpbede"
+  },
+  "core": [
+   {
+    "src": 174,
+    "test": 329,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "websocket_api"
+    ],
+    "pr": 190119,
+    "date": "2026-11-04",
+    "title": "Add websocket command to explain target excludes (#190119)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 25,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "profile"
+   ],
+   "ws_calls": [],
+   "pr": 55589,
+   "date": "2026-11-03",
+   "title": "WTH: Show when long-lived access tokens were last used (#55589)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 62,
+    "test": 229,
+    "test_files": 3,
+    "files": 7,
+    "areas": [
+     "http",
+     "websocket_api"
+    ],
+    "pr": 190168,
+    "date": "2026-11-03",
+    "title": "WTH: Track when long-lived access tokens were last used (#190168)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1221,
+   "test": 387,
+   "test_files": 3,
+   "files": 14,
+   "areas": [
+    "config",
+    "energy",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 55604,
+   "date": "2026-11-15",
+   "title": "Use measured battery flows on the energy dashboard (#55604)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 509,
+    "test": 1038,
+    "test_files": 6,
+    "files": 12,
+    "areas": [
+     "energy"
+    ],
+    "pr": 190224,
+    "date": "2026-11-15",
+    "title": "Add per-direction battery measurement to energy (#190224)",
+    "ws_added": [
+     "energy/save_prefs"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 1071,
+   "test": 108,
+   "test_files": 3,
+   "files": 9,
+   "areas": [
+    "config",
+    "energy"
+   ],
+   "ws_calls": [],
+   "pr": 55606,
+   "date": "2026-11-15",
+   "title": "Edit batteries measured per direction (#55606)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 509,
+    "test": 1038,
+    "test_files": 6,
+    "files": 12,
+    "areas": [
+     "energy"
+    ],
+    "pr": 190224,
+    "date": "2026-11-15",
+    "title": "Add per-direction battery measurement to energy (#190224)",
+    "ws_added": [
+     "energy/save_prefs"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 24,
+   "test": 0,
+   "test_files": 0,
+   "files": 1,
+   "areas": [
+    "marketplace"
+   ],
+   "ws_calls": [],
+   "pr": 55615,
+   "date": "2026-11-04",
+   "title": "Add Marketplace download source menu item for the China mirrors (#55615)",
+   "user": "frenck"
+  },
+  "core": [
+   {
+    "src": 721,
+    "test": 911,
+    "test_files": 9,
+    "files": 23,
+    "areas": [
+     "marketplace"
+    ],
+    "pr": 190251,
+    "date": "2026-11-03",
+    "title": "Add China mirror support to the Marketplace (#190251)",
+    "ws_added": [
+     "marketplace/repository/install"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 4,
+   "test": 6,
+   "test_files": 2,
+   "files": 3,
+   "areas": [
+    "marketplace"
+   ],
+   "ws_calls": [],
+   "pr": 55635,
+   "date": "2026-11-04",
+   "title": "Label marketplace open issue count as issues and pull requests (#55635)",
+   "user": "joostlek"
+  },
+  "core": [
+   {
+    "pr": 189528,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 811,
+   "test": 153,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config",
+    "recorder"
+   ],
+   "ws_calls": [
+    "recorder/database_usage"
+   ],
+   "pr": 55659,
+   "date": "2026-11-16",
+   "title": "Add database usage card to the storage page (#55659)",
+   "user": "erwindouna"
+  },
+  "core": [
+   {
+    "src": 495,
+    "test": 992,
+    "test_files": 1,
+    "files": 3,
+    "areas": [
+     "recorder"
+    ],
+    "pr": 190600,
+    "date": "2026-11-16",
+    "title": "Add recorder database usage report (#190600)",
+    "ws_added": [
+     "recorder/database_usage"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "esphome",
+    "esphome-device-setup"
+   ],
+   "ws_calls": [],
+   "pr": 55665,
+   "date": "2026-11-05",
+   "title": "Allow the ESPHome serial proxy URL to be `null` (#55665)",
+   "user": "puddly"
+  },
+  "core": [
+   {
+    "src": 224,
+    "test": 40,
+    "test_files": 1,
+    "files": 4,
+    "areas": [
+     "esphome"
+    ],
+    "pr": 190430,
+    "date": "2026-11-05",
+    "title": "Use serial proxy URL builder for ESPHome capabilities API (#190430)",
+    "ws_added": [
+     "esphome/get_device_capabilities"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 23,
+   "test": 0,
+   "test_files": 0,
+   "files": 2,
+   "areas": [
+    "config",
+    "entity"
+   ],
+   "ws_calls": [],
+   "pr": 55682,
+   "date": "2026-11-09",
+   "title": "Use unsaved name and area when regenerating an entity ID (#55682)",
+   "user": "zweckj"
+  },
+  "core": [
+   {
+    "src": 21,
+    "test": 159,
+    "test_files": 2,
+    "files": 4,
+    "areas": [
+     "config"
+    ],
+    "pr": 190740,
+    "date": "2026-11-09",
+    "title": "Allow unsaved name and area when getting automatic entity IDs (#190740)",
+    "ws_added": [
+     "config/entity_registry/get_automatic_entity_ids"
+    ]
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 24,
+   "test": 0,
+   "test_files": 0,
+   "files": 10,
+   "areas": [
+    "config",
+    "expose"
+   ],
+   "ws_calls": [],
+   "pr": 55683,
+   "date": "2026-11-05",
+   "title": "Google Assistant => Google Home (#55683)",
+   "user": "silamon"
+  },
+  "core": [
+   {
+    "src": 16,
+    "test": 12,
+    "test_files": 2,
+    "files": 9,
+    "areas": [
+     "cloud",
+     "google_assistant",
+     "homeassistant",
+     "mqtt"
+    ],
+    "pr": 190622,
+    "date": "2026-11-05",
+    "title": "Rename Google Assistant to Google Home (#190622)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 161,
+   "test": 83,
+   "test_files": 1,
+   "files": 5,
+   "areas": [
+    "config",
+    "energy",
+    "energy-battery",
+    "lovelace"
+   ],
+   "ws_calls": [],
+   "pr": 55713,
+   "date": "2026-11-17",
+   "title": "Allow selecting a sensor for battery capacity (#55713)",
+   "user": "thomasvt1"
+  },
+  "core": [
+   {
+    "src": 15,
+    "test": 43,
+    "test_files": 2,
+    "files": 3,
+    "areas": [
+     "energy"
+    ],
+    "pr": 190980,
+    "date": "2026-11-17",
+    "title": "Allow a sensor to provide battery capacity in energy preferences (#190980)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 747,
+   "test": 110,
+   "test_files": 1,
+   "files": 7,
+   "areas": [
+    "bootstrap_integrations",
+    "ha-startup-progress",
+    "startup-progress"
+   ],
+   "ws_calls": [],
+   "pr": 55834,
+   "date": "2026-11-17",
+   "title": "Show startup progress while Home Assistant starts (#55834)",
+   "user": "erwindouna"
+  },
+  "core": [
+   {
+    "src": 306,
+    "test": 675,
+    "test_files": 4,
+    "files": 7,
+    "areas": [
+     "onboarding",
+     "websocket_api"
+    ],
+    "pr": 191915,
+    "date": "2026-11-16",
+    "title": "Add bootstrap startup progress (#191915)",
+    "ws_added": []
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 31,
+   "test": 70,
+   "test_files": 1,
+   "files": 3,
+   "areas": [
+    "config",
+    "matter"
+   ],
+   "ws_calls": [],
+   "pr": 55869,
+   "date": "2026-11-12",
+   "title": "Fix Matter add device dialog stuck on the spinner (#55869)",
+   "user": "bramkragten"
+  },
+  "core": [
+   {
+    "pr": 177694,
+    "missing": true
+   }
+  ]
+ },
+ {
+  "frontend": {
+   "src": 5,
+   "test": 2,
+   "test_files": 2,
+   "files": 5,
+   "areas": [
+    "config",
+    "energy"
+   ],
+   "ws_calls": [],
+   "pr": 55883,
+   "date": "2026-11-16",
+   "title": "Remove unused cost_adjustment_day from grid sources (#55883)",
+   "user": "MindFreeze"
+  },
+  "core": [
+   {
+    "src": 19,
+    "test": 143,
+    "test_files": 5,
+    "files": 6,
+    "areas": [
+     "energy"
+    ],
+    "pr": 192275,
+    "date": "2026-11-16",
+    "title": "Remove unused cost_adjustment_day from energy grid sources (#192275)",
+    "ws_added": [
+     "energy/save_prefs"
+    ]
+   }
+  ]
+ }
+]

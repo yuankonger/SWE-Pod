@@ -1,0 +1,213 @@
+import { css, html, LitElement, nothing } from "lit";
+import { customElement, property, query, state } from "lit/decorators";
+import deepClone from "deep-clone-simple";
+import type { HASSDomEvent } from "../../common/dom/fire_event";
+import { fireEvent } from "../../common/dom/fire_event";
+import "../../components/ha-button";
+import "../../components/ha-form/ha-form";
+import "../../components/ha-dialog-footer";
+import "../../components/ha-dialog";
+import { DirtyStateProviderMixin } from "../../mixins/dirty-state-provider-mixin";
+import { haStyleDialog } from "../../resources/styles";
+import type { HomeAssistant } from "../../types";
+import type { HassDialog, ShowDialogParams } from "../make-dialog-manager";
+import type { FormDialogData, FormDialogParams } from "./show-form-dialog";
+import type { HaForm } from "../../components/ha-form/ha-form";
+
+interface StackEntry {
+  params: FormDialogParams;
+  data: FormDialogData;
+  nestedField?: string;
+  error?: Record<string, string>;
+}
+
+@customElement("dialog-form")
+export class DialogForm
+  extends DirtyStateProviderMixin<FormDialogData>()(LitElement)
+  implements HassDialog<FormDialogData>
+{
+  @property({ attribute: false }) public hass?: HomeAssistant;
+
+  @state() private _params?: FormDialogParams;
+
+  @state() private _data: FormDialogData = {};
+
+  @state() private _open = false;
+
+  @state() private _closeState?: "canceled" | "submitted";
+
+  @state() private _stack: StackEntry[] = [];
+
+  @state() private _error?: Record<string, string>;
+
+  @query("ha-form") private _form?: HaForm;
+
+  public async showDialog(params: FormDialogParams): Promise<void> {
+    this._params = params;
+    this._data = params.data || {};
+    this._open = true;
+    this._error = undefined;
+    this._initDirtyTracking({ type: "deep" }, this._data);
+  }
+
+  public closeDialog(): boolean {
+    this._open = false;
+    return true;
+  }
+
+  private _handleNestedShowDialog = (
+    ev: HASSDomEvent<ShowDialogParams<unknown>>
+  ) => {
+    if (ev.detail.dialogTag !== "dialog-form") {
+      return;
+    }
+    ev.stopPropagation();
+
+    const origin = ev.composedPath()[0] as HTMLElement & { name?: string };
+    this._stack = [
+      ...this._stack,
+      {
+        params: this._params!,
+        data: this._data,
+        nestedField: origin?.name,
+        error: this._error,
+      },
+    ];
+    const nested = ev.detail.dialogParams as FormDialogParams;
+    this._params = nested;
+    this._data = nested?.data || {};
+    this._error = undefined;
+    this._initDirtyTracking({ type: "deep" }, this._data);
+  };
+
+  private _popStack(): string | undefined {
+    if (!this._stack.length) {
+      return undefined;
+    }
+    const prev = this._stack[this._stack.length - 1];
+    this._stack = this._stack.slice(0, -1);
+    this._params = prev.params;
+    this._data = prev.data;
+    this._error = prev.error;
+    this._initDirtyTracking({ type: "deep" }, this._data);
+    return prev.nestedField;
+  }
+
+  private _dialogClosed(): void {
+    if (!this._closeState) {
+      this._params?.cancel?.();
+    }
+    this._closeState = undefined;
+    this._stack = [];
+    this._params = undefined;
+    this._data = {};
+    this._open = false;
+    this._error = undefined;
+    fireEvent(this, "dialog-closed", { dialog: this.localName });
+  }
+
+  private _submit(): void {
+    if (this._form && !this._form.reportValidity()) {
+      this._error = {
+        base: this.hass!.localize("ui.components.form.validation_failed"),
+      };
+      return;
+    }
+
+    this._closeState = "submitted";
+    const submit = this._params?.submit;
+    const data = this._data;
+    const nestedField = this._popStack();
+
+    submit?.(data);
+
+    if (!nestedField) {
+      this.closeDialog();
+      return;
+    }
+
+    const schemaField = this._params?.schema.find(
+      (f) => "selector" in f && f.name === nestedField
+    );
+    const isMultiple =
+      schemaField &&
+      "selector" in schemaField &&
+      "object" in schemaField.selector &&
+      schemaField.selector.object?.multiple === true;
+
+    const current = this._data[nestedField];
+    const newValue = isMultiple
+      ? [...(Array.isArray(current) ? current : []), data]
+      : data;
+
+    this._data = deepClone({ ...this._data, [nestedField]: newValue });
+    this._error = undefined;
+    this._updateDirtyState(this._data);
+  }
+
+  private _cancel(): void {
+    this._closeState = "canceled";
+    const cancel = this._params?.cancel;
+    const nestedField = this._popStack();
+
+    cancel?.();
+
+    if (!nestedField) {
+      this.closeDialog();
+    }
+  }
+
+  private _valueChanged(ev: CustomEvent): void {
+    this._data = ev.detail.value;
+    this._error = undefined;
+    this._updateDirtyState(this._data);
+  }
+
+  protected render() {
+    if (!this._params || !this.hass) {
+      return nothing;
+    }
+
+    return html`
+      <ha-dialog
+        .open=${this._open}
+        header-title=${this._params.title}
+        .preventScrimClose=${this.isDirtyState}
+        @closed=${this._dialogClosed}
+      >
+        <ha-form
+          autofocus
+          .hass=${this.hass}
+          .computeLabel=${this._params.computeLabel}
+          .computeHelper=${this._params.computeHelper}
+          .data=${this._data}
+          .schema=${this._params.schema}
+          .error=${this._error}
+          @value-changed=${this._valueChanged}
+          @show-dialog=${this._handleNestedShowDialog}
+        >
+        </ha-form>
+        <ha-dialog-footer slot="footer">
+          <ha-button
+            slot="secondaryAction"
+            appearance="plain"
+            @click=${this._cancel}
+          >
+            ${this._params.cancelText || this.hass.localize("ui.common.cancel")}
+          </ha-button>
+          <ha-button slot="primaryAction" @click=${this._submit}>
+            ${this._params.submitText || this.hass.localize("ui.common.save")}
+          </ha-button>
+        </ha-dialog-footer>
+      </ha-dialog>
+    `;
+  }
+
+  static styles = [haStyleDialog, css``];
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "dialog-form": DialogForm;
+  }
+}

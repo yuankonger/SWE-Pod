@@ -37,27 +37,46 @@ A good seed has all of these:
 1. **One feature, merged in two or more repositories**, where one side cannot work without the other: an API and
    its client, a core and its app, a schema and its consumer, etc.
 2. **Large on both sides.** The example: 4,393 source lines in 73 files and 11 migrations in core; 14,293 lines in
-   237 files in the dashboard. Below roughly 1,000 lines per side, which is hard to solo to solve.
-3. **The project's own tests for the feature, on both sides**, merged with it. Without them there is no judge.
-4. **A runnable test suite at the commit before**, in a container, in under about an hour.
+   237 files in the dashboard. Below roughly 1,000 lines per side one agent solves it easily: skip it, or chain
+   related merged changes of the same feature (`picks`, Phase 2) until it is that large.
+3. **The project's own tests for the feature**, merged with it, on at least the provider's side. Without them there
+   is no judge. A side without tests of its own (a frontend PR often has none) is judged by the contract checks and
+   the end-to-end check instead; say so in the datasheet.
+4. **A runnable test suite at the commit before**, in a container. The scored tests (the feature's, and the
+   guards of Phase 3) must run in under about an hour; time them in the image before choosing the seed.
 5. **Recent**: merged after the newest model's knowledge cutoff, so it cannot be recalled. The example is August
    2026.
 6. **Public and permissively licensed**, both repositories.
-7. **A machine-checkable contract between the sides** (a GraphQL or OpenAPI schema, a JSON schema, an event
-   format, etc), so agreement can be scored without people. Some repos may not have a shared contract. In those case, try to modify the repo to see if we can add a shared contract.
-8. **Something a person does with it**, which a browser or terminal can check end to end (staff set a customer's tier).
+7. **A machine-checkable contract between the sides**, so agreement can be scored without people. It need not be
+   GraphQL: a schema file the consumer copies (Saleor's `schema.graphql`), an OpenAPI or JSON schema, an event
+   format, or a set of commands the provider registers in code (Home Assistant core's WebSocket commands, which
+   the frontend calls by their `type`). When there is no contract file, **derive** the contract on the verifier's
+   side from both sources at the start and at the target; never add a contract file to the repositories, since
+   every system stays the project's own. See "Contract types" in Phase 3.
+8. **Something a person does with it**, which a browser, an API call or a terminal can check end to end (staff set
+   a customer's tier). A frontend is not required: a provider and a library, SDK or app that consumes it is a
+   company too.
 
 How to search:
 
-- Start from projects that ship as several repositories under one organisation: an API plus a dashboard, apps or
-  SDKs (Saleor, and others with the same shape). List the organisation's repositories with `gh repo list <org>`.
-- Mine clones, not web pages. In full-history clones (`git clone --filter=blob:none` into `.cache/repos/`), look for
-  feature pairs: PR numbers named in commit subjects, the same feature words in both repositories' logs within a
-  few weeks, and changes to the provider's schema file followed by the consumer regenerating its copy of it.
+- Start from projects that ship as several repositories under one organisation: an API plus a dashboard, apps,
+  libraries or SDKs. `reports/Repo ecosystems for cross repo tasks.md` ranks the candidates found so far (Home
+  Assistant, Bluesky, MCP; Spree and Lago in reserve) and the licences that rule others out.
+- Mine clones, not web pages. `gh` may not be installed and the unauthenticated GitHub API allows 60 calls an hour,
+  so the clones are the source. In full-history clones (`git clone --filter=blob:none` into `.cache/repos/`), look
+  for feature pairs:
+  - **the project's own link index first**, where it has one: Home Assistant's frontend PR template has a "Link to
+    backend pull request" field, so a frontend PR body names `home-assistant/core#N`; other projects use ticket keys
+    in commit subjects (`O3-1234`) or proposal numbers (MCP's `SEP-2549`);
+  - PR numbers named in commit subjects (squash merges carry `(#N)`), and GitHub's `CrossReferencedEvent` timeline
+    items (`isCrossRepository`) when the API is available;
+  - the same feature words in both repositories' logs within a few weeks;
+  - changes to the provider's contract (schema file, registered commands) followed by the consumer's use of them.
   `reports/Cross repo dependencies in Saleor history.md` shows the method and what it found.
-- Read the issues and PRs that name each other (`gh issue view`, `gh pr view`). Explicit cross-repository links
-  are rare; most dependencies have to be reconstructed from dates and diffs. Mark the reconstructed ones as
-  inference.
+- Read the issues and PRs that name each other (`gh pr view`, or the PR page). Most dependencies have to be
+  reconstructed from dates and diffs; mark the reconstructed ones as inference. Drop bot and codegen PRs.
+- Drop any seed already in a published benchmark (WideSWE, CrossSWE, SWE-bench-Live, SWE-rebench, Multi-SWE-bench,
+  FeatureBench).
 - For a candidate, measure it before believing it: `git diff --stat <base> <target>` on both sides, the test files
   it adds, the migrations, and the date.
 - Write up the candidates with the deep-research skill when the user wants a report, ranked against the list above.
@@ -93,6 +112,11 @@ One directory per repository under `mined/<repo task>/` (the example: `mined/sal
   `preserved` (pass at both). `interface.json` lists the names, files and test ids the hidden tests reach for that
   the base lacks; it becomes `INTERFACE.md` in the workspace.
 
+  Reports: `junit` for pytest, JUnit and vitest (run vitest with `--reporter=junit --outputFile=<report>`), `jest`
+  for Jest's JSON. The scorer runs Jest in chunks (`npx jest --listTests`) to stay under a seat's memory; that path
+  is Jest's only, and a vitest suite runs whole. Check that the scorer's test keys (`<file>::<name>`) come out the
+  same from a vitest JUnit report as from the reference run.
+
 **Check:** the base fails every `new` test and the target passes every one; the `preserved` set passes at both.
 `INTERFACE.md` reads as where things live and what they are called, not as a design.
 
@@ -101,14 +125,45 @@ One directory per repository under `mined/<repo task>/` (the example: `mined/sal
 `mined/<company>/task.json` (the example: `mined/customer_attributes_company/task.json`):
 
 - `owners`: owner name to repository task.
-- `contracts`: provider, consumer, the schema file, the consumer's copies of it and how it regenerates its code.
-  At the start the copies are put back to the provider as it was before the feature, so the consumer has to take
-  the new API from whoever builds it.
-- `deployed`: how each system starts, migrates and seeds; `env`.
+- `contracts`: one entry per provider and consumer, each with a `type` (see "Contract types" below). For
+  `graphql`: the schema file, the consumer's copies of it and how it regenerates its code. At the start the copies
+  are put back to the provider as it was before the feature, so the consumer has to take the new API from whoever
+  builds it.
+- `deployed`: how each system starts, migrates and seeds; `env`. The example uses `migrate` and `populatedb`; Home
+  Assistant starts with `hass -c <config>` from a seeded configuration directory (onboarding done, a user and its
+  token created, demo entities), written by the task, not taken from a running install.
+
+### Contract types
+
+The tooling was built for `graphql` (`_wind_back`, `usage` in `tools/mined_company.py`; CI's checks in
+`sidecars/ci.py`; the scorer's fit criteria). Each type must supply the same four things:
+
+| Need | `graphql` (Saleor) | `websocket` (Home Assistant) |
+|---|---|---|
+| The contract at start and target | `schema.graphql` at each commit | the command `type`s core registers (`@websocket_api.websocket_command({vol.Required("type"): ...})` and `async_register_command`), with their voluptuous parameters, extracted from the source at each commit; **and the payload fields** of the commands both sides use, when the feature changes them (child devices adds none: it changes what `config/device_registry/list` returns, entries with `parent_device_id` and stripped child entries). Payload fields are read from the running provider's answers, since `dict_repr`-style code cannot be extracted reliably |
+| What the consumer must not get for free | its schema copies wound back to the start | nothing to wind back: the frontend's hand-written types in `src/data/*.ts` are its own code at the start |
+| CI's check of the running systems | every operation the consumer sends is valid against the served schema; every new field answers as staff | every command `type` the consumer sends (`callWS`, `sendMessagePromise`, `subscribeMessage`) is one core registers; every command core gained answers a call as the seeded user without `unknown_command` or an exception; for changed payloads, the fields the consumer's types declare (`src/data/**/*.ts` interfaces) are present in what the running provider returns for the seeded data |
+| Fit criteria and `usage` | the consumer's operations are valid, use what the API gained, its copies state it | the consumer calls only registered commands, calls the commands core gained that the real consumer calls (`usage`), and sends the parameters their schemas require |
+
+A new type is a function in each of those places, chosen by `type`; do not bend a new contract into the GraphQL
+one. Write the extractor so that it runs on both clones without starting either system, and check it by running it
+at the start and the target of the seed: it must find the commands the feature added and nothing else.
+
+### Guards
+
+Guards are the start's tests that still pass at the target. A whole suite is a guard only if it runs inside the
+time budget. Otherwise scope it, and write the scope in `rubric.toml` and the datasheet: the packages the feature
+touches, the shared code they import, and the test files for the contract (for Home Assistant core:
+`tests/components/<each touched integration>/`, `tests/components/websocket_api/`, the helpers the diff touches;
+the frontend's whole vitest suite, which is small). Time the scoped set in the image.
 - `overview`, `feature`, `description`, `done`: the brief. Keep it to what a product owner would say. The example's
   `done`: it is on `main` of both repositories and works there, the API starts on a fresh database, staff can do
   what the feature is for, the existing tests still pass, and each `INTERFACE.md` names what the tests use.
-- `business`: the browser check (`tools/business_customer_tier.cjs`) and which owner plays which role.
+- `business`: the end-to-end check and which owner plays which role. The example's is
+  `tools/business_customer_tier.cjs`: a Saleor staff login, a change made in the dashboard, read back through the
+  API. Each company writes its own script for its own login and outcome (Home Assistant: log in with the seeded
+  user, do the thing in the frontend, read the state back over the WebSocket API). A company with no frontend
+  checks the outcome through the provider's API or a CLI instead.
 
 Then work out what the real consumer uses of what the provider gained:
 
@@ -140,7 +195,7 @@ for a new task:
 | Sidecar | What it does | Where it comes from |
 |---|---|---|
 | `git` | The company's git server: one bare repository per owner, push rights per owner (`GIT_ACCESS`), no force pushes, no branch deletion. Logs every fetch and push (`/_log`). Only `main` counts. | `sidecars/gitserver_start.py`, `sidecars/gitserver_app.py`. Reuse as is. |
-| `ci` | Watches `main` of every repository. On a push it deploys that repository, then checks the contract (the consumer's operations against the schema the running provider serves) and smoke-queries every field the provider gained, as staff (`smoke_new_fields.cjs`). Its runs are what the agents see as CI. | `sidecars/ci.py`, `sidecars/fetch_schema.cjs`, `sidecars/smoke_new_fields.cjs`, `tools/mined_graphql_agreement.cjs`. Reuse; give the new task's contract in `contracts` and staff credentials. |
+| `ci` | Watches `main` of every repository. On a push it deploys that repository, then checks each contract by its type (Phase 3, "Contract types"): for `graphql`, the consumer's operations against the schema the running provider serves, and a smoke query of every field the provider gained, as staff (`smoke_new_fields.cjs`). Its runs are what the agents see as CI. | `sidecars/ci.py`, `sidecars/fetch_schema.cjs`, `sidecars/smoke_new_fields.cjs`, `tools/mined_graphql_agreement.cjs` for `graphql`. Reuse the loop; add the checks for a new contract type, and give the seeded credentials. |
 | `<owner>` | One per repository: that system as last deployed from `main`, so one owner can call what another has deployed. | `sidecars/service.py`, driven by `deployed` in the company's `task.json` (`prepare`, `first`, `start`). Reuse. |
 | `judge` | Scores where the work never ran (see Phase 6). | `sidecars/judge.py`. Reuse. |
 | `meter` | A proxy in front of the model gateway. Every seat's harness reaches the model through `/seat/<seat>`; it records sizes and tokens, never content. | `tools/model_meter.py`. Reuse. |
@@ -218,9 +273,10 @@ the judge, or by fetching or recalling the answer. Each needs a defence, built i
    - pushes a `conftest.py` hook that marks every test passed;
    - pushes code that patches `_pytest.reports` from inside the package.
 
-   For a new task, add the attacks its stack allows: a jest reporter or `testResultsProcessor`; edits to the
-   repository's test config; deleted or skipped tests; a replaced `node_modules` link; a force-push or a push to
-   another owner's repository (both must be refused, which the git log shows). Each attack must be caught by name
+   For a new task, add the attacks its stack allows: a jest reporter or `testResultsProcessor`; for vitest,
+   `reporters`, `setupFiles`, `globalSetup` or a plugin in `vitest.config.*`, and a `vitest.workspace` file; edits
+   to the repository's test config; deleted or skipped tests; a replaced `node_modules` link; a force-push or a push
+   to another owner's repository (both must be refused, which the git log shows). Each attack must be caught by name
    in `judge/rubric.txt`: the scan's gate lists what it found.
 4. **Tests that pass without the feature:** list the scored tests that the cheat or the start passes. Each one
    checks nothing the feature changes, so drop it from the target. This happened after a page-size assertion was
@@ -239,8 +295,9 @@ tests or the scorer needs validation again first.
     MODEL=<model id> bash tools/harbor_harness.sh claude-code solo <job>
     MODEL=<model id> bash tools/harbor_harness.sh claude-code team <job>
 
-The same brief and the same $50 for each condition (a team seat holds $50 divided by the number of seats). Working
-time is the task's agent timeout. Calibrate on a cheap model first, then one trial per condition on a frontier
+The same brief and the same $50 for each condition (a team seat holds $50 divided by the number of seats). Runs
+recorded in `docs/SPEC.md` before this used $20; do not compare them with $50 runs as if they were the same condition.
+Working time is the task's agent timeout. Calibrate on a cheap model first, then one trial per condition on a frontier
 model, then repeats.
 
 The seat runner (`SeatClaudeCode` in `tools/harbor_team.py`) reads the harness's log while it runs, because a

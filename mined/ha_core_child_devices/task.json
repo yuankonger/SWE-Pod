@@ -1,0 +1,31 @@
+{
+ "id": "ha_core_child_devices",
+ "title": "Home Assistant Core: child devices (#178666, #179073)",
+ "repository": "https://github.com/home-assistant/core",
+ "licence": "Apache-2.0",
+ "language": "python",
+ "base": "24a15d3ce",
+ "picks": [
+  "ad96b06be",
+  "e7dad099f"
+ ],
+ "source": "Two merged changes of 13 August 2026, applied alone on the commit before the first: child devices in the device registry (#178666) and its backwards compatibility for custom integrations (#179073).",
+ "image": "mined-ha-core-child-devices:1",
+ "directory": "core",
+ "deps": [
+  ".python-version",
+  "requirements.txt",
+  "requirements_all.txt",
+  "requirements_test.txt",
+  "requirements_test_pre_commit.txt",
+  "homeassistant/package_constraints.txt"
+ ],
+ "handed_over": [],
+ "test_side": [
+  "^tests/",
+  "(^|/)conftest\\.py$"
+ ],
+ "test_command": "python3 -m script.translations develop --all > /tmp/translations.log 2>&1 && python3 -b -X dev -m pytest -qq --timeout=9 --numprocesses 1 --max-worker-restart 0 --dist=loadfile -p no:sugar -o cache_dir=/tmp/pytest-cache -o junit_family=legacy tests/auth tests/components/alexa_devices tests/components/analytics tests/components/assist_pipeline tests/components/avea tests/components/bluetooth tests/components/bsblan tests/components/cloud tests/components/config tests/components/conversation tests/components/deconz tests/components/derivative tests/components/device_tracker tests/components/diagnostics tests/components/dlna_dmr tests/components/generic_hygrostat tests/components/generic_thermostat tests/components/google_assistant tests/components/hassio tests/components/heos tests/components/history_stats tests/components/homeassistant tests/components/homekit tests/components/homekit_controller tests/components/hue tests/components/integration tests/components/intelliclima tests/components/intent tests/components/kitchen_sink tests/components/lcn tests/components/lg_netcast tests/components/matter tests/components/mold_indicator tests/components/motioneye tests/components/nanoleaf tests/components/netatmo tests/components/nexia tests/components/ntfy tests/components/nut tests/components/opendisplay tests/components/overkiz tests/components/portainer tests/components/prometheus tests/components/reolink tests/components/samsungtv tests/components/search tests/components/simplisafe tests/components/statistics tests/components/switchbee tests/components/telegram_bot tests/components/teslemetry tests/components/threshold tests/components/trend tests/components/unifi tests/components/unifiprotect tests/components/upnp tests/components/utility_meter tests/components/webostv tests/components/websocket_api tests/components/xiaomi_ble tests/components/yolink tests/components/zha tests/components/zwave_js tests/helpers tests/test_loader.py",
+ "report": "junit",
+ "notes": "- Python 3.14, with every requirement of the repository installed in `/venv`. There is no internet: nothing can be installed.\n- Before running tests, generate the translations once: `python3 -m script.translations develop --all` (a second). Tests match messages that come from them.\n- Run tests a file or a directory at a time, with at most two workers: `python3 -m pytest --timeout=9 -n 2 tests/helpers/test_device_registry.py`. With more workers, or the whole suite at once, the machine runs out of memory.\n- To run Home Assistant itself: `python3 -m homeassistant -c <a configuration directory> --skip-pip`.\n"
+}

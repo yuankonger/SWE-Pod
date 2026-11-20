@@ -135,7 +135,7 @@ def _py_wanted(target, test_file):
 
 def python_interface(base, target, test_files, is_test_side):
     out = {}
-    for test_file in test_files:
+    for test_file in (f for f in test_files if f.endswith(".py")):     # not the snapshots (.ambr) or fixtures beside them
         for module, name in _py_wanted(target, test_file):
             path = _py_file(target, module)
             if path is None or is_test_side(os.path.relpath(path, target)):
@@ -170,6 +170,12 @@ def _ts_file(root, test_file, spec, aliases):
     for ending in TS_ENDINGS:
         if os.path.isfile(stem + ending):
             return os.path.relpath(stem + ending, root), stem
+    # ES modules written in TypeScript import a file by the name it is compiled to (`./grouping.js` is grouping.ts)
+    compiled = re.match(r"(.*)\.(m|c)?js$", stem)
+    if compiled:
+        for ending in (".ts", ".tsx", ".mts", ".cts"):
+            if os.path.isfile(compiled.group(1) + ending):
+                return os.path.relpath(compiled.group(1) + ending, root), compiled.group(1)
     return False, os.path.relpath(stem, root)
 
 
@@ -179,10 +185,19 @@ PAIRS = {"(": ")", "[": "]", "{": "}"}
 
 
 def _ts_span(source, at, stop):
-    """Reads on from `at`, keeping count of brackets and skipping strings, until `stop(i, depth)` says so. Returns the index."""
+    """Reads on from `at`, keeping count of brackets and skipping strings and comments, until `stop(i, depth)` says so.
+    Returns the index."""
     depth, i, quote = 0, at, None
     while i < len(source) and i - at < 6000:
         c = source[i]
+        if not quote and source.startswith("//", i):      # a comment's apostrophe is no string
+            i = source.find("\n", i)
+            i = len(source) if i < 0 else i
+            continue
+        if not quote and source.startswith("/*", i):
+            i = source.find("*/", i + 2)
+            i = len(source) if i < 0 else i + 2
+            continue
         if quote:
             if c == "\\":
                 i += 1
@@ -221,7 +236,8 @@ def _ts_declaration(source, m):
         else:
             end = source.find("\n", equals)
             end = len(source) if end < 0 else end
-    text = re.sub(r"\s+", " ", source[start:end]).strip().rstrip("{").strip()
+    declared = re.sub(r"/\*.*?\*/|//[^\n]*", "", source[start:end], flags=re.S)      # the project's comments are prose, not the declaration
+    text = re.sub(r"\s+", " ", declared).strip().rstrip("{").strip()
     text = text + " ..." if text.endswith("=>") else text
     return text if len(text) <= MAX_DECLARATION else text[:MAX_DECLARATION] + " ..."
 

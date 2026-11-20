@@ -6,6 +6,7 @@ joined, and what each owner is told.
 
     python3 tools/mined_company.py reference <repo task> <base report> <target report> [<report of the base under the target's tests> <clone>]
     python3 tools/mined_company.py interface <repo task> <clone>
+    python3 tools/mined_company.py base      <repo task> <clone>       (a task with `base_recipe`: build its start in the clone)
     python3 tools/mined_company.py usage     <company> --clone owner=path ...
     python3 tools/mined_company.py prepare   <company> <workspace> --clone owner=path ... [--oracle base|target]
     python3 tools/mined_company.py score     <company> <workspace> <out dir> --clone owner=path ...
@@ -30,11 +31,13 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import xml.etree.ElementTree as ET
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
@@ -52,6 +55,36 @@ def load_company(company):
     return info, {owner: load(spec["task"])[1] for owner, spec in info["owners"].items()}
 
 
+def base_commit(clone, info):
+    """The start. A task whose feature cannot be picked alone on the commit before it (a later pick needs another
+    feature's code that landed in between) names `base_recipe`: {"from": a later upstream commit, "reverts": the
+    feature's commits merged before it, newest first}. The start is then upstream at `from` with only the feature
+    taken out. It is built with a fixed identity and dates, so its hash is the same on every machine; `base` holds
+    that hash and the build is checked against it."""
+    recipe = info.get("base_recipe")
+    if not recipe:
+        return info["base"]
+    found = subprocess.run(["git", "-C", clone, "cat-file", "-e", info["base"] + "^{commit}"], capture_output=True)
+    if found.returncode == 0:
+        return info["base"]
+    start = git(clone, "rev-parse", recipe["from"]).strip()
+    when = git(clone, "show", "-s", "--format=%cI", start).strip()
+    env = dict(os.environ, GIT_AUTHOR_NAME="mined", GIT_AUTHOR_EMAIL="mined@example.com", GIT_COMMITTER_NAME="mined",
+               GIT_COMMITTER_EMAIL="mined@example.com", GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
+    tree = os.path.join(tempfile.mkdtemp(prefix="mined-base-"), "tree")
+    git(clone, "worktree", "add", "-q", "--detach", tree, start)
+    try:
+        for commit in recipe["reverts"]:
+            subprocess.run(["git", "-C", tree, "revert", "--no-edit", commit], capture_output=True, text=True, check=True, env=env)
+        sha = git(tree, "rev-parse", "HEAD").strip()
+    finally:
+        git(clone, "worktree", "remove", "--force", tree)
+    if not sha.startswith(info["base"]):
+        raise SystemExit("{}: the recipe built {}, not the base {}".format(info["id"], sha[:12], info["base"]))
+    git(clone, "update-ref", "refs/mined/{}-base".format(info["id"]), sha)
+    return sha
+
+
 def target_commit(clone, info):
     """The feature's commit. A task that names `picks` has no such commit in history: the feature's changes are
     applied alone on the base, once, and kept under a ref in the clone."""
@@ -62,7 +95,7 @@ def target_commit(clone, info):
     if found.returncode == 0:
         return found.stdout.strip()
     tree = os.path.join(tempfile.mkdtemp(prefix="mined-picks-"), "tree")
-    git(clone, "worktree", "add", "-q", "--detach", tree, info["base"])
+    git(clone, "worktree", "add", "-q", "--detach", tree, base_commit(clone, info))
     try:
         for commit in info["picks"]:
             subprocess.run(["git", "-C", tree, "-c", "user.name=mined", "-c", "user.email=mined@example.com", "cherry-pick", commit],
@@ -96,7 +129,10 @@ def passed(report):
 
 
 def ran(report):
-    """Every test a Jest report (.json) holds a result for, passed or not. A file that could not be loaded has none."""
+    """Every test a Jest report (.json) or a JUnit one (.xml) holds a result for, passed or not. A file that could
+    not be loaded has none (pytest reports a collection error as a case of its own, which never names a test)."""
+    if not report.endswith(".json"):
+        return {(c.get("classname") or "") + "::" + (c.get("name") or "") for c in ET.parse(report).getroot().iter("testcase")}
     with open(report) as f:
         data = json.load(f)
     return {re.sub(r"^/repo/", "", suite["name"]) + "::" + case["fullName"] for suite in data["testResults"] for case in suite["assertionResults"]}
@@ -165,7 +201,7 @@ def prepare(company, clones, workspace, oracle=None):
     for owner, repo in repos.items():
         dest = os.path.join(workspace, "services", owner)
         target = target_commit(clones[owner], repo)
-        export(clones[owner], target if oracle == "target" else repo["base"], dest)
+        export(clones[owner], target if oracle == "target" else base_commit(clones[owner], repo), dest)
         for link, to in repo.get("links", {}).items():
             os.symlink(to, os.path.join(dest, link))
         notes = repo["notes"] + info.get("notes", {}).get(owner, "")
@@ -183,8 +219,15 @@ def prepare(company, clones, workspace, oracle=None):
             f.write(notes)
     if oracle != "target":
         for contract in info.get("contracts", []):
-            _wind_back(contract, repos, clones, workspace)
+            if contract_type(contract) == "graphql":      # a websocket consumer keeps no copy of the contract: its types are its own code
+                _wind_back(contract, repos, clones, workspace)
+            elif contract_type(contract) == "lexicon":
+                _wind_back_lexicon(contract, repos, clones, workspace)
     return workspace
+
+
+def contract_type(contract):
+    return contract.get("type", "graphql")
 
 
 def _wind_back(contract, repos, clones, workspace):
@@ -202,6 +245,59 @@ def _wind_back(contract, repos, clones, workspace):
     shutil.rmtree(holder, ignore_errors=True)
     if done.returncode != 0:
         raise RuntimeError("could not wind back {}'s copy of {}'s schema: {}".format(contract["consumer"], contract["provider"], (done.stdout + done.stderr)[-800:]))
+
+
+def _lexicon_files(clone, commit):
+    """nsid -> path of every lexicon document under `lexicons/` at a commit, read by its `id`."""
+    found = {}
+    for path in git(clone, "ls-tree", "-r", "--name-only", commit, "--", "lexicons/").splitlines():
+        if path.endswith(".json"):
+            try:
+                doc = json.loads(git(clone, "show", "{}:{}".format(commit, path)))
+            except ValueError:
+                continue
+            if isinstance(doc, dict) and isinstance(doc.get("id"), str):
+                found[doc["id"]] = (path, json.dumps(doc.get("defs"), sort_keys=True))
+    return found
+
+
+def feature_lexicons(contract, repos, clones):
+    """The nsids the provider's feature adds and changes, from its `lexicons/` at the start and the target."""
+    clone, provider = clones[contract["provider"]], repos[contract["provider"]]
+    start, target = _lexicon_files(clone, base_commit(clone, provider)), _lexicon_files(clone, target_commit(clone, provider))
+    return sorted(set(target) - set(start)), sorted(k for k in set(start) & set(target) if start[k][1] != target[k][1])
+
+
+def _wind_back_lexicon(contract, repos, clones, workspace):
+    """The consumer's vendored lexicons (`lexicons/`, and the manifest `lexicons.json` with its `resolutions`) as they
+    are at the consumer's target, less what the provider's feature adds, and with what it changes as the consumer had
+    it at its start. So the consumer starts with every other schema it vendored in the meantime (an unrelated re-sync
+    is given, not asked for) and without the feature's, which it has to take from whoever builds the API. There is no
+    generated code to redo: social-app generates it from `lexicons/` when its dependencies are linked."""
+    added, changed = feature_lexicons(contract, repos, clones)
+    clone, consumer = clones[contract["consumer"]], repos[contract["consumer"]]
+    start, target = base_commit(clone, consumer), target_commit(clone, consumer)
+    dest = os.path.join(workspace, "services", contract["consumer"])
+    before, after = _lexicon_files(clone, start), _lexicon_files(clone, target)
+    shutil.rmtree(os.path.join(dest, "lexicons"), ignore_errors=True)
+    for nsid, (path, _) in after.items():
+        if nsid in added:
+            continue
+        put(clone, start if nsid in changed and nsid in before else target, [before[nsid][0] if nsid in changed and nsid in before else path], dest)
+    manifest = json.loads(git(clone, "show", "{}:lexicons.json".format(target)))
+    manifest["lexicons"] = [n for n in manifest.get("lexicons", []) if n not in added]
+    for nsid in added:
+        manifest.get("resolutions", {}).pop(nsid, None)
+    for nsid in changed:
+        if nsid in before:
+            old = json.loads(git(clone, "show", "{}:lexicons.json".format(start))).get("resolutions", {})
+            if nsid in old:
+                manifest["resolutions"][nsid] = old[nsid]
+    with open(os.path.join(dest, "lexicons.json"), "w") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    print("{}: lexicons wound back: without {}; as at the start: {}".format(contract["consumer"], ", ".join(added) or "nothing",
+          ", ".join(n for n in changed if n in after) or "nothing"))
 
 
 def _copy(tree):
@@ -251,6 +347,12 @@ def usage(company, clones):
     gained: the measure a run's consumer is held against, so that not calling the feature cannot pass."""
     info, repos = load_company(company)
     for contract in info.get("contracts", []):
+        if contract_type(contract) == "websocket":
+            _websocket_usage(company, contract, repos, clones)
+            continue
+        if contract_type(contract) == "lexicon":
+            _lexicon_usage(company, contract, repos, clones)
+            continue
         provider, consumer = repos[contract["provider"]], repos[contract["consumer"]]
         holder = tempfile.mkdtemp(prefix="mined-usage-")
         _schema_at(clones[contract["provider"]], provider["base"], contract, os.path.join(holder, "base.graphql"))
@@ -270,12 +372,97 @@ def usage(company, clones):
         shutil.rmtree(holder, ignore_errors=True)
 
 
+def ha_answers(image, tree, asks, out_dir, name):
+    """Home Assistant from `tree`, started on a configuration of its own (tools/ha_seed.py) and asked `asks` over its
+    WebSocket API once it runs: <out_dir>/<name>.json. Home Assistant needs its translations generated in the tree to
+    start (onboarding names the default areas with them), as its tests do. Also the commands the tree registers, read from its source
+    (tools/mined_ws_contract.py): <out_dir>/<name>-commands.json."""
+    command = ("python3 -m script.translations develop --all > /out/{n}-translations.log 2>&1 && python3 /tools/ha_seed.py config /tmp/cfg && (python3 -m homeassistant -c /tmp/cfg --skip-pip > /out/{n}-hass.log 2>&1 &) "
+               "&& python3 /tools/ha_seed.py onboard http://127.0.0.1:8123 /tmp/token && python3 /tools/ha_seed.py ask http://127.0.0.1:8123 /tmp/token /out/{n}.json {asks} "
+               "&& python3 /tools/mined_ws_contract.py /repo /out/{n}-commands.json").format(n=name, asks=" ".join(shlex.quote(json.dumps(a)) for a in asks))
+    done = subprocess.run(["docker", "run", "--rm", "--network", "none", "-m", "4g", "-v", TOOLS + ":/tools:ro", "-v", os.path.abspath(out_dir) + ":/out",
+                           "-v", tree + ":/repo", "-w", "/repo", image, "bash", "-lc", command], capture_output=True, text=True, timeout=900)
+    if done.returncode != 0:
+        raise RuntimeError("Home Assistant from {} did not answer: {}".format(tree, (done.stdout + done.stderr)[-800:]))
+    with open(os.path.join(out_dir, name + ".json")) as f:
+        return json.load(f)
+
+
+def _lexicon_usage(company, contract, repos, clones):
+    """For a lexicon contract, read from the sources (tools/mined_lexicon_contract.py), nothing started: the
+    lexicons the provider's feature adds and changes; the methods the AppView serves at the start and gains; what the
+    real consumer at its target calls of what was gained; and which of the methods the real consumer calls the AppView
+    never serves (the PDS's, the video service's: left out of the check, which is of the AppView)."""
+    import mined_lexicon_contract as lc
+    provider, consumer = repos[contract["provider"]], repos[contract["consumer"]]
+    holder = tempfile.mkdtemp(prefix="mined-usage-")
+    sides = {}
+    for name, clone, repo, commit in (("provider-base", clones[contract["provider"]], provider, base_commit(clones[contract["provider"]], provider)),
+                                      ("provider-target", clones[contract["provider"]], provider, target_commit(clones[contract["provider"]], provider)),
+                                      ("consumer-target", clones[contract["consumer"]], consumer, target_commit(clones[contract["consumer"]], consumer))):
+        tree = os.path.join(holder, name)
+        export(clone, commit, tree)
+        sides[name] = (lc.provider if name.startswith("provider") else lc.consumer)(tree)
+    added, changed = feature_lexicons(contract, repos, clones)
+    gained = sorted(set(sides["provider-target"]["served"]) - set(sides["provider-base"]["served"]))
+    calls = sides["consumer-target"]["calls"]
+    elsewhere = sorted(n for n in calls if n not in sides["provider-target"]["served"])
+    used_new = sorted(n for n in gained if n in calls)
+    copies = {n: sides["consumer-target"]["schemas"].get(n) == sides["provider-target"]["schemas"].get(n) for n in added + changed
+              if n in sides["consumer-target"]["schemas"]}
+    if not used_new:
+        raise SystemExit("the real {} calls nothing of what {} gained ({}): there is nothing for it to fit".format(contract["consumer"], contract["provider"], gained))
+    if not all(copies.values()):
+        raise SystemExit("the real {}'s copies of the feature's lexicons differ from {}'s: {}".format(contract["consumer"], contract["provider"], copies))
+    with open(_usage_file(company, contract), "w") as f:
+        json.dump({"used_new": used_new, "gained": gained, "served_at_start": sides["provider-base"]["served"], "ignore": elsewhere,
+                   "lexicons": {"added": added, "changed": changed, "vendored": sorted(copies)}}, f, indent=1)
+    print("{} -> {}: the AppView gained {}; the real {} calls {} of them; it calls {} methods the AppView never serves (left out: {}); "
+          "feature lexicons added {}, changed {}; the real copies state them: {}".format(contract["provider"], contract["consumer"], gained, contract["consumer"],
+          used_new, len(elsewhere), ", ".join(elsewhere), added, changed, sorted(copies)))
+    shutil.rmtree(holder, ignore_errors=True)
+
+
+def _websocket_usage(company, contract, repos, clones):
+    """What the real frontend at the feature's commit uses of what core's answers gained, which of the commands it
+    sends core does not register in a way that can be read (left out of the check), and core's answers before the
+    feature (what was gained is read against them)."""
+    provider, consumer = repos[contract["provider"]], repos[contract["consumer"]]
+    holder = tempfile.mkdtemp(prefix="mined-usage-")
+    answers = {}
+    for name, commit in (("base", provider["base"]), ("target", target_commit(clones[contract["provider"]], provider))):
+        tree = os.path.join(holder, "core-" + name)
+        export(clones[contract["provider"]], commit, tree)
+        answers[name] = ha_answers(provider["image"], tree, contract["ask"], holder, name)
+    tree = os.path.join(holder, "frontend")
+    export(clones[contract["consumer"]], target_commit(clones[contract["consumer"]], consumer), tree)
+    for link, to in consumer.get("links", {}).items():
+        os.symlink(to, os.path.join(tree, link))
+    done = subprocess.run(["docker", "run", "--rm", "--network", "none", "-m", "6g", "-v", TOOLS + ":/tools:ro", "-v", holder + ":/out", "-v", tree + ":/repo:ro",
+                           consumer["image"], "bash", "-lc", "node /tools/mined_ws_agreement.cjs /repo /out/target-commands.json /out/target.json /out/found.json "
+                           "--base-answers /out/base.json"], capture_output=True, text=True, timeout=900)
+    with open(os.path.join(holder, "found.json")) as f:
+        found = json.load(f)
+    if not found["gained"]:
+        raise SystemExit("{}'s answers to {} are the same before and after the feature: there is nothing for the frontend to fit".format(
+            contract["provider"], [a["type"] for a in contract["ask"]]))
+    with open(_usage_file(company, contract), "w") as f:
+        json.dump({"used_new": found["used_new"], "ignore": sorted(found["invalid"]), "base_answers": answers["base"], "asks": contract["ask"]}, f, indent=1)
+    print("{} -> {}: core's answers gained {}; the real {} declares {}; it sends {} command types core does not register readably (left out); "
+          "{} of {} command places valid; payload fit {:.3f}".format(contract["provider"], contract["consumer"], found["gained"], contract["consumer"],
+                                                                     found["used_new"], len(found["invalid"]), found["valid"], found["operations"], found["payload_share"]))
+    print(done.stdout.strip()[-300:])
+    shutil.rmtree(holder, ignore_errors=True)
+
+
 def agreement(company, contract, repos, clones, workspace, out_dir):
     """Do the two sides fit? The API is built from the provider's work: it must migrate a fresh database, print its
     schema and answer a request. Then, against the schema it really has: every operation the consumer sends must be
     valid (`valid`), the consumer must select what the real consumer selects of what the API gained (`uses_new_api`),
     and its copies of the schema must state what the API gained (`copies_current`). The three multiply, so a
     consumer that never calls the feature, or whose copies were left as they were, does not agree."""
+    if contract_type(contract) != "graphql":
+        raise SystemExit("this scorer checks GraphQL contracts only; a {} contract is checked by the Harbor export's (tools/harbor_company_score.py)".format(contract_type(contract)))
     os.makedirs(out_dir, exist_ok=True)
     provider, consumer = repos[contract["provider"]], repos[contract["consumer"]]
     built = os.path.join(out_dir, "built_schema.graphql")
@@ -433,7 +620,7 @@ def server_log(run_dir):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=("reference", "interface", "usage", "prepare", "score", "run"))
+    ap.add_argument("command", choices=("base", "reference", "interface", "usage", "prepare", "score", "run"))
     ap.add_argument("name")
     ap.add_argument("rest", nargs="*")
     ap.add_argument("--clone", action="append", default=[], help="owner=path to a local clone of that owner's repository")
@@ -450,7 +637,9 @@ if __name__ == "__main__":
     ap.add_argument("--run-id")
     a = ap.parse_args()
     clone_of = dict(c.split("=", 1) for c in a.clone)
-    if a.command == "reference":
+    if a.command == "base":
+        print(base_commit(a.rest[0], load(a.name)[1]))
+    elif a.command == "reference":
         reference(a.name, *a.rest)
     elif a.command == "interface":
         interface(a.name, a.rest[0])
