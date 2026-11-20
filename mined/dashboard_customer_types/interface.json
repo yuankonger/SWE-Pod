@@ -27,28 +27,42 @@
  "src/components/ConditionalFilter/API/initialState/customers/InitialCustomerState.ts": {
   "exists_at_base": false,
   "names": {
-   "InitialCustomerStateResponse": "export class InitialCustomerStateResponse implements InitialCustomerState, AttributeLookup"
+   "InitialCustomerStateResponse": "export class InitialCustomerStateResponse implements InitialCustomerState, AttributeLookup { constructor( public customerType: ItemOption[] = [], public attribute: Record<string, AttributeDTO> = {}, ); public static empty(); public attributeByName(name: string); public filterByUrlToken(token: UrlToken) }"
   },
   "changed": {}
+ },
+ "src/components/ConditionalFilter/FilterElement/FilterElement.ts": {
+  "exists_at_base": true,
+  "names": {},
+  "changed": {
+   "ExpressionValue": "export class ExpressionValue { constructor( public value: string, public label: string, public type: string, public entityType: AttributeEntityTypeEnum | null = null, ); public setLabel(label: string); public isEmpty(); public static fromSlug(slug: string); public static fromLeftOperand(leftOperand: LeftOperand); public static fromUrlToken(token: UrlToken); public static forAttribute(attributeName: string, response: AttributeLookup); public static emptyStatic() }"
+  }
  },
  "src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/AssignedAttributeQueryVarsBuilder.ts": {
   "exists_at_base": false,
   "names": {
-   "AssignedAttributeQueryVarsBuilder": "export class AssignedAttributeQueryVarsBuilder implements WhereOnlyQueryVarsBuilder<AssignedAttributeFilterQueryPart>"
+   "AssignedAttributeQueryVarsBuilder": "export class AssignedAttributeQueryVarsBuilder implements WhereOnlyQueryVarsBuilder<AssignedAttributeFilterQueryPart> { canHandle(element: FilterElement): boolean; createOptionFetcher( client: ApolloClient<unknown>, inputValue: string, element: FilterElement, ): Handler; updateWhereQueryVariables( query: Readonly<AssignedAttributeFilterQueryPart>, element: FilterElement, ): AssignedAttributeFilterQueryPart }"
   },
   "changed": {}
+ },
+ "src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerNumberOfOrdersQueryVarsBuilder.ts": {
+  "exists_at_base": true,
+  "names": {},
+  "changed": {
+   "CustomerNumberOfOrdersQueryVarsBuilder": "export class CustomerNumberOfOrdersQueryVarsBuilder implements BothApiQueryVarsBuilder<{ numberOfOrders?: IntFilterInput | LegacyRange; }> { canHandle(element: FilterElement): boolean; createOptionFetcher(): Handler; updateWhereQueryVariables( query: Readonly<{ numberOfOrders?: IntFilterInput }>, element: FilterElement, ): { numberOfOrders?: IntFilterInput }; updateFilterQueryVariables( query: Readonly<{ numberOfOrders?: LegacyRange }>, element: FilterElement, ): { numberOfOrders?: LegacyRange } }"
+  }
  },
  "src/components/ConditionalFilter/API/Handler.ts": {
   "exists_at_base": true,
   "names": {
-   "CustomerTypeHandler": "export class CustomerTypeHandler implements Handler"
+   "CustomerTypeHandler": "export class CustomerTypeHandler implements Handler { constructor( public client: ApolloClient<unknown>, public query: string, ) }"
   },
   "changed": {}
  },
  "src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerTypeQueryVarsBuilder.ts": {
   "exists_at_base": false,
   "names": {
-   "CustomerTypeQueryVarsBuilder": "export class CustomerTypeQueryVarsBuilder implements BothApiQueryVarsBuilder<"
+   "CustomerTypeQueryVarsBuilder": "export class CustomerTypeQueryVarsBuilder implements BothApiQueryVarsBuilder<{ customerType?: CustomerTypeQueryPart; }> { canHandle(element: FilterElement): boolean; createOptionFetcher(client: ApolloClient<unknown>, inputValue: string): Handler; updateWhereQueryVariables( query: Readonly<{ customerType?: CustomerTypeQueryPart }>, element: FilterElement, ): { customerType?: CustomerTypeQueryPart }; updateFilterQueryVariables(query: Readonly<{ customerType?: CustomerTypeQueryPart }>): { customerType?: CustomerTypeQueryPart; } }"
   },
   "changed": {}
  },
@@ -315,7 +329,8 @@
   },
   "src/customerTypes/components/CustomerTypeAttributes": {
    "test ids": [
-    "customer-attributes-skeleton"
+    "customer-attributes-skeleton",
+    "value-required"
    ],
    "text": []
   },
@@ -361,6 +376,9 @@
   },
   "src/customers/components/CustomerDetailsPage": {
    "test ids": [
+    "account-status-active",
+    "account-status-email-unverified",
+    "account-status-inactive",
     "customer-details",
     "customer-details-customer-type-skeleton",
     "customer-details-status-skeleton",

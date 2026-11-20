@@ -1,0 +1,396 @@
+{
+  "repositories": {
+    "core": {
+      "progress": 0.9852,
+      "regression": 1.0,
+      "new_passed": 200,
+      "new_total": 203,
+      "preserved_passed": 17535,
+      "preserved_total": 17535,
+      "suite_started": true,
+      "seconds": 1064,
+      "runs": [
+        {
+          "exit": 1,
+          "seconds": 1064,
+          "limit": 4800,
+          "report": true,
+          "cause": "ran",
+          "note": ""
+        }
+      ],
+      "complete": true
+    },
+    "dashboard": {
+      "progress": 0.788,
+      "regression": 1.0,
+      "new_passed": 145,
+      "new_total": 184,
+      "preserved_passed": 5568,
+      "preserved_total": 5568,
+      "suite_started": true,
+      "seconds": 287,
+      "runs": [
+        {
+          "exit": 1,
+          "seconds": 87,
+          "limit": 600,
+          "report": true,
+          "cause": "ran",
+          "note": ""
+        },
+        {
+          "exit": 1,
+          "seconds": 74,
+          "limit": 600,
+          "report": true,
+          "cause": "ran",
+          "note": ""
+        },
+        {
+          "exit": 1,
+          "seconds": 67,
+          "limit": 600,
+          "report": true,
+          "cause": "ran",
+          "note": ""
+        },
+        {
+          "exit": 1,
+          "seconds": 55,
+          "limit": 600,
+          "report": true,
+          "cause": "ran",
+          "note": ""
+        }
+      ],
+      "complete": true
+    }
+  },
+  "contracts": [
+    {
+      "api_migrates": true,
+      "api_prints_schema": true,
+      "api_serves": true,
+      "operations": 446,
+      "valid": 446,
+      "invalid": {},
+      "uses_new_api": 0.9091,
+      "copies_current": 1,
+      "unreadable": {},
+      "collisions": {},
+      "new_api_not_used": [
+        "AccountError.attributes"
+      ],
+      "copies": {
+        "schema-main.graphql": {
+          "gained": 196,
+          "stated": 196,
+          "missing": []
+        },
+        "schema-staging.graphql": {
+          "gained": 196,
+          "stated": 196,
+          "missing": []
+        }
+      },
+      "valid_share": 1.0,
+      "agreement": 0.9091,
+      "provider": "core",
+      "consumer": "dashboard",
+      "works": true
+    }
+  ],
+  "reaches_into_scoring": [],
+  "scoring_review_signals": [],
+  "business": {
+    "verdict": "pass",
+    "failed_stage": null,
+    "reason": null,
+    "stages": [
+      {
+        "stage": "core_migrates",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "stage": "core_seeds",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "stage": "core_serves",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "stage": "dashboard_serves",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "stage": "dashboard_shows_sign_in",
+        "ok": true,
+        "detail": "after 192 s"
+      },
+      {
+        "stage": "core_defines_tier",
+        "ok": true,
+        "detail": "customer tier.check@example.com (VXNlcjo0Ng==), of type \"Default\", which now has the attribute \"Contract tier\""
+      },
+      {
+        "stage": "dashboard_sets_tier",
+        "ok": true,
+        "detail": "\"Contract tier\" set to Gold on the customer's page and saved"
+      },
+      {
+        "stage": "core_keeps_tier",
+        "ok": true,
+        "detail": "the API reads Contract tier = Gold for tier.check@example.com, and lists exactly that customer under it"
+      },
+      {
+        "stage": "fresh_session_finds_customer",
+        "ok": true,
+        "detail": "in a new session the customer list filtered by Contract tier = Gold is exactly tier.check@example.com, and filtered by Silver it is without it (0 customers)"
+      }
+    ],
+    "started": "2026-11-19T10:15:39Z",
+    "customer": {
+      "id": "VXNlcjo0Ng==",
+      "email": "tier.check@example.com"
+    },
+    "evidence": {
+      "warm_up": {
+        "ok": true,
+        "seconds": 192
+      },
+      "set_tier_api_refusals": [],
+      "filter_chosen": {
+        "where": {
+          "attributes": [
+            {
+              "slug": "contract-tier",
+              "value": {
+                "slug": {
+                  "eq": "gold"
+                }
+              }
+            }
+          ]
+        },
+        "emails": [
+          "tier.check@example.com"
+        ]
+      },
+      "filter_other": {
+        "where": {
+          "attributes": [
+            {
+              "slug": "contract-tier",
+              "value": {
+                "slug": {
+                  "eq": "silver"
+                }
+              }
+            }
+          ]
+        },
+        "emails": []
+      },
+      "filter_api_refusals": [
+        "Variable \"$filter\" got invalid value {\"unknown\": \"\"}.\nIn field \"unknown\": Unknown field."
+      ]
+    },
+    "database": {
+      "tables_for_customer_types_and_customer_attributes": [
+        "account_customertype",
+        "attribute_assigneduserattributevalue",
+        "attribute_attributecustomertype"
+      ],
+      "customer_row": [
+        "46 | tier.check@example.com"
+      ],
+      "customer_tier_rows": [
+        "tier.check@example.com | contract-tier | gold"
+      ],
+      "migrations_applied_to_account": [
+        "117"
+      ]
+    },
+    "seconds": 412
+  },
+  "criteria": [
+    {
+      "id": "api-runs-and-dashboard-calls-it",
+      "kind": "gate",
+      "type": "contract",
+      "weight": 1,
+      "note": "The API as it is on `main` migrates a fresh database and answers, and the staff application's operations could be found. Without this there is nothing the two sides could be held against each other with.",
+      "score": 1.0,
+      "passed": true,
+      "detail": "migrates True, serves True, operations found 446"
+    },
+    {
+      "id": "pushed-code-leaves-scoring-alone",
+      "kind": "gate",
+      "type": "scoring",
+      "weight": 1,
+      "note": "The work is scored with the tests and run configuration it started with, the hidden tests laid over them, its own code run unprivileged in a container of its own. Behind that, its code (not its prose or comments) must not be unmistakably aimed at the test runners or the scoring: importing pytest's internals, defining pytest hooks or Jest reporters, writing the files the scorer reads, adding interpreter start-up files. A repair that passes tests by changing how they are run earns nothing.",
+      "score": 1.0,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "id": "core-feature-tests",
+      "kind": "target",
+      "type": "tests",
+      "weight": 1,
+      "note": "The share that pass of the tests the Saleor project wrote for this feature in the API (203). Nobody on the work can see them; the names they import are in the repository's INTERFACE.md.",
+      "score": 0.9852,
+      "passed": false,
+      "detail": "200 of 203 pass"
+    },
+    {
+      "id": "dashboard-feature-tests",
+      "kind": "target",
+      "type": "tests",
+      "weight": 0.5,
+      "note": "The share that pass of the tests the Saleor project wrote for this feature in the staff application, but for those of upstream's own helper functions, and three that check presentation alone (where delete sits, whether it is hidden or disabled, the order of the configuration groups), and four of the warehouse choices that pass on the start's code once the page size is left open (they check nothing the feature changes: 98 are scored). What those helpers return, and how upstream laid out its screens, is upstream's choice, which neither the brief nor the interface settles, so they are reported as measures below instead.",
+      "score": 0.8571,
+      "passed": false,
+      "detail": "84 of 98 pass"
+    },
+    {
+      "id": "staff-set-a-customers-tier",
+      "kind": "target",
+      "type": "browser",
+      "weight": 1,
+      "note": "The business outcome. The API and the staff application are started together from nothing, on the project's sample data, and a \"Contract tier\" attribute (Bronze, Silver, Gold) is defined for customers through the API. A member of staff signs in to the staff application in a browser, opens a customer's page, chooses Gold for \"Contract tier\" and saves the page. Then the API, asked outside the staff application, must read the customer's tier as Gold and list that customer, and no other, among customers whose tier is Gold. The browser finds the field by its name and the nearest control to choose a value with, and saves with the page's save bar, as it is before the feature. If the check itself cannot run (no browser, no database) it has no score; it does not fail.",
+      "score": 1.0,
+      "passed": true,
+      "detail": "passed: core_migrates, core_seeds, core_serves, dashboard_serves, dashboard_shows_sign_in, core_defines_tier, dashboard_sets_tier, core_keeps_tier"
+    },
+    {
+      "id": "core-existing-tests",
+      "kind": "guard",
+      "type": "tests",
+      "weight": 1,
+      "note": "The share that still pass of the API's tests that passed as the work started (17,535).",
+      "score": 1.0,
+      "passed": true,
+      "detail": "17535 of 17535 pass"
+    },
+    {
+      "id": "dashboard-existing-tests",
+      "kind": "guard",
+      "type": "tests",
+      "weight": 1,
+      "note": "The share that still pass of the staff application's tests that passed as the work started (5,568).",
+      "score": 1.0,
+      "passed": true,
+      "detail": "5568 of 5568 pass"
+    },
+    {
+      "id": "dashboard-asks-only-what-api-offers",
+      "kind": "fit",
+      "type": "contract",
+      "weight": 1,
+      "note": "The share of the GraphQL operations the staff application sends that are valid against the schema the API on `main` really has. Each side's own tests pass against its own idea of the other; this is the two held together.",
+      "score": 1.0,
+      "passed": true,
+      "detail": "446 of 446 valid (documents that could not be read and fragments defined twice count as not valid); invalid: {}"
+    },
+    {
+      "id": "dashboard-uses-what-api-gained",
+      "kind": "fit",
+      "type": "contract",
+      "weight": 1,
+      "note": "The share the staff application uses of what the real staff application uses of what the API gained. A staff application that sends only what was valid before fits the API and does nothing with the feature.",
+      "score": 0.9091,
+      "passed": false,
+      "detail": "not used: [\"AccountError.attributes\"]"
+    },
+    {
+      "id": "dashboard-schema-copies-current",
+      "kind": "fit",
+      "type": "contract",
+      "weight": 1,
+      "note": "The staff application keeps copies of the API's schema and generates its query code from them. The share of what the API gained that those copies state, over all of them together: a copy left behind costs its share of this criterion, not the whole reward.",
+      "score": 1.0,
+      "passed": true,
+      "detail": "{\"schema-main.graphql\": {\"gained\": 196, \"stated\": 196, \"missing\": []}, \"schema-staging.graphql\": {\"gained\": 196, \"stated\": 196, \"missing\": []}}"
+    },
+    {
+      "id": "dashboard-presentation-tests",
+      "kind": "measure",
+      "type": "tests",
+      "weight": 1,
+      "note": "Upstream's tests that check presentation alone: delete in the menu and not in the save bar, the default type's delete hidden and not disabled, the configuration groups in upstream's order. Reported, not scored.",
+      "score": 0.3333,
+      "passed": false,
+      "detail": "1 of 3 pass"
+    },
+    {
+      "id": "pushed-code-review-signals",
+      "kind": "measure",
+      "type": "scoring",
+      "weight": 1,
+      "note": "Lines of the pushed code that mention the test runners or the scorer's files without being aimed at them in an unmistakable way: for a reviewer to look at. They decide nothing, since honest code mentions such things too.",
+      "score": 1.0,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "id": "staff-filter-customers-by-tier",
+      "kind": "measure",
+      "type": "browser",
+      "weight": 1,
+      "note": "After the above, a new staff session filters the customer list by \"Contract tier\" = Gold in the staff application, and the list asks the API for exactly that customer (and for none of them under Silver). It goes through the filter panel's own controls, which a staff application built differently may name otherwise, so it is reported and not part of the reward.",
+      "score": 1.0,
+      "passed": true,
+      "detail": "passed: fresh_session_finds_customer"
+    },
+    {
+      "id": "dashboard-upstream-helper-tests",
+      "kind": "measure",
+      "type": "tests",
+      "weight": 1,
+      "note": "The share that pass of the feature's tests of upstream's own helper functions in the staff application (79): filter choice pages, combobox state, token arrays, menu builders, form and save helpers. A correct staff application whose helpers are shaped otherwise fails them, so they are not part of the reward.",
+      "score": 0.7089,
+      "passed": false,
+      "detail": "56 of 79 pass"
+    },
+    {
+      "id": "existing-tests-untouched",
+      "kind": "measure",
+      "type": "untouched",
+      "weight": 1,
+      "note": "Most of the reward is decided by test suites that are the work's own to change. This lists every test file and test setting of the work's start that was changed or removed (the hidden tests replace the ones the feature had to change). A change here is not wrong in itself; it is what a reviewer should read first.",
+      "score": 0.0,
+      "passed": false,
+      "detail": "core: saleor/graphql/account/tests/customer_type/__init__.py, saleor/graphql/account/tests/customer_type/test_customer_attributes.py, saleor/graphql/account/tests/customer_type/test_customer_type_mutations.py, saleor/graphql/translations/tests/mutations/test_customer_attribute_value_translate.py"
+    }
+  ],
+  "gates": true,
+  "progress": 0.9655,
+  "regression": 1.0,
+  "agreement": 0.9091,
+  "reward": 0.8777,
+  "not_run": [],
+  "scored_commits": {
+    "core": "168a938dfbe131fbcc8949a87e194503700fb057",
+    "dashboard": "91d8820b9ba9b1338484364677faf324b7694e90"
+  },
+  "measures_done": true,
+  "complete": true,
+  "incomplete": {},
+  "tests_changed": {
+    "core": [
+      "saleor/graphql/account/tests/customer_type/__init__.py",
+      "saleor/graphql/account/tests/customer_type/test_customer_attributes.py",
+      "saleor/graphql/account/tests/customer_type/test_customer_type_mutations.py",
+      "saleor/graphql/translations/tests/mutations/test_customer_attribute_value_translate.py"
+    ],
+    "dashboard": []
+  }
+}

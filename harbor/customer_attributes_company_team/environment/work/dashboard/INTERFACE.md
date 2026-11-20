@@ -7,7 +7,7 @@ the tests that use it cannot run. This says where things live and what they are 
 ## Names that do not exist yet
 
 ### `src/components/ConditionalFilter/API/Handler.ts`
-- `CustomerTypeHandler`: `export class CustomerTypeHandler implements Handler`
+- `CustomerTypeHandler`: `export class CustomerTypeHandler implements Handler { constructor( public client: ApolloClient<unknown>, public query: string, ) }`
 
 ### `src/components/ConditionalFilter/API/filterChoicesPage.ts`  (new file)
 - `FILTER_CHOICES_PAGE_SIZE`: `export const FILTER_CHOICES_PAGE_SIZE = DEFAULT_INITIAL_SEARCH_DATA.first;`
@@ -24,16 +24,16 @@ the tests that use it cannot run. This says where things live and what they are 
 - `startReplaceChoiceFetch`: `export const startReplaceChoiceFetch = ( state: ChoiceFetchState, fetchKey: string, inputValue: string, ): number => ... ; export interface ChoiceFetchState { generations: Record<string, number>; pageInfo: Record<string, FilterChoicesPageInfo>; query: Record<string, string>; fetchMoreInFlight: Record<string, boolean>; }`
 
 ### `src/components/ConditionalFilter/API/initialState/customers/InitialCustomerState.ts`  (new file)
-- `InitialCustomerStateResponse`: `export class InitialCustomerStateResponse implements InitialCustomerState, AttributeLookup`
+- `InitialCustomerStateResponse`: `export class InitialCustomerStateResponse implements InitialCustomerState, AttributeLookup { constructor( public customerType: ItemOption[] = [], public attribute: Record<string, AttributeDTO> = {}, ); public static empty(); public attributeByName(name: string); public filterByUrlToken(token: UrlToken) }`
 
 ### `src/components/ConditionalFilter/FilterElement/index.ts`
 - `FilterContainer`: `(exported at the target)`
 
 ### `src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/AssignedAttributeQueryVarsBuilder.ts`  (new file)
-- `AssignedAttributeQueryVarsBuilder`: `export class AssignedAttributeQueryVarsBuilder implements WhereOnlyQueryVarsBuilder<AssignedAttributeFilterQueryPart>`
+- `AssignedAttributeQueryVarsBuilder`: `export class AssignedAttributeQueryVarsBuilder implements WhereOnlyQueryVarsBuilder<AssignedAttributeFilterQueryPart> { canHandle(element: FilterElement): boolean; createOptionFetcher( client: ApolloClient<unknown>, inputValue: string, element: FilterElement, ): Handler; updateWhereQueryVariables( query: Readonly<AssignedAttributeFilterQueryPart>, element: FilterElement, ): AssignedAttributeFilterQueryPart }`
 
 ### `src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerTypeQueryVarsBuilder.ts`  (new file)
-- `CustomerTypeQueryVarsBuilder`: `export class CustomerTypeQueryVarsBuilder implements BothApiQueryVarsBuilder<`
+- `CustomerTypeQueryVarsBuilder`: `export class CustomerTypeQueryVarsBuilder implements BothApiQueryVarsBuilder<{ customerType?: CustomerTypeQueryPart; }> { canHandle(element: FilterElement): boolean; createOptionFetcher(client: ApolloClient<unknown>, inputValue: string): Handler; updateWhereQueryVariables( query: Readonly<{ customerType?: CustomerTypeQueryPart }>, element: FilterElement, ): { customerType?: CustomerTypeQueryPart }; updateFilterQueryVariables(query: Readonly<{ customerType?: CustomerTypeQueryPart }>): { customerType?: CustomerTypeQueryPart; } }`
 
 ### `src/components/ConditionalFilter/UI/resolveAsyncComboboxState.ts`  (new file)
 - `includeSelectedComboboxOptions`: `export const includeSelectedComboboxOptions = <T extends ComboboxOptionIdentity>( options: T[], selected?: T | T[] | string | null, ): T[] => ... ; export interface ComboboxOptionIdentity { label: string; value: string; slug?: string | null; }`
@@ -141,6 +141,12 @@ the tests that use it cannot run. This says where things live and what they are 
 ### `src/components/ConditionalFilter/API/FilterAPIProvider.ts`
 - `FilterAPIProvider`: `export interface FilterAPIProvider { fetchRightOptions: ( position: string, value: FilterContainer, inputValue: string, after?: string | null, ) => Promise<FilterChoicesPage>; fetchAttributeOptions: ( inputValue: string, after?: string | null, ) => Promise<FilterChoicesPage<LeftOperand>>; }`
 
+### `src/components/ConditionalFilter/FilterElement/FilterElement.ts`
+- `ExpressionValue`: `export class ExpressionValue { constructor( public value: string, public label: string, public type: string, public entityType: AttributeEntityTypeEnum | null = null, ); public setLabel(label: string); public isEmpty(); public static fromSlug(slug: string); public static fromLeftOperand(leftOperand: LeftOperand); public static fromUrlToken(token: UrlToken); public static forAttribute(attributeName: string, response: AttributeLookup); public static emptyStatic() }`
+
+### `src/components/ConditionalFilter/FiltersQueryBuilder/queryVarsBuilders/CustomerNumberOfOrdersQueryVarsBuilder.ts`
+- `CustomerNumberOfOrdersQueryVarsBuilder`: `export class CustomerNumberOfOrdersQueryVarsBuilder implements BothApiQueryVarsBuilder<{ numberOfOrders?: IntFilterInput | LegacyRange; }> { canHandle(element: FilterElement): boolean; createOptionFetcher(): Handler; updateWhereQueryVariables( query: Readonly<{ numberOfOrders?: IntFilterInput }>, element: FilterElement, ): { numberOfOrders?: IntFilterInput }; updateFilterQueryVariables( query: Readonly<{ numberOfOrders?: LegacyRange }>, element: FilterElement, ): { numberOfOrders?: LegacyRange } }`
+
 ### `src/components/ConditionalFilter/UI/types.ts`
 - `LeftOperatorOption`: `export type LeftOperatorOption = Option & { type: string; slug?: string; }`
 
@@ -162,13 +168,13 @@ the tests that use it cannot run. This says where things live and what they are 
 ## What the tests look for on the page
 
 Tests of the components in each directory find elements by these test ids (`data-test-id`) and by this
-exact visible text. Neither exists in the source yet.
+exact visible text. The components there do not render them yet (some ids are used elsewhere already).
 
 ### `src/customerTypes/components/CreateCustomerTypeDialog`
 - test ids: `customer-type-name-input`
 
 ### `src/customerTypes/components/CustomerTypeAttributes`
-- test ids: `customer-attributes-skeleton`
+- test ids: `customer-attributes-skeleton`, `value-required`
 
 ### `src/customerTypes/components/CustomerTypeDetailsPage`
 - test ids: `customer-type-default-pill`, `customer-type-details-title-skeleton`, `customer-type-name`, `delete-customer-type`, `set-default-customer-type`, `show-customer-type-metadata`
@@ -184,7 +190,7 @@ exact visible text. Neither exists in the source yet.
 - text: "This type has no attributes"
 
 ### `src/customers/components/CustomerDetailsPage`
-- test ids: `customer-details`, `customer-details-customer-type-skeleton`, `customer-details-status-skeleton`, `customer-details-title-skeleton`, `customer-type-card-mock`
+- test ids: `account-status-active`, `account-status-email-unverified`, `account-status-inactive`, `customer-details`, `customer-details-customer-type-skeleton`, `customer-details-status-skeleton`, `customer-details-title-skeleton`, `customer-type-card-mock`
 
 ### `src/customers/components/CustomerListPage`
 - test ids: `create-customer-dropdown`, `create-customer-type`

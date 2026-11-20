@@ -26,7 +26,28 @@ The same brief and the same budget for every condition; what differs is the seat
 | team without messaging | the same | the same; no way to reach the other |
 
 The API contract is agreed in advance: `core` starts with the target GraphQL schema file in place. Teamwork here is
-dividing and integrating the work, not negotiating the contract.
+dividing and integrating the work, not negotiating the contract. This is version 1, and the runs bear it out: with
+the contract given, the dashboard's owner never needs the API's, and the seats sent five messages, none of which
+changed what anyone did.
+
+**Version 2 (planned): the contract is core's to define and publish.** `core` starts without the target schema;
+the dashboard's copies stay as they are before the feature. The API's owner decides the new types, fields,
+mutations and error codes, and publishes them by pushing to `main` (CI deploys it, and the schema it serves is the
+one that counts). The dashboard's owner builds against what has been published, so it must wait for, ask for or
+negotiate the parts it needs, and anything core changes after the dashboard has built against it breaks the
+dashboard. That tests what version 1 cannot: contract negotiation across seats, the order of the rollout, and
+integration against a moving API. What changes in the task:
+- the handed-over `schema.graphql` is not given, and the dashboard's schema copies stay at the start;
+- the seats are isolated (`isolated=true`): neither can read the other's repository, so the dashboard learns the
+  API only from what core publishes and says;
+- a tension to settle first: the hidden API tests query upstream's names, so core's `INTERFACE.md` must name them,
+  which fixes much of the API's surface. Core's freedom is then in the shapes the tests do not pin down, the error
+  codes, and when and in what order it publishes. Full freedom would need the API's hidden tests replaced by checks
+  of behaviour that do not depend on names, which upstream's tests are not;
+- the fits are measured against the schema core actually serves at the end, as today;
+- new measures: when core first published, how often the published schema changed after the dashboard used it, how
+  many CI runs failed on the contract, and what the seats said about it.
+The solo condition is unchanged in kind (one agent owns both sides), so v2 still compares solo with team.
 
 ## How it is judged
 
@@ -40,12 +61,13 @@ passing a low score off as a judgement of the work. The scored criteria are writ
 | gate | the API migrates a fresh database and serves; the dashboard's operations are found | running it |
 | gate | the pushed code is not unmistakably aimed at the test runners or the scorer's files | a scan of the pushed code (not prose or comments) |
 | target (weight 1) | the API's hidden feature tests (203) | upstream's tests |
-| target (weight 0.5) | the dashboard's hidden feature tests, but those of upstream's own helpers (105 of 184) | upstream's tests |
+| target (weight 0.5) | the dashboard's hidden feature tests, but those of upstream's own helpers, four of upstream's own choices, and four that pass on the start's code (97 of 184) | upstream's tests, five fixed in how they check (below) |
 | target (weight 1) | staff set a customer's tier on the customer's page in a browser, and the API keeps it | a browser, then the API |
 | guard | the API's existing tests (17,535) and the dashboard's (5,568) still pass | the start's tests |
 | fit | the dashboard asks only what the API serves; uses what it gained; its schema copies state it | the served schema |
 | measure | staff find that customer by filtering the customer list by tier | a browser |
 | measure | the dashboard's tests of upstream's own helpers (79) | upstream's tests |
+| measure | the dashboard's tests of upstream's own choices (4): where delete sits, hidden or disabled, the order of the configuration groups, a legacy filter path left as a no-op | upstream's tests |
 | measure | the start's tests and test settings were left as they were | git |
 | measure | lines of pushed code that mention the test runners, for a reviewer | the same scan |
 
@@ -53,6 +75,18 @@ Reward = 0 if a gate fails, else weighted mean of targets Ã— product of guards Ã
 unit tests weigh half: they are tied to how upstream built it, where the API's tests go mostly through its public API
 and the browser check through what staff do. Every score is a share, so
 partial work earns partial credit.
+
+Five of upstream's dashboard tests are fixed in how they check, not in what they check
+(`mined/customer_attributes_company/test_fixes.py`, each with its reason), after a review of a run that built the
+feature correctly in places they failed: a stand-in for the orders card that gave only one of its two exports (one
+missing export crashed seven tests of permissions), a disabled-field check that looked at a wrapper and not the
+input, filters compared by shape where the API reads `{a, b}` and `{AND: [{a}, {b}]}` alike, a numeric bound the API
+reads as a decimal either way, and a page size neither the brief nor the interface settles. The reference passes all
+of them. `INTERFACE.md` now also names the test ids a component must render when they exist elsewhere in the source
+already (the account status pills, say), which it left out before.
+
+The judge keeps what it scored (`repos/<owner>.bundle` in its output, everything pushed since the start), so a run
+can be scored again when the scoring is corrected.
 
 The tests that count are the start's, with the hidden ones laid over: whatever the work did to tests or test settings
 is put back before scoring. The work's own code runs as an unprivileged user in the judge.
@@ -92,5 +126,11 @@ Validation without a model: the reference scores 1.0 and the start 0 on the judg
 | earlier runs | Opus 5.5 | solo, team, lead | 0.46 to 0.86 | before the brief and verifier were frozen; diagnostics only |
 | calibration | Haiku 5.5 | solo | 0 | ended by a gateway rate limit at 113 min; never reached the dashboard |
 | calibration | Haiku 5.5 | team | 0 | the agents' own mistakes; scored before the hardening |
+| company-cc-team-fable-5-2-v1 | Fable 5.2 | team | 0.93 | scored before the test fixes; repositories not kept, so it cannot be re-scored |
+| company-cc-solo-fable-5-2-v2 | Fable 5.2 | solo | 0.42 | incomplete: stopped by the runner (it counted a running cost twice after a rate-limit pause) |
+| company-cc-solo-fable-5-2-v3 | Fable 5.2 | solo | 0.878 | complete; reviewed: no reward hacking; 65 min of work in a 227 min span |
+| company-cc-team-fable-5-2-v3 | Fable 5.2 | team | 0.876 | complete; reviewed: no reward hacking; 62 and 42 min of work per seat, two-hour rate-limit pauses |
 
-Repeated runs per condition on a frontier model are still to come.
+The v3 runs were scored with 98 dashboard tests; the later fixes (a `oneOf` list in any order, the legacy filter
+path to a measure) would move solo's dashboard target from 84/98 to about 85/97 and the team's from 83/98 to about
+83/97. Their reviews are in `trajectories/<job>/REVIEW.md`. Repeated runs per condition are still to come.

@@ -1,0 +1,38 @@
+PASS  gate     contract  api-runs-and-dashboard-calls-it
+      The API as it is on `main` migrates a fresh database and answers, and the staff application's operations could be found. Without this there is nothing the two sides could be held against each other with.
+PASS  gate     scoring   pushed-code-leaves-scoring-alone
+      The work is scored with the tests and run configuration it started with, the hidden tests laid over them, its own code run unprivileged in a container of its own. Behind that, its code (not its prose or comments) must not be unmistakably aimed at the test runners or the scoring: importing pytest's internals, defining pytest hooks or Jest reporters, writing the files the scorer reads, adding interpreter start-up files. A repair that passes tests by changing how they are run earns nothing.
+0.99  target   tests     core-feature-tests
+      The share that pass of the tests the Saleor project wrote for this feature in the API (203). Nobody on the work can see them; the names they import are in the repository's INTERFACE.md.
+      -> 200 of 203 pass
+0.86  target   tests     dashboard-feature-tests
+      The share that pass of the tests the Saleor project wrote for this feature in the staff application, but for those of upstream's own helper functions, and three that check presentation alone (where delete sits, whether it is hidden or disabled, the order of the configuration groups), and four of the warehouse choices that pass on the start's code once the page size is left open (they check nothing the feature changes: 98 are scored). What those helpers return, and how upstream laid out its screens, is upstream's choice, which neither the brief nor the interface settles, so they are reported as measures below instead.
+      -> 84 of 98 pass
+PASS  target   browser   staff-set-a-customers-tier
+      The business outcome. The API and the staff application are started together from nothing, on the project's sample data, and a "Contract tier" attribute (Bronze, Silver, Gold) is defined for customers through the API. A member of staff signs in to the staff application in a browser, opens a customer's page, chooses Gold for "Contract tier" and saves the page. Then the API, asked outside the staff application, must read the customer's tier as Gold and list that customer, and no other, among customers whose tier is Gold. The browser finds the field by its name and the nearest control to choose a value with, and saves with the page's save bar, as it is before the feature. If the check itself cannot run (no browser, no database) it has no score; it does not fail.
+PASS  guard    tests     core-existing-tests
+      The share that still pass of the API's tests that passed as the work started (17,535).
+PASS  guard    tests     dashboard-existing-tests
+      The share that still pass of the staff application's tests that passed as the work started (5,568).
+PASS  fit      contract  dashboard-asks-only-what-api-offers
+      The share of the GraphQL operations the staff application sends that are valid against the schema the API on `main` really has. Each side's own tests pass against its own idea of the other; this is the two held together.
+0.91  fit      contract  dashboard-uses-what-api-gained
+      The share the staff application uses of what the real staff application uses of what the API gained. A staff application that sends only what was valid before fits the API and does nothing with the feature.
+      -> not used: ["AccountError.attributes"]
+PASS  fit      contract  dashboard-schema-copies-current
+      The staff application keeps copies of the API's schema and generates its query code from them. The share of what the API gained that those copies state, over all of them together: a copy left behind costs its share of this criterion, not the whole reward.
+0.33  measure  tests     dashboard-presentation-tests
+      Upstream's tests that check presentation alone: delete in the menu and not in the save bar, the default type's delete hidden and not disabled, the configuration groups in upstream's order. Reported, not scored.
+      -> 1 of 3 pass
+PASS  measure  scoring   pushed-code-review-signals
+      Lines of the pushed code that mention the test runners or the scorer's files without being aimed at them in an unmistakable way: for a reviewer to look at. They decide nothing, since honest code mentions such things too.
+PASS  measure  browser   staff-filter-customers-by-tier
+      After the above, a new staff session filters the customer list by "Contract tier" = Gold in the staff application, and the list asks the API for exactly that customer (and for none of them under Silver). It goes through the filter panel's own controls, which a staff application built differently may name otherwise, so it is reported and not part of the reward.
+0.71  measure  tests     dashboard-upstream-helper-tests
+      The share that pass of the feature's tests of upstream's own helper functions in the staff application (79): filter choice pages, combobox state, token arrays, menu builders, form and save helpers. A correct staff application whose helpers are shaped otherwise fails them, so they are not part of the reward.
+      -> 56 of 79 pass
+FAIL  measure  untouched existing-tests-untouched
+      Most of the reward is decided by test suites that are the work's own to change. This lists every test file and test setting of the work's start that was changed or removed (the hidden tests replace the ones the feature had to change). A change here is not wrong in itself; it is what a reviewer should read first.
+      -> core: saleor/graphql/account/tests/customer_type/__init__.py, saleor/graphql/account/tests/customer_type/test_customer_attributes.py, saleor/graphql/account/tests/customer_type/test_customer_type_mutations.py, saleor/graphql/translations/tests/mutations/test_customer_attribute_value_translate.py
+
+targets 0.9655 x guards 1.0 x fit 0.9091 = reward 0.8777
