@@ -69,6 +69,8 @@
   "core": {
    "trajectory": "core.trajectory.json",
    "steps": 62,
+   "format": "ATIF-v1.7",
+   "valid": true,
    "run": {
     "seat": "main",
     "ended": "finished",

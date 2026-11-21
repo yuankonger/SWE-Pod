@@ -44,11 +44,16 @@ gateway serves the people's classifier (Claude Haiku 4.5), which the `people` co
 `PEOPLE_MODEL_URL` and `PEOPLE_MODEL_KEY` are passed to `docker compose` by the script and reach the judge and the
 people's container only. The script starts only on a task that is as frozen. Every run is a fresh company.
 
+The script installs Claude Code 2.1.330 at the seat in every run (`HARNESS_VERSION` to change it, `--ak version=` with
+Harbor directly). Left to itself Harbor installs the newest release, which changed within a day of the first runs.
+Each run's trajectory is kept in ATIF (`trajectories/<run>/<owner>.trajectory.json`, checked with Harbor's validator;
+`run.json` says which version and whether it is valid).
+
 Without the script, the same with Harbor directly (`agents/harbor_team.py`):
 
     VARIANT=<value> PEOPLE_MODEL_URL=<OpenAI-format base url> PEOPLE_MODEL_KEY=<key> PYTHONPATH=agents \
       harbor run -p customer_attributes_coworker_slice --ek auto_mounting=true --agent harbor_team:TeamClaudeCode -m <model> \
-        --ak seats=main=core --ak messaging=true --ak seat_notes=customer_attributes_coworker_slice/seats/coworker/<arm>.md \
+        --ak version=2.1.330 --ak seats=main=core --ak messaging=true --ak seat_notes=customer_attributes_coworker_slice/seats/coworker/<arm>.md \
         --ak max_budget_usd=25
 
 The oracles are `solution/solve.sh` (for `reassign`) and `solution/solve-refuse.sh` (for `refuse`); run each with

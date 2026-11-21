@@ -12,6 +12,8 @@
 #             sidecar only (VARIANT, in their containers' environment), never to the seat.
 #
 #   TASK=harbor/customer_attributes_coworker  MODEL=claude-opus-5-5  CAP=25 (dollars)
+#   HARNESS_VERSION=2.1.330   the Claude Code release every run installs (left to itself Harbor installs the newest,
+#                             which changed within a day of the first runs); written into episode.json
 #
 # Every run is a fresh company from the same frozen task: nothing is carried from one run to the next. The brief is the
 # same file in every arm and variant. The seat, the model, the budget and the harness are the same; what differs is the
@@ -29,6 +31,7 @@ case "$agent_flag" in --agent) mounts="--ek auto_mounting=true" ;; *) mounts="" 
 arm=$1; variant=$2; job=${3:-coworker-$arm-$variant-$(date +%m%d-%H%M)}
 task=${TASK:-harbor/customer_attributes_coworker}
 cap=${CAP:-25}
+harness_version=${HARNESS_VERSION:-2.1.330}
 case "$arm" in full) note="$task/seats/coworker/full-$variant.md"; messaging=true ;;
                partial|told) note="$task/seats/coworker/$arm.md"; messaging=true ;;
                no_interaction) note="$task/seats/coworker/no_interaction.md"; messaging=false ;;
@@ -40,8 +43,8 @@ seat=$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]+'/environm
 if [ -z "${UNFROZEN:-}" ]; then python3 tools/freeze.py verify "$task" || { echo "not started: freeze the task, or set UNFROZEN=1 for a diagnostic run" >&2; exit 3; }; fi
 mkdir -p runs/harbor/frozen "runs/harbor/$job/meter"
 { [ -z "${UNFROZEN:-}" ] && python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$task" > "runs/harbor/frozen/$job.txt" 2>/dev/null; } || echo unfrozen > "runs/harbor/frozen/$job.txt"
-python3 -c "import json,sys; json.dump({'arm': sys.argv[1], 'variant': sys.argv[2], 'task': sys.argv[3], 'cap_usd': float(sys.argv[4]), 'model': sys.argv[5]}, open(sys.argv[6], 'w'), indent=1)" \
-  "$arm" "$variant" "$task" "$cap" "${MODEL:-claude-opus-5-5}" "runs/harbor/$job/episode.json"
+python3 -c "import json,sys; json.dump({'arm': sys.argv[1], 'variant': sys.argv[2], 'task': sys.argv[3], 'cap_usd': float(sys.argv[4]), 'model': sys.argv[5], 'harness_version': sys.argv[7]}, open(sys.argv[6], 'w'), indent=1)" \
+  "$arm" "$variant" "$task" "$cap" "${MODEL:-claude-opus-5-5}" "runs/harbor/$job/episode.json" "$harness_version"
 hours=$(python3 -c "import re,sys; print(round(float(re.search(r'\[agent\]\s*timeout_sec = ([0-9.]+)', open(sys.argv[1]+'/task.toml').read()).group(1))/3600, 1))" "$task")
 work=$(python3 -c "import re,sys; print(int(float(re.search(r'\[agent\]\s*timeout_sec = ([0-9.]+)', open(sys.argv[1]+'/task.toml').read()).group(1))))" "$task")
 slack=${SLACK:-3}
@@ -58,6 +61,6 @@ trap 'kill $meter 2>/dev/null; python3 tools/run_measures.py "runs/harbor/$job" 
 export METER="http://host.docker.internal:${METER_PORT:-8318}/seat"
 export PYTHONPATH="$PWD/tools${PYTHONPATH:+:$PYTHONPATH}"
 harbor run -p "$task" $agent_flag harbor_team:TeamClaudeCode -m "${MODEL:-claude-opus-5-5}" -o runs/harbor --job-name "$job" -y $mounts $limits \
-  --ak seats="main=$seat" --ak messaging="$messaging" --ak max_budget_usd="$cap" \
+  --ak version="$harness_version" --ak seats="main=$seat" --ak messaging="$messaging" --ak max_budget_usd="$cap" \
   --ak seat_notes="$PWD/$note" --ak seat_cap="$cap" --ak seat_total="$cap" --ak seat_hours="$hours" \
   --ak disallowed_tools="WebSearch,WebFetch,Agent,Task,Workflow" --ak reasoning_effort=high --ak thinking_display=summarized

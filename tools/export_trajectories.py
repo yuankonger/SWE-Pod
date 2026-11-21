@@ -30,6 +30,20 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "tools"))
 
 
+
+def atif_valid(trajectory):
+    """Whether a trajectory is valid ATIF (the Agent Trajectory Interchange Format Harbor reads and writes), by
+    Harbor's own validator. None when the Harbor at hand has no validator: nothing is then claimed."""
+    try:
+        from harbor.utils.trajectory_validator import validate_trajectory
+    except ImportError:
+        return None
+    try:
+        return bool(validate_trajectory(trajectory))
+    except Exception:
+        return False
+
+
 def secrets():
     """Every value that must not leave the machine: the company's tokens and the gateway's key."""
     import export_harbor_company as ex
@@ -103,7 +117,10 @@ def export(job, task, review=None):
         trajectory.setdefault("agent", {})["model_name"] = model      # Harbor's converter can leave "<synthetic>"
         trajectory.setdefault("extra", {})["seat"] = owner
         put(json.dumps(trajectory, indent=1, ensure_ascii=False), owner + ".trajectory.json")
-        seats[owner] = {"trajectory": owner + ".trajectory.json", "steps": len(trajectory.get("steps", []))}
+        seats[owner] = {"trajectory": owner + ".trajectory.json", "steps": len(trajectory.get("steps", [])),
+                        "format": trajectory.get("schema_version"), "valid": atif_valid(trajectory)}
+        if seats[owner]["valid"] is False:
+            print("{}: seat {}: the trajectory is NOT valid {}".format(name, owner, trajectory.get("schema_version")), file=sys.stderr)
         run_file = os.path.join(seat_dir, "seat-run.json")
         if os.path.isfile(run_file):
             with open(run_file) as f:

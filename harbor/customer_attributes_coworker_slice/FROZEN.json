@@ -1,8 +1,8 @@
 {
- "id": "7fe404d99c8b0974",
+ "id": "b25d8e49298227b7",
  "files": {
-  "DATASHEET.md": "0b10de9339c0bddf756c324336d785bd3770776b9db5e1108654d2ba219f5cda",
-  "RUNNING.md": "69a86a09896bd9dabed9cb62c1608a1f7c8e9a78ac001906d1dab6dfffad8a98",
+  "DATASHEET.md": "53e8676be43aa636c5f51585a546854484088e5877be2ba4eb4f5b45f9c9e270",
+  "RUNNING.md": "93cdc5d6d1ed91b7a112422fe842b782dbc3e11721adfb4183337f2678af2f9b",
   "instruction.md": "997afac861e79df1dbe65eddec1b52c899ad1cf2065c0a39548609657492e1d0",
   "task.toml": "7b9a56dd50931a6a1d6eec8ef79d837a5378bd1ec90e1c70b280e4e3bea74c92",
   "agents/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
@@ -11070,9 +11070,9 @@
   "tools/harbor_harness.sh": "3a31c38ed6394444893a677604606fdf64a17bd6f01a7eb2cbda757e86038437"
  },
  "images": {
-  "python:3.12-bookworm@sha256:4209fae09a3e20afd863e528bfddc235da5fd5977983e1996cd54cc9a72e6267": "sha256:4209fae09a3e20afd863e528bfddc235da5fd5977983e1996cd54cc9a72e6267",
+  "python:3.12-bookworm@sha256:4209fae09a3e20afd863e528bfddc235da5fd5977983e1996cd54cc9a72e6267": "not here",
   "node:24-bookworm@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496": "not here",
   "base-core": "not here"
  },
- "frozen_at": "2026-11-21T03:13:09Z"
+ "frozen_at": "2026-11-21T07:06:03Z"
 }
