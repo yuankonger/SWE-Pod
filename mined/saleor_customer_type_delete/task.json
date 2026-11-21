@@ -1,0 +1,23 @@
+{
+  "id": "saleor_customer_type_delete",
+  "title": "Saleor: deleting a customer type (a slice of #19633, the part merged as #19521)",
+  "repository": "https://github.com/saleor/saleor",
+  "licence": "BSD-3-Clause",
+  "base": "3a0fcf816",
+  "target": "dfdae075a",
+  "base_recipe": {
+    "from": "dfdae075a",
+    "patch": "base.patch",
+    "message": "Slice start: the customer attributes feature without customerTypeDelete (authored for SeedCo)"
+  },
+  "source": "The start is authored: Saleor at the commit that merged customer attributes (dfdae075a, 2026-08-10) with the `customerTypeDelete` mutation, its registration, its schema entries and its tests taken out (base.patch). The target is that commit itself, so the work is Saleor's own delete mutation and the hidden tests are Saleor's own tests for it.",
+  "image": "mined-saleor-customer-attributes:2",
+  "directory": "saleor",
+  "handed_over": [],
+  "test_command": "pytest saleor -n 6 -q -o cache_dir=/tmp/pytest-cache",
+  "notes": "# Working in this environment\n\n- The Python environment is at `/venv` and on the PATH. PostgreSQL runs in this container; `DATABASE_URL` is set.\n- There is no network and no git history.\n- Run tests with `pytest <path> -n 3 -q -o cache_dir=/tmp/pytest-cache`, for example `pytest saleor/graphql/account/tests/queries -n 3 -q -o cache_dir=/tmp/pytest-cache`. The whole suite (`pytest saleor -n 3`) is about 16,000 tests and takes fifteen to twenty minutes.\n- A shell command is stopped after 180 seconds. Start anything longer in the background and read its log: `nohup pytest saleor/graphql/account -n 3 -q -o cache_dir=/tmp/pytest-cache > /tmp/account.log 2>&1 &`.\n- Create migrations with `python manage.py makemigrations`; `python manage.py get_graphql_schema` prints the schema generated from the code.\n- This machine has about 8 GB of memory for everything running here: run one test suite at a time.\n",
+  "brief": "You are working in Saleor, the open-source commerce platform (Python, Django, GraphQL).\n\nSaleor, the commerce API (Python, Django, GraphQL): deleting a customer type.\n\nCustomers are grouped into customer types, each with the attributes its customers share; one type is the default. Staff can create and update customer types and manage their attributes through the API. What is missing is deleting one: a `customerTypeDelete` mutation beside `customerTypeCreate` and `customerTypeUpdate`, for staff who hold the customer-type permission. The default type cannot be deleted, even if it only becomes the default while the deletion is under way. Apps are told of a deletion through the `CUSTOMER_TYPE_DELETED` webhook event, which exists already.\n\nHow to work here: NOTES.md in the repository says how to run things in this environment.",
+  "overview": "The work is in one repository, `saleor`: Saleor, an open-source commerce platform (Python, Django, GraphQL). `NOTES.md` at its top says how to work in this environment.",
+  "what": "Saleor, the commerce API (Python, Django, GraphQL): deleting a customer type.\n\nCustomers are grouped into customer types, each with the attributes its customers share; one type is the default. Staff can create and update customer types and manage their attributes through the API. What is missing is deleting one: a `customerTypeDelete` mutation beside `customerTypeCreate` and `customerTypeUpdate`, for staff who hold the customer-type permission. The default type cannot be deleted, even if it only becomes the default while the deletion is under way. Apps are told of a deletion through the `CUSTOMER_TYPE_DELETED` webhook event, which exists already.",
+  "exact": []
+}

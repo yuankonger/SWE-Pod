@@ -113,8 +113,8 @@ def api_section(contract, repos, clones):
 def base_commit(clone, info):
     """The start. A task whose feature cannot be picked alone on the commit before it (a later pick needs another
     feature's code that landed in between) names `base_recipe`: {"from": a later upstream commit, "reverts": the
-    feature's commits merged before it, newest first}. The start is then upstream at `from` with only the feature
-    taken out. It is built with a fixed identity and dates, so its hash is the same on every machine; `base` holds
+    feature's commits merged before it, newest first} and/or {"patch": a patch file beside the task, applied to
+    `from`}. The start is then upstream at `from` with only the feature (or, for a slice, one part of it) taken out. It is built with a fixed identity and dates, so its hash is the same on every machine; `base` holds
     that hash and the build is checked against it."""
     recipe = info.get("base_recipe")
     if not recipe:
@@ -129,8 +129,12 @@ def base_commit(clone, info):
     tree = os.path.join(tempfile.mkdtemp(prefix="mined-base-"), "tree")
     git(clone, "worktree", "add", "-q", "--detach", tree, start)
     try:
-        for commit in recipe["reverts"]:
+        for commit in recipe.get("reverts", []):
             subprocess.run(["git", "-C", tree, "revert", "--no-edit", commit], capture_output=True, text=True, check=True, env=env)
+        if recipe.get("patch"):      # a slice: upstream at `from` with a part taken out by a patch kept beside the task
+            patch = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mined", info["id"], recipe["patch"])
+            subprocess.run(["git", "-C", tree, "apply", "--index", patch], capture_output=True, text=True, check=True)
+            subprocess.run(["git", "-C", tree, "commit", "-q", "--no-verify", "-m", recipe.get("message", "The start of " + info["id"])], capture_output=True, text=True, check=True, env=env)
         sha = git(tree, "rev-parse", "HEAD").strip()
     finally:
         git(clone, "worktree", "remove", "--force", tree)

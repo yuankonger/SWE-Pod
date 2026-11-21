@@ -1,0 +1,340 @@
+diff --git a/saleor/graphql/account/mutations/customer_type/__init__.py b/saleor/graphql/account/mutations/customer_type/__init__.py
+index 1a496158f..59966a700 100644
+--- a/saleor/graphql/account/mutations/customer_type/__init__.py
++++ b/saleor/graphql/account/mutations/customer_type/__init__.py
+@@ -1,6 +1,5 @@
+ from .customer_type_assign_attributes import CustomerTypeAssignAttributes
+ from .customer_type_create import CustomerTypeCreate
+-from .customer_type_delete import CustomerTypeDelete
+ from .customer_type_reorder_attributes import CustomerTypeReorderAttributes
+ from .customer_type_unassign_attributes import CustomerTypeUnassignAttributes
+ from .customer_type_update import CustomerTypeUpdate
+@@ -9,7 +8,6 @@ __all__ = [
+     "CustomerTypeAssignAttributes",
+     "CustomerTypeUnassignAttributes",
+     "CustomerTypeCreate",
+-    "CustomerTypeDelete",
+     "CustomerTypeReorderAttributes",
+     "CustomerTypeUpdate",
+ ]
+diff --git a/saleor/graphql/account/mutations/customer_type/customer_type_delete.py b/saleor/graphql/account/mutations/customer_type/customer_type_delete.py
+deleted file mode 100644
+index 7f826a6dd..000000000
+--- a/saleor/graphql/account/mutations/customer_type/customer_type_delete.py
++++ /dev/null
+@@ -1,87 +0,0 @@
+-import graphene
+-from django.core.exceptions import ValidationError
+-
+-from .....account import models
+-from .....account.lock_objects import customer_type_qs_select_for_update
+-from .....account.utils import get_default_customer_type
+-from .....core.tracing import traced_atomic_transaction
+-from .....permission.enums import CustomerTypePermissions
+-from .....webhook.event_types import WebhookEventAsyncType
+-from ....core import ResolveInfo
+-from ....core.descriptions import ADDED_IN_323
+-from ....core.doc_category import DOC_CATEGORY_USERS
+-from ....core.enums import CustomerTypeDeleteErrorCode
+-from ....core.mutations import ModelDeleteMutation
+-from ....core.types import Error
+-from ....core.utils import WebhookEventInfo
+-from ....plugins.dataloaders import get_plugin_manager_promise
+-from ...types import CustomerType
+-
+-
+-class CustomerTypeDeleteError(Error):
+-    code = CustomerTypeDeleteErrorCode(description="The error code.", required=True)
+-
+-    class Meta:
+-        doc_category = DOC_CATEGORY_USERS
+-
+-
+-class CustomerTypeDelete(ModelDeleteMutation):
+-    class Arguments:
+-        id = graphene.ID(
+-            description="ID of the customer type to delete.", required=True
+-        )
+-
+-    class Meta:
+-        description = (
+-            "Deletes a customer type. Users of the deleted customer type are "
+-            "reassigned to the default customer type." + ADDED_IN_323
+-        )
+-        model = models.CustomerType
+-        object_type = CustomerType
+-        permissions = (CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,)
+-        error_type_class = CustomerTypeDeleteError
+-        doc_category = DOC_CATEGORY_USERS
+-        webhook_events_info = [
+-            WebhookEventInfo(
+-                type=WebhookEventAsyncType.CUSTOMER_TYPE_DELETED,
+-                description="A customer type was deleted.",
+-            ),
+-        ]
+-
+-    @classmethod
+-    def clean_instance(cls, _info: ResolveInfo, instance, /):
+-        if instance.is_default:
+-            raise ValidationError(
+-                {
+-                    "id": ValidationError(
+-                        "The default customer type cannot be deleted. Mark "
+-                        "another customer type as the default first.",
+-                        code=CustomerTypeDeleteErrorCode.CANNOT_DELETE_DEFAULT.value,
+-                    )
+-                }
+-            )
+-
+-    @classmethod
+-    def perform_mutation(  # type: ignore[override]
+-        cls, _root, info: ResolveInfo, /, *, id: str
+-    ):
+-        customer_type_pk = cls.get_global_id_or_error(
+-            id, only_type=CustomerType, field="pk"
+-        )
+-        with traced_atomic_transaction():
+-            # Evaluate the queryset to acquire the locks.
+-            list(customer_type_qs_select_for_update().values_list("pk", flat=True))
+-            default_customer_type = get_default_customer_type()
+-            if str(default_customer_type.pk) != str(customer_type_pk):
+-                # Deliberate lack of CUSTOMER_UPDATED events due to
+-                # an unbounded number of users that may be affected.
+-                # CUSTOMER_TYPE_DELETED event already implies the change.
+-                models.User.objects.filter(customer_type_id=customer_type_pk).update(
+-                    customer_type=default_customer_type
+-                )
+-            return super().perform_mutation(_root, info, id=id)
+-
+-    @classmethod
+-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+-        manager = get_plugin_manager_promise(info.context).get()
+-        cls.call_event(manager.customer_type_deleted, instance)
+diff --git a/saleor/graphql/account/schema.py b/saleor/graphql/account/schema.py
+index c02248365..b9ecef30b 100644
+--- a/saleor/graphql/account/schema.py
++++ b/saleor/graphql/account/schema.py
+@@ -66,7 +66,6 @@ from .mutations.authentication import (
+ from .mutations.customer_type import (
+     CustomerTypeAssignAttributes,
+     CustomerTypeCreate,
+-    CustomerTypeDelete,
+     CustomerTypeReorderAttributes,
+     CustomerTypeUnassignAttributes,
+     CustomerTypeUpdate,
+@@ -400,7 +399,6 @@ class AccountMutations(graphene.ObjectType):
+ 
+     customer_type_create = CustomerTypeCreate.Field()
+     customer_type_update = CustomerTypeUpdate.Field()
+-    customer_type_delete = CustomerTypeDelete.Field()
+     customer_type_assign_attributes = CustomerTypeAssignAttributes.Field()
+     customer_type_unassign_attributes = CustomerTypeUnassignAttributes.Field()
+     customer_type_reorder_attributes = CustomerTypeReorderAttributes.Field()
+diff --git a/saleor/graphql/account/tests/mutations/customer_type/test_customer_type_delete.py b/saleor/graphql/account/tests/mutations/customer_type/test_customer_type_delete.py
+deleted file mode 100644
+index 52c247694..000000000
+--- a/saleor/graphql/account/tests/mutations/customer_type/test_customer_type_delete.py
++++ /dev/null
+@@ -1,134 +0,0 @@
+-from unittest.mock import patch
+-
+-import graphene
+-
+-from ......account.error_codes import CustomerTypeDeleteErrorCode
+-from ......account.models import CustomerType
+-from .....tests.utils import assert_no_permission, get_graphql_content
+-
+-CUSTOMER_TYPE_DELETE_MUTATION = """
+-    mutation CustomerTypeDelete($id: ID!) {
+-        customerTypeDelete(id: $id) {
+-            customerType {
+-                id
+-                name
+-                slug
+-            }
+-            errors {
+-                field
+-                code
+-                message
+-            }
+-        }
+-    }
+-"""
+-
+-
+-def test_delete_by_staff_with_permission(
+-    staff_api_client,
+-    permission_manage_customer_types_and_attributes,
+-    customer_type,
+-):
+-    # given
+-    staff_api_client.user.user_permissions.add(
+-        permission_manage_customer_types_and_attributes
+-    )
+-    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+-
+-    # when
+-    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+-
+-    # then
+-    content = get_graphql_content(response)
+-    data = content["data"]["customerTypeDelete"]
+-    assert data["errors"] == []
+-    assert data["customerType"]["slug"] == customer_type.slug
+-    assert not CustomerType.objects.filter(pk=customer_type.pk).exists()
+-
+-
+-def test_delete_reassigns_users_to_default(
+-    staff_api_client,
+-    permission_manage_customer_types_and_attributes,
+-    customer_type,
+-    default_customer_type,
+-    customer_user,
+-):
+-    # given
+-    staff_api_client.user.user_permissions.add(
+-        permission_manage_customer_types_and_attributes
+-    )
+-    customer_user.customer_type = customer_type
+-    customer_user.save(update_fields=["customer_type"])
+-    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+-
+-    # when
+-    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+-
+-    # then
+-    content = get_graphql_content(response)
+-    data = content["data"]["customerTypeDelete"]
+-    assert data["errors"] == []
+-    assert not CustomerType.objects.filter(pk=customer_type.pk).exists()
+-
+-    customer_user.refresh_from_db()
+-    assert customer_user.customer_type == default_customer_type
+-
+-
+-def test_delete_default_type_is_forbidden(
+-    staff_api_client,
+-    permission_manage_customer_types_and_attributes,
+-    default_customer_type,
+-):
+-    # given
+-    staff_api_client.user.user_permissions.add(
+-        permission_manage_customer_types_and_attributes
+-    )
+-    variables = {
+-        "id": graphene.Node.to_global_id("CustomerType", default_customer_type.pk)
+-    }
+-
+-    # when
+-    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+-
+-    # then
+-    content = get_graphql_content(response)
+-    data = content["data"]["customerTypeDelete"]
+-    assert len(data["errors"]) == 1
+-    error = data["errors"][0]
+-    assert error["field"] == "id"
+-    assert error["code"] == CustomerTypeDeleteErrorCode.CANNOT_DELETE_DEFAULT.name
+-    assert CustomerType.objects.filter(pk=default_customer_type.pk).exists()
+-
+-
+-def test_delete_by_staff_without_permission(staff_api_client, customer_type):
+-    # given
+-    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+-
+-    # when
+-    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+-
+-    # then
+-    assert_no_permission(response)
+-    assert CustomerType.objects.filter(pk=customer_type.pk).exists()
+-
+-
+-@patch("saleor.plugins.manager.PluginsManager.customer_type_deleted")
+-def test_delete_triggers_webhook(
+-    mocked_customer_type_deleted,
+-    staff_api_client,
+-    permission_manage_customer_types_and_attributes,
+-    customer_type,
+-):
+-    # given
+-    staff_api_client.user.user_permissions.add(
+-        permission_manage_customer_types_and_attributes
+-    )
+-    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+-
+-    # when
+-    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+-
+-    # then
+-    content = get_graphql_content(response)
+-    assert content["data"]["customerTypeDelete"]["errors"] == []
+-    mocked_customer_type_deleted.assert_called_once_with(customer_type)
+diff --git a/saleor/graphql/schema.graphql b/saleor/graphql/schema.graphql
+index 557c9953b..11eccbafd 100644
+--- a/saleor/graphql/schema.graphql
++++ b/saleor/graphql/schema.graphql
+@@ -22457,21 +22457,6 @@ type Mutation {
+     input: CustomerTypeUpdateInput!
+   ): CustomerTypeUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
+ 
+-  """
+-  Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
+-  
+-  Added in Saleor 3.23. 
+-  
+-  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+-  
+-  Triggers the following webhook events:
+-  - CUSTOMER_TYPE_DELETED (async): A customer type was deleted.
+-  """
+-  customerTypeDelete(
+-    """ID of the customer type to delete."""
+-    id: ID!
+-  ): CustomerTypeDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_DELETED], syncEvents: [])
+-
+   """
+   Assign attributes to a given customer type.
+   
+@@ -33977,41 +33962,6 @@ input CustomerTypeUpdateInput @doc(category: "Users") {
+   isDefault: Boolean
+ }
+ 
+-"""
+-Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
+-
+-Added in Saleor 3.23. 
+-
+-Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+-
+-Triggers the following webhook events:
+-- CUSTOMER_TYPE_DELETED (async): A customer type was deleted.
+-"""
+-type CustomerTypeDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_DELETED], syncEvents: []) {
+-  errors: [CustomerTypeDeleteError!]!
+-  customerType: CustomerType
+-}
+-
+-type CustomerTypeDeleteError @doc(category: "Users") {
+-  """
+-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+-  """
+-  field: String
+-
+-  """The error message."""
+-  message: String
+-
+-  """The error code."""
+-  code: CustomerTypeDeleteErrorCode!
+-}
+-
+-enum CustomerTypeDeleteErrorCode @doc(category: "Users") {
+-  CANNOT_DELETE_DEFAULT
+-  GRAPHQL_ERROR
+-  INVALID
+-  NOT_FOUND
+-}
+-
+ """
+ Assign attributes to a given customer type.
+ 
