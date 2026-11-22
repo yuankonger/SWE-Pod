@@ -1,0 +1,32 @@
+schema_version = "1.4"
+
+[task]
+name = "seedco/customer-attributes-coworker-slice-late"
+description = "Deleting a customer type in Saleor's API, built by its owner for a requester whose replies can be late (a slice of the August 2026 customer attributes feature)"
+keywords = ["swe-pod", "multi-repository", "mined", "interface agreement"]
+
+[metadata]
+category = "software-engineering"
+repositories = 2
+source = "Real changes to Saleor (BSD-3-Clause), August 2026; the start is authored by taking Saleor's delete mutation out of the merged feature"
+
+[verifier]
+# Runs both repositories' test suites, one after the other, then starts the provider from nothing.
+timeout_sec = 10800.0
+environment_mode = "shared"
+
+[agent]
+timeout_sec = 14400.0
+
+[environment]
+build_timeout_sec = 2400.0
+cpus = 6
+memory_mb = 6144
+storage_mb = 30720
+workdir = "/work"
+
+[[environment.mcp_servers]]
+name = "team"
+transport = "stdio"
+command = "python3"
+args = ["/opt/seedco/team_mcp.py"]

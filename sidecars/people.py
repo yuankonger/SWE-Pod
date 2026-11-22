@@ -22,6 +22,11 @@ The file (written by tools/export_harbor_company.py from mined/<company>/people.
     {"default": <variant>, "people": [{"name", "token", "role", "topics": [
         {"id", "kind": "requirement" | "fact", "topic": <one line>, "says": <text> | {<variant>: <text>}}]}]}
 
+Replies can be late (docs/COWORKER_SPEC.md, 3.3). SEEDCO_REPLY_DELAY, or a person's `reply_delay_min` in the file, is
+the number of minutes of the agent's virtual time between a message and its reply (0: at once). The chat keeps that
+clock and holds the reply until it is due; the delay is the same for every reply of an episode, whatever was asked,
+so how long an answer takes says nothing about what it will be.
+
 Everything a person receives and says is appended to <out>/people.jsonl. A model call that fails after its retries
 is written there as `failed`, and the run is then incomplete whatever its score.
 Standard library only.
@@ -116,6 +121,11 @@ def decide(person, sorted_as, variant):
     return "noted", [], REPLY_NOTED
 
 
+def reply_due(asked_at_v, delay_min):
+    """When a reply to a message sent at `asked_at_v` (the seat's virtual time, seconds) reaches the seat. Rules only."""
+    return None if asked_at_v is None else round(asked_at_v + 60.0 * delay_min, 1)
+
+
 def chat(config, method, path, body=None):
     request = urllib.request.Request(config["chat"] + path, data=json.dumps(body).encode() if body is not None else None, method=method,
                                      headers={"Content-Type": "application/json"})
@@ -123,7 +133,7 @@ def chat(config, method, path, body=None):
         return json.loads(r.read())
 
 
-def serve(config, people, variant):
+def serve(config, people, variant, delay=None):
     out = os.path.join(config["out"], "people.jsonl")
     os.makedirs(config["out"], exist_ok=True)
     lock = threading.Lock()
@@ -132,9 +142,16 @@ def serve(config, people, variant):
         with lock, open(out, "a") as f:
             f.write(json.dumps(dict(entry, at=round(time.time(), 1), variant=variant)) + "\n")
 
-    keep({"event": "started", "people": [p["name"] for p in people["people"]]})
+    delays = {p["name"]: float(delay if delay is not None else p.get("reply_delay_min") or 0) for p in people["people"]}
+    keep({"event": "started", "people": [p["name"] for p in people["people"]], "reply_delay_min": delays})
 
     def one(person):
+        def send(to, text, asked_at_v):
+            due = reply_due(asked_at_v, delays[person["name"]])
+            chat(config, "POST", "/send", dict({"from": person["name"], "token": person["token"], "to": to, "text": text},
+                                               **({} if due is None else {"due_at_v": due})))
+            return {} if due is None else {"asked_at_v": asked_at_v, "due_at_v": due}
+
         while True:
             try:
                 got = chat(config, "GET", "/inbox?" + urllib.parse.urlencode({"name": person["name"], "token": person["token"], "wait": 30}))
@@ -146,13 +163,11 @@ def serve(config, people, variant):
                 try:
                     sorted_as, raw = classify(m["text"], person["topics"], config["model"])
                 except OSError as e:      # the environment failed, not the agent: said plainly, and recorded as such
-                    keep(dict(entry, failed=str(e)))
-                    chat(config, "POST", "/send", {"from": person["name"], "token": person["token"], "to": m["from"],
-                                                   "text": "I can't answer right now (a problem on my side, not yours)."})
+                    keep(dict(entry, failed=str(e), **send(m["from"], "I can't answer right now (a problem on my side, not yours).", m.get("at_v"))))
                     continue
                 decision, revealed, reply = decide(person, sorted_as, variant)
-                chat(config, "POST", "/send", {"from": person["name"], "token": person["token"], "to": m["from"], "text": reply})
-                keep(dict(entry, classification=sorted_as, classifier_said=raw, decision=decision, revealed=revealed, reply=reply))
+                when = send(m["from"], reply, m.get("at_v"))
+                keep(dict(entry, classification=sorted_as, classifier_said=raw, decision=decision, revealed=revealed, reply=reply, **when))
             if not got.get("messages"):
                 time.sleep(1)       # the chat returns at once when nobody else is working: do not spin
 
@@ -169,4 +184,5 @@ if __name__ == "__main__":
     VARIANT = os.environ.get("SEEDCO_VARIANT") or PEOPLE["default"]
     if not CONFIG["model"].get("key"):
         sys.exit("people: no key for the classifier's model (PEOPLE_MODEL_KEY)")
-    serve(CONFIG, PEOPLE, VARIANT)
+    DELAY = os.environ.get("SEEDCO_REPLY_DELAY")
+    serve(CONFIG, PEOPLE, VARIANT, float(DELAY) if DELAY not in (None, "") else None)

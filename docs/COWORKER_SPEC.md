@@ -91,7 +91,10 @@ Not built for M1. The smoke test uses a static requirement and ends as episodes 
 
 ### 3.3 Time
 
-Not built for M1: in the smoke test replies come at once. Specified here for M1b.
+Built for M1b, for replies: the clock, late replies and waits that jump (`sidecars/chat.py` keeps the clock, since
+waits end there; `sidecars/people.py` sets when a reply is due; probe: `tools/people_probe.py clock`). The delay is set
+per episode (`DELAY` of `tools/coworker_harness.sh`). First task with it: `customer_attributes_coworker_slice_late`.
+Not built yet: the deadline in virtual time (the seat's limit is still wall time) and scheduled events (3.2).
 
 Training uses a virtual clock, in minutes:
 
@@ -276,7 +279,7 @@ hosted model can be retired, which would end a freeze's reproducibility.
 
 ### 5.5 Implementation
 
-- `sidecars/people.py`: a container like `chat`. Holds the people file and the virtual clock, reads the people's
+- `sidecars/people.py`: a container like `chat`. Holds the people file and sets when replies are due (the virtual clock itself is kept by `chat`, 3.3), reads the people's
   inboxes, classifies, decides, replies, fires events, applies owners' pushes.
 - The people file, the variants' tests and the prepared commits live under the task's `tests/` and are mounted
   into the people sidecar and the judge only. The agent's seat never has them.

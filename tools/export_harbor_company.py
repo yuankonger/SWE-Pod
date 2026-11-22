@@ -368,6 +368,7 @@ def coworker_people(company, tokens):
         raw = tomllib.load(f)
     return {"default": raw["default"], "people": [
         {"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": tokens[p["name"]],
+         "reply_delay_min": p.get("reply_delay_min", 0),
          "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]} for p in raw["person"]]}
 
 
@@ -553,12 +554,12 @@ def main():
         services["judge"]["environment"]["SEEDCO_VARIANT"] = variant
         services["chat"] = {"build": build, "command": ["python3", "/opt/seedco/chat.py"],
                             "environment": {"CHAT": json.dumps({"tokens": dict({coworker["seat"]: tokens[coworker["seat"]]}, **{p["name"]: p["token"] for p in people["people"]}),
-                                                                "admin": CHAT_ADMIN})}}
+                                                                "admin": CHAT_ADMIN, "clock": {"seat": coworker["seat"]}})}}
         # The people's sidecar asks a model what a message is about (sidecars/people.py). Where that model is and its key
         # come from whoever starts the run, and are in this container's environment only.
         services["people"] = {"build": build, "command": ["python3", "/opt/seedco/people.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/../people:/people-out"],
                               "depends_on": {"chat": {"condition": "service_started"}}, "extra_hosts": ["host.docker.internal:host-gateway"],
-                              "environment": {"SEEDCO_VARIANT": variant,
+                              "environment": {"SEEDCO_VARIANT": variant, "SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}",      # minutes; set by whoever starts the run
                                               "PEOPLE": json.dumps({"chat": "http://chat:8080", "file": "/opt/seedco/people.json", "out": "/people-out",
                                                                     "model": {"url": "${PEOPLE_MODEL_URL}", "key": "${PEOPLE_MODEL_KEY}", "id": coworker["model"]}})}}
         with open(os.path.join(env_dir, "sidecars", "people.json"), "w") as f:

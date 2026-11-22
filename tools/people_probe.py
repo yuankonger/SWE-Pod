@@ -12,7 +12,17 @@
         a broad question must be answered with the requirement as that variant has it, and a request for the
         solution, the tests, the people file or the other variant must reveal nothing beyond the table.
 
-Both call the classifier's model through the gateway (.env: OPENAI_BASE_URL, OPENAI_API_KEY; PEOPLE_MODEL for the id).
+    python3 tools/people_probe.py clock [<company>]
+        The virtual clock and late replies (section 3.3), with no model at all. First the chat's clock is fed one
+        recorded sequence of sends, waits and a pause, with its timing, five times: every delivery and every jump must
+        come out the same, and as written here. Then the chat runs as a local process with a person scripted by the
+        probe, who answers 20 virtual minutes late: a wait must not pass a reply that is still being decided, must
+        cost virtual time and no wall time, and must hand the reply over when the clock reaches it. With a company,
+        its people's sidecar is then run against the chat with a delay of 20 minutes and a stand-in for the
+        classifier (a local server that always names the requirement): the requirement must reach the seat 20 virtual
+        minutes after it was asked for, and the record must say when.
+
+The first two call the classifier's model through the gateway (.env: OPENAI_BASE_URL, OPENAI_API_KEY; PEOPLE_MODEL for the id).
 """
 import argparse
 import json
@@ -150,11 +160,165 @@ def local(company, variant):
     return bad == 0
 
 
+def replayed():
+    """One recorded sequence through the chat's clock: what was delivered when, and every jump."""
+    os.environ.setdefault("CHAT", json.dumps({"tokens": {}, "admin": ""}))
+    import chat
+    wall = [1000.0]
+    clock, seen = chat.Clock(now=lambda: wall[0]), []
+
+    def at(t):
+        wall[0] = 1000.0 + t
+        seen.extend(("delivered", clock.now(), e["text"]) for e in clock.due())
+
+    at(240); asked = clock.now()                                  # the seat asks, four minutes in
+    at(243); clock.hold({"text": "reply 1"}, people.reply_due(asked, 20))      # decided three seconds later, due at minute 24
+    at(600); clock.pause()                                        # a rate limit: ten minutes that are not working time
+    at(1200); clock.resume()
+    at(1260); seen.append(("waited", clock.wait(300)))            # minute 11 of work: a five-minute wait, nothing due in it
+    at(1260); second = clock.now()
+    clock.hold({"text": "reply 2"}, people.reply_due(second, 20))
+    at(1270); seen.append(("waited", clock.wait(600)))            # jumps to reply 1 and no further
+    at(1270)
+    at(1280); seen.append(("waited", clock.wait(600)))            # nothing within ten minutes
+    at(1290); seen.append(("waited", clock.wait(600)))            # jumps to reply 2
+    at(1290)
+    return seen, clock.jumps, clock.now()
+
+
+def late_people(company):
+    """The company's people sidecar, 20 minutes late, with a stand-in classifier. True if the reply is late as set."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    import threading
+    table = people_file(company, {})
+    tokens = {"core": "probe-core"}
+    for p in table["people"]:
+        p["token"] = tokens[p["name"]] = "probe-" + p["name"]
+    person = table["people"][0]
+    requirement = next(t for t in person["topics"] if t["kind"] == "requirement")
+    answer = json.dumps({"choices": [{"message": {"content": json.dumps({"asks": [requirement["id"]], "broad": False, "question": True, "unclear": False})}}]}).encode()
+
+    class Stub(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(answer)))
+            self.end_headers()
+            self.wfile.write(answer)
+
+    base = 18900 + os.getpid() % 300
+    stub = ThreadingHTTPServer(("127.0.0.1", base), Stub)
+    threading.Thread(target=stub.serve_forever, daemon=True).start()
+    holder, url = tempfile.mkdtemp(prefix="people-probe-"), "http://127.0.0.1:{}".format(base + 1)
+    with open(os.path.join(holder, "people.json"), "w") as f:
+        json.dump(table, f)
+    started = [subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
+                                env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core"}}), CHAT_PORT=str(base + 1))),
+               subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "people.py")],
+                                env=dict(os.environ, SEEDCO_VARIANT=table["default"], SEEDCO_REPLY_DELAY="20",
+                                         PEOPLE=json.dumps({"chat": url, "file": os.path.join(holder, "people.json"), "out": holder,
+                                                            "model": {"url": "http://127.0.0.1:{}".format(base), "key": "stand-in", "id": "stand-in"}})))]
+
+    def call(method, path, body=None):
+        r = urllib.request.Request(url + path, data=json.dumps(body).encode() if body is not None else None, method=method, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(r, timeout=120) as got:
+            return json.loads(got.read())
+
+    try:
+        time.sleep(2)
+        call("POST", "/send", {"from": "core", "token": tokens["core"], "to": person["name"], "text": "What should happen to the customers of a deleted type?"})
+        waits = [call("GET", "/inbox?" + urllib.parse.urlencode({"name": "core", "token": tokens["core"], "wait": 600})) for _ in range(3)]
+        with open(os.path.join(holder, "people.jsonl")) as f:
+            entries = [json.loads(line) for line in f]
+        said = next((e for e in entries if e.get("event") == "message"), {})
+        got = [m["text"] for w in waits for m in w["messages"]]
+        ok = (got == [requirement["says"][table["default"]]] and [bool(w["messages"]) for w in waits] == [False, True, False]
+              and entries[0].get("reply_delay_min") == {person["name"]: 20.0} and said.get("due_at_v") == said.get("asked_at_v", 0) + 1200)
+        print("{}  {}'s people, 20 minutes late: waits of ten minutes gave {}; asked at {} s, due at {} s".format(
+            "ok   " if ok else "WRONG", company, [(len(w["messages"]), w["waited_s"]) for w in waits], said.get("asked_at_v"), said.get("due_at_v")))
+        return ok
+    finally:
+        for p in started:
+            p.terminate()
+        stub.shutdown()
+
+
+def clock(company=None):
+    bad = 0 if company is None or late_people(company) else 1
+    runs = [replayed() for _ in range(5)]
+    same = all(r == runs[0] for r in runs)
+    want = [("waited", 300.0), ("waited", 470.0), ("delivered", 1440.0, "reply 1"), ("waited", 600.0), ("waited", 100.0), ("delivered", 2160.0, "reply 2")]
+    ok = same and runs[0][0] == want
+    bad += not ok
+    print("{}  the recorded sequence, five times: {}".format("ok   " if ok else "WRONG", "the same each time, and as written" if ok else runs[0][0]))
+
+    tokens = {"core": "probe-core", "maya": "probe-maya"}
+    port = 18600 + os.getpid() % 300
+    url = "http://127.0.0.1:{}".format(port)
+    sidecar = subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
+                               env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core"}}), CHAT_PORT=str(port)))
+
+    def call(method, path, body=None):
+        r = urllib.request.Request(url + path, data=json.dumps(body).encode() if body is not None else None, method=method, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(r, timeout=120) as got:
+            return json.loads(got.read())
+
+    def inbox(who, wait):
+        return call("GET", "/inbox?" + urllib.parse.urlencode({"name": who, "token": tokens[who], "wait": wait}))
+
+    def check(what, ok, shown):
+        nonlocal bad
+        bad += not ok
+        print("{}  {}: {}".format("ok   " if ok else "WRONG", what, shown))
+
+    def maya(delay_min, after_s):      # the person, scripted: reads, takes `after_s` to decide, answers `delay_min` late
+        got = inbox("maya", 30)["messages"]
+        time.sleep(after_s)
+        for m in got:
+            call("POST", "/send", {"from": "maya", "token": tokens["maya"], "to": "core", "text": "answer to: " + m["text"],
+                                   "due_at_v": people.reply_due(m["at_v"], delay_min)})
+
+    import threading
+    try:
+        time.sleep(1.5)
+        began = time.time()
+        threading.Thread(target=maya, args=(20, 2), daemon=True).start()
+        call("POST", "/send", {"from": "core", "token": tokens["core"], "to": "maya", "text": "first question"})
+        got = inbox("core", 0)
+        check("reading at once, reply not due", not got["messages"] and not got["waited_s"], got)
+        got = inbox("core", 600)      # sent before the reply is decided: must hold for it, then jump ten minutes and find nothing
+        check("a ten-minute wait, reply due in twenty", not got["messages"] and got["waited_s"] == 600 and time.time() - began >= 2, got)
+        got = inbox("core", 600)
+        check("the next wait jumps to the reply", [m["text"] for m in got["messages"]] == ["answer to: first question"] and 590 <= got["waited_s"] <= 600, got)
+        threading.Thread(target=maya, args=(0, 1), daemon=True).start()
+        call("POST", "/send", {"from": "core", "token": tokens["core"], "to": "maya", "text": "second question"})
+        got = inbox("core", 600)
+        check("no delay: the reply comes as soon as it is decided, and the wait costs nothing", [m["text"] for m in got["messages"]] == ["answer to: second question"] and not got["waited_s"], got)
+        call("POST", "/paused", {"name": "core", "token": tokens["core"], "until": time.time() + 3})
+        before = call("GET", "/log?token=probe-admin")["clock"]["now_v"]
+        time.sleep(3)
+        call("POST", "/resumed", {"name": "core", "token": tokens["core"]})
+        after = call("GET", "/log?token=probe-admin")
+        check("a pause is not working time", after["clock"]["now_v"] - before < 1, (before, after["clock"]["now_v"]))
+        took = time.time() - began
+        first = next(m for m in after["messages"] if m["text"] == "answer to: first question")
+        check("twenty virtual minutes in seconds of wall time", took < 30 and after["clock"]["jumped_s"] >= 1190 and abs(first["delivered_at_v"] - first["due_at_v"]) < 1 and abs(first["due_at_v"] - 1200) < 5,
+              "{:.0f} s of wall time, clock at {} s, reply due at {} and delivered at {}".format(took, after["clock"]["now_v"], first["due_at_v"], first["delivered_at_v"]))
+    finally:
+        sidecar.terminate()
+    return bad == 0
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=("classifier", "local"))
-    ap.add_argument("company")
+    ap.add_argument("what", choices=("classifier", "local", "clock"))
+    ap.add_argument("company", nargs="?")
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--variant")
     a = ap.parse_args()
+    if a.what == "clock":
+        sys.exit(0 if clock(a.company) else 1)
     sys.exit(0 if (classifier(a.company, a.repeat) if a.what == "classifier" else local(a.company, a.variant)) else 1)

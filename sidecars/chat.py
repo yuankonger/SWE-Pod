@@ -11,6 +11,18 @@
 CHAT = {"tokens": {name: token}, "admin": token}. A message to someone who has finished is kept in the log but
 not delivered, and the sender is told so. /inbox waits up to `wait` seconds for a message, and stops waiting at
 once when nobody else is still working.
+
+With CHAT["clock"] = {"seat": name} the chat keeps a virtual clock for that seat (docs/COWORKER_SPEC.md, 3.3): one
+agent at `name`, and everyone else on the chat a scripted person (sidecars/people.py). Then:
+
+    the clock       advances with the seat's working time (wall time, less the time the seat is paused by a limit on
+                    the model service) and jumps forward when the seat waits. Messages carry it as `at_v`, in seconds.
+    /send           from a scripted person may carry "due_at_v": the message reaches the seat when the clock is there.
+    /inbox?wait=    from the seat never waits in real time for a reply that is scheduled: the clock jumps to the next
+                    message due, or by the whole wait when none is due within it, and the answer says how far
+                    (`waited_s`). While a person has not yet answered a message (their reply is being decided, and is
+                    not scheduled yet) the wait holds, for the seconds that takes, so a jump never passes a reply.
+    /log            also gives the clock: where it stands, every jump, and when each held message was delivered.
 """
 import json
 import os
@@ -25,6 +37,58 @@ inbox = {name: [] for name in TOKENS}
 done, log = set(), []
 paused, pauses = {}, []     # who is paused and until when; every pause, for whoever runs the company
 changed = threading.Condition()
+
+
+class Clock:
+    """A seat's virtual time, in seconds: its working time, plus what it has jumped over by waiting. `now` gives wall
+    time, so a recorded run can be replayed. Not safe on its own: used under `changed`."""
+
+    def __init__(self, now=time.time):
+        self.wall, self.started, self.jumped, self.paused_for, self.paused_since = now, now(), 0.0, 0.0, None
+        self.held, self.jumps, self.unanswered = [], [], 0
+
+    def now(self):
+        away = self.paused_for + (self.wall() - self.paused_since if self.paused_since is not None else 0.0)
+        return round(self.wall() - self.started - away + self.jumped, 1)
+
+    def pause(self):
+        if self.paused_since is None:
+            self.paused_since = self.wall()
+
+    def resume(self):
+        if self.paused_since is not None:
+            self.paused_for, self.paused_since = self.paused_for + self.wall() - self.paused_since, None
+
+    def hold(self, entry, due):
+        self.held.append((due, len(self.held), entry))
+
+    def due(self):
+        """The held messages whose time has come, in the order they fall due (then the order they were sent)."""
+        at = self.now()
+        ready = sorted(h for h in self.held if h[0] <= at)
+        self.held = [h for h in self.held if h[0] > at]
+        return [entry for _, _, entry in ready]
+
+    def wait(self, seconds):
+        """Jump for a wait of `seconds`: to the next held message if one is due within it, else by all of it.
+        Returns how far the clock moved."""
+        at = self.now()
+        ahead = [due - at for due, _, _ in self.held if due - at <= seconds]
+        by = round(max(0.0, min(ahead)) if ahead else seconds, 1)
+        self.jumped += by
+        self.jumps.append({"at_v": at, "by_s": by, "asked_s": seconds, "to_a_message": bool(ahead)})
+        return by
+
+
+CLOCK = Clock() if CONFIG.get("clock") else None
+SEAT = (CONFIG.get("clock") or {}).get("seat")
+
+
+def deliver_due():
+    """Puts the held messages that are due into the seat's inbox. Under `changed`."""
+    for entry in CLOCK.due():
+        entry.update(delivered_at=round(time.time(), 1), delivered_at_v=CLOCK.now())
+        inbox[entry["to"]].append({"from": entry["from"], "text": entry["text"], "at": entry["delivered_at"]})
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -53,11 +117,15 @@ class Handler(BaseHTTPRequestHandler):
                 changed.notify_all()
                 return self.reply(200, {"ok": True})
             if self.path.startswith("/paused"):
+                if CLOCK and name == SEAT:
+                    CLOCK.pause()
                 paused[name] = float(body.get("until") or 0)
                 pauses.append({"name": name, "at": round(time.time(), 1), "until": paused[name]})
                 changed.notify_all()
                 return self.reply(200, {"ok": True})
             if self.path.startswith("/resumed"):
+                if CLOCK and name == SEAT:
+                    CLOCK.resume()
                 if paused.pop(name, None) is not None:
                     pauses.append({"name": name, "at": round(time.time(), 1), "resumed": True})
                 changed.notify_all()
@@ -68,8 +136,23 @@ class Handler(BaseHTTPRequestHandler):
             delivered = to not in done
             entry = {"from": name, "to": to, "text": text, "at": round(time.time(), 1), "delivered": delivered}
             log.append(entry)
-            if delivered:
-                inbox[to].append({"from": name, "text": text, "at": entry["at"]})
+            if CLOCK:
+                entry["at_v"] = CLOCK.now()
+                if delivered and name == SEAT:
+                    CLOCK.unanswered += 1
+                elif name != SEAT:      # a person's one reply to a message: scheduled from here on, or delivered now
+                    CLOCK.unanswered = max(0, CLOCK.unanswered - 1)
+            if delivered and CLOCK and to == SEAT and body.get("due_at_v") is not None and float(body["due_at_v"]) > CLOCK.now():
+                entry["due_at_v"] = round(float(body["due_at_v"]), 1)
+                CLOCK.hold(entry, entry["due_at_v"])
+                changed.notify_all()
+            elif delivered:
+                message = {"from": name, "text": text, "at": entry["at"]}
+                if CLOCK:
+                    message["at_v"] = entry["at_v"]
+                    if to == SEAT:
+                        entry.update(delivered_at=entry["at"], delivered_at_v=entry["at_v"])
+                inbox[to].append(message)
                 changed.notify_all()
             until = paused.get(to)
         note = "sent to {}".format(to) if delivered else "{} has finished and will not read this".format(to)
@@ -84,11 +167,28 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == "/log":
             if q.get("token") != CONFIG["admin"]:
                 return self.reply(401, {"error": "not for you"})
-            return self.reply(200, {"messages": log, "done": sorted(done), "pauses": pauses})
+            with changed:
+                clock = CLOCK and {"seat": SEAT, "now_v": CLOCK.now(), "jumped_s": round(CLOCK.jumped, 1), "jumps": CLOCK.jumps,
+                                   "not_delivered": len(CLOCK.held)}
+            return self.reply(200, dict({"messages": log, "done": sorted(done), "pauses": pauses}, **({"clock": clock} if clock else {})))
         name = q.get("name")
         if TOKENS.get(name) is None or TOKENS[name] != q.get("token"):
             return self.reply(401, {"error": "who are you?"})
-        deadline = time.time() + min(float(q.get("wait") or 0), 900)
+        asked = min(float(q.get("wait") or 0), 900)
+        deadline = time.time() + asked
+        if CLOCK and name == SEAT:      # the seat's wait costs virtual time, not wall time
+            with changed:
+                deliver_due()
+                while asked and not inbox[name] and CLOCK.unanswered and time.time() < deadline:      # a reply is being decided
+                    changed.wait(0.5)
+                    deliver_due()
+                waited = 0.0
+                if asked and not inbox[name]:
+                    waited = CLOCK.wait(asked)
+                    deliver_due()
+                messages, inbox[name] = inbox[name], []
+                others = sorted(n for n in TOKENS if n != name and n not in done and n not in paused)
+            return self.reply(200, {"messages": messages, "others_working": others, "others_paused": {}, "waited_s": waited})
         with changed:
             while not inbox[name] and time.time() < deadline and any(n not in done for n in TOKENS if n != name):
                 changed.wait(min(5, max(0.1, deadline - time.time())))

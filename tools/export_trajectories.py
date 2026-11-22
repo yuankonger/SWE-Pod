@@ -152,10 +152,32 @@ def export(job, task, review=None):
             pushes = [json.loads(line) for line in open(os.path.join(trial, "agent", "git.jsonl")) if line.strip()]
             pushes = sorted(e["at"] for e in pushes if e.get("action") == "push" and e.get("allowed") and e.get("agent") not in ("ci", "oracle", "verifier"))
         first_push = pushes[0] if pushes else None
+        # late replies (docs/COWORKER_SPEC.md, 3.3): when each reply was due and reached the seat on the seat's virtual
+        # clock, what the seat pushed while it was on its way, and how much of the clock was waiting
+        talk = {}
+        if os.path.isfile(os.path.join(trial, "agent", "chat.json")):
+            with open(os.path.join(trial, "agent", "chat.json")) as f:
+                talk = json.load(f)
+        replies = {(m["from"], m.get("due_at_v")): m for m in talk.get("messages", []) if m.get("due_at_v") is not None}
+        clock = talk.get("clock")
+
+        def timing(e):
+            reply = replies.get((e["person"], e.get("due_at_v")))
+            if e.get("due_at_v") is None:
+                return {}
+            reached = reply.get("delivered_at") if reply else None
+            waits = [j for j in (clock or {}).get("jumps", []) if e["asked_at_v"] <= j["at_v"] < e["due_at_v"]]
+            return {"asked_at_min": round(e["asked_at_v"] / 60, 1), "reply_due_at_min": round(e["due_at_v"] / 60, 1),
+                    "reply_reached_seat": reached is not None,
+                    "pushes_while_reply_on_its_way": sum(1 for at in pushes if e["at"] <= at < (reached if reached is not None else float("inf"))),
+                    "waits_while_reply_on_its_way": len(waits), "minutes_waited_for_it": round(sum(j["by_s"] for j in waits) / 60, 1)}
         asked = {"messages_to_people": len(messages),
-                 "exchanges": [{"to": e["person"], "asked": e["text"], "decision": e.get("decision"), "revealed": e.get("revealed", []),
-                                "reply": e.get("reply"), "before_first_push": None if first_push is None else e["at"] < first_push,
-                                "failed": e.get("failed")} for e in messages],
+                 "reply_delay_min": next((e.get("reply_delay_min") for e in entries if e.get("event") == "started"), None),
+                 "clock": clock and {"minutes": round(clock["now_v"] / 60, 1), "minutes_waited": round(clock["jumped_s"] / 60, 1),
+                                     "waits": len(clock["jumps"]), "replies_never_delivered": clock["not_delivered"]},
+                 "exchanges": [dict({"to": e["person"], "asked": e["text"], "decision": e.get("decision"), "revealed": e.get("revealed", []),
+                                     "reply": e.get("reply"), "before_first_push": None if first_push is None else e["at"] < first_push,
+                                     "failed": e.get("failed")}, **timing(e)) for e in messages],
                  "revealed": sorted({i for e in messages for i in e.get("revealed", [])}),
                  "people_sidecar_failures": sum(1 for e in messages if e.get("failed")),
                  "variant_at_people": sorted({e.get("variant") for e in entries})}
@@ -189,7 +211,8 @@ def export(job, task, review=None):
                            "rubric and is not comparable with runs on the current one. See the task's DATASHEET.md.")
     if episode:
         run.update(condition="coworker/" + episode["arm"], arm=episode["arm"], variant=episode["variant"], budget_usd=episode.get("cap_usd", run["budget_usd"]),
-                   judged_variant=(score.get("variant") or {}).get("value"), asked=asked)
+                   judged_variant=(score.get("variant") or {}).get("value"), asked=asked,
+                   reply_delay_min=episode.get("reply_delay_min", 0))
         if asked and asked["people_sidecar_failures"]:
             run["complete"] = False
             run["people_sidecar_failed"] = asked["people_sidecar_failures"]
