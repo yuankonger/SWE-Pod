@@ -1,0 +1,101 @@
+{
+ "job": "late-partial-refuse-d20-opus-2",
+ "outcome": {
+  "reward": 0.5,
+  "minutes": 61.8,
+  "seat_says": 0.5,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 3708,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 1.69,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 88,
+   "cache_read": 2588531,
+   "cache_write": 152602,
+   "output": 21091,
+   "read": 2741221
+  },
+  "seats": {
+   "core": {
+    "input": 88,
+    "cache_read": 2588531,
+    "cache_write": 152602,
+    "output": 21091,
+    "requests": 44,
+    "refused": 0,
+    "peak_context_tokens": 91266,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 44,
+      "peak_context_tokens": 91266,
+      "output": 21091,
+      "model": "claude-opus-5-5"
+     }
+    ],
+    "models": [
+     "claude-opus-5-5"
+    ],
+    "active_minutes": 61.8,
+    "working_minutes": 61.7,
+    "waits": [],
+    "cache_rewritten_after_waits": 0
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 61.8
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 1
+   }
+  },
+  "messages": {}
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 1,
+  "model_requests_refused": 0
+ },
+ "contract": {
+  "first_published_minute": 122.8,
+  "publications": [
+   {
+    "minute": 122.8,
+    "gained_fields": 5,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 0,
+  "messages": 0
+ }
+}
