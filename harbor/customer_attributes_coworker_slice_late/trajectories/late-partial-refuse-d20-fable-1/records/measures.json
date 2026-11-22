@@ -1,0 +1,109 @@
+{
+ "job": "late-partial-refuse-d20-fable-1",
+ "outcome": {
+  "reward": 1.0,
+  "minutes": 65.8,
+  "seat_says": 1.0,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 3947,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 7.67,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 148,
+   "cache_read": 8665154,
+   "cache_write": 343374,
+   "output": 62485,
+   "read": 9008676
+  },
+  "seats": {
+   "core": {
+    "input": 148,
+    "cache_read": 8665154,
+    "cache_write": 343374,
+    "output": 62485,
+    "requests": 74,
+    "refused": 0,
+    "peak_context_tokens": 176374,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 74,
+      "peak_context_tokens": 176374,
+      "output": 62485,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 65.8,
+    "working_minutes": 27.7,
+    "waits": [
+     {
+      "minutes": 37.8,
+      "cache_rewritten": 167637
+     }
+    ],
+    "cache_rewritten_after_waits": 167637
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 65.8
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 2
+   }
+  },
+  "messages": {
+   "core": 3,
+   "maya": 3
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 0
+ },
+ "contract": {
+  "first_published_minute": 68.0,
+  "publications": [
+   {
+    "minute": 68.0,
+    "gained_fields": 5,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 4,
+  "messages": 6
+ }
+}
