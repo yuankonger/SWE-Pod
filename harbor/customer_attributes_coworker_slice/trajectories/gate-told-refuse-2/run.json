@@ -1,0 +1,191 @@
+{
+ "job": "gate-told-refuse-2",
+ "model": "claude-fable-5-2",
+ "condition": "coworker/told",
+ "harness": "claude-code 2.1.330",
+ "budget_usd": 25.0,
+ "frozen": "b25d8e49298227b7",
+ "reward": 1.0,
+ "scoring_complete": true,
+ "stopped_from_outside": {},
+ "complete": true,
+ "criteria": [
+  {
+   "id": "api-runs-and-dashboard-calls-it",
+   "kind": "gate",
+   "score": 1.0,
+   "detail": "migrates True, serves True, operations found 432"
+  },
+  {
+   "id": "pushed-code-leaves-scoring-alone",
+   "kind": "gate",
+   "score": 1.0,
+   "detail": ""
+  },
+  {
+   "id": "core-feature-tests",
+   "kind": "target",
+   "score": 1.0,
+   "detail": "4 of 4 pass"
+  },
+  {
+   "id": "requirement-delete-type-in-use",
+   "kind": "target",
+   "score": 1.0,
+   "detail": "1 of 1 pass"
+  },
+  {
+   "id": "core-existing-tests",
+   "kind": "guard",
+   "score": 1.0,
+   "detail": "17733 of 17733 pass"
+  },
+  {
+   "id": "dashboard-existing-tests",
+   "kind": "guard",
+   "score": 1.0,
+   "detail": "5566 of 5566 pass"
+  },
+  {
+   "id": "dashboard-asks-only-what-api-offers",
+   "kind": "fit",
+   "score": 1.0,
+   "detail": "432 of 432 valid (documents that could not be read and fragments defined twice count as not valid); invalid: {}"
+  },
+  {
+   "id": "pushed-code-review-signals",
+   "kind": "measure",
+   "score": 1.0,
+   "detail": ""
+  },
+  {
+   "id": "existing-tests-untouched",
+   "kind": "measure",
+   "score": 1.0,
+   "detail": ""
+  }
+ ],
+ "seats": {
+  "core": {
+   "trajectory": "core.trajectory.json",
+   "steps": 43,
+   "format": "ATIF-v1.7",
+   "valid": true,
+   "run": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 2811,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 7.75,
+    "ended_by_runner": []
+   }
+  }
+ },
+ "outcome": {
+  "reward": 1.0,
+  "minutes": 46.9,
+  "seat_says": 1.0,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 2811,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 7.75,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 46.8
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 2
+   }
+  },
+  "messages": {
+   "core": 3,
+   "maya": 3
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 0
+ },
+ "review": "not reviewed yet",
+ "task_frozen_now": "b25d8e49298227b7",
+ "ran_on_current_freeze": true,
+ "arm": "told",
+ "variant": "refuse",
+ "judged_variant": "refuse",
+ "asked": {
+  "messages_to_people": 3,
+  "exchanges": [
+   {
+    "to": "maya",
+    "asked": "Hi Maya \u2014 core here, starting on `customerTypeDelete`. I've read the code; before I build, a few things the brief doesn't settle. My default is in brackets \u2014 a one-word \"defaults\" is fine if they're right.\n\n1. Customers that still have the type being deleted (User.customer_type is a PROTECT foreign key, and the error enum has no \"type in use\" code). Should the delete (a) move them to the default type and succeed, or (b) be refused, or something else? [a: move to the default type, in the same transaction]\n2. If they're moved: do those customers count as \"updated\" \u2014 bump `updatedAt`, send `CUSTOMER_UPDATED` webhooks, refresh search index \u2014 or is it a silent reassignment? [silent: only CUSTOMER_TYPE_DELETED is sent]\n3. Their attribute values for attributes the default type doesn't have: keep the rows (hidden, as when a type's attribute is unassigned or a customer's type is changed today) or delete them? [keep, consistent with today]\n4. The attributes themselves that were assigned to the deleted type: only the assignment goes away, the attributes stay? [yes, attributes stay]\n5. Scale: could a type have very many customers (so the reassignment must be batched / done in the background), or is one synchronous statement inside the mutation acceptable? [one synchronous UPDATE in the transaction]\n6. Anything else expected on delete \u2014 e.g. deleting by something other than `id`, apps (not just staff) with the permission being allowed [yes, same as create/update], a CHANGELOG entry [I'll add one], or anything the dashboard needs from the response beyond `customerType { id name slug \u2026 }` and `errors`?\n\nI'll keep reading/prototyping the parts that don't depend on these while I wait.",
+    "decision": "all_requirements",
+    "revealed": [
+     "delete-type-with-customers",
+     "default-type",
+     "translating-values",
+     "who-manages"
+    ],
+    "reply": "When staff try to delete a customer type that customers still have, refuse it and return an error. The type and its customers stay as they are; staff have to move the customers to another type first. A customer created without a type gets the default type. The default type itself can't be deleted: someone has to make another type the default first. No. Values of customer attributes can't be translated. Managing customer types and customer attributes takes the customer-type permission. The product and page permissions don't cover it.",
+    "before_first_push": true,
+    "failed": null
+   },
+   {
+    "to": "maya",
+    "asked": "Thanks Maya \u2014 understood: a type that customers still have is refused and nothing changes; I'm building that. One follow-up on that refusal: the error enum the mutation must use (`CustomerTypeDeleteErrorCode`) only has CANNOT_DELETE_DEFAULT, GRAPHQL_ERROR, INVALID, NOT_FOUND. I'm returning the \"still has customers\" refusal as code INVALID on field `id` (and CANNOT_DELETE_DEFAULT on `id` wins if the type is also the default). If you expect a different code or field for it, tell me; otherwise no reply needed.",
+    "decision": "noted",
+    "revealed": [],
+    "reply": "Thanks, noted.",
+    "before_first_push": true,
+    "failed": null
+   },
+   {
+    "to": "maya",
+    "asked": "Maya \u2014 `customerTypeDelete` is on `main` of core (commit 01a9894) and deployed; CI run 2 passed (432/432 dashboard operations still valid). What it does: `customerTypeDelete(id: ID!)` returns `customerType` + `errors`, needs MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES (staff or app), sends CUSTOMER_TYPE_DELETED. Refusals, all on field `id`, nothing changed: default type \u2192 CANNOT_DELETE_DEFAULT (also when it becomes the default mid-deletion); type that customers (any user, staff included) still have \u2192 INVALID; unknown id \u2192 NOT_FOUND; malformed/wrong-type id \u2192 GRAPHQL_ERROR. The type's attributes stay, only their assignment to the type goes. Checked live against http://core:8000/graphql/ (create \u2192 delete \u2192 delete again \u2192 delete default \u2192 no permission). The repo's full suite passes (17,753). Nothing else pending from me.",
+    "decision": "topics",
+    "revealed": [
+     "delete-type-with-customers",
+     "who-manages"
+    ],
+    "reply": "When staff try to delete a customer type that customers still have, refuse it and return an error. The type and its customers stay as they are; staff have to move the customers to another type first. Managing customer types and customer attributes takes the customer-type permission. The product and page permissions don't cover it.",
+    "before_first_push": false,
+    "failed": null
+   }
+  ],
+  "revealed": [
+   "default-type",
+   "delete-type-with-customers",
+   "translating-values",
+   "who-manages"
+  ],
+  "people_sidecar_failures": 0,
+  "variant_at_people": [
+   "refuse"
+  ]
+ }
+}

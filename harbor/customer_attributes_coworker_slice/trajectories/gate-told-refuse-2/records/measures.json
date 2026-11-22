@@ -1,0 +1,113 @@
+{
+ "job": "gate-told-refuse-2",
+ "outcome": {
+  "reward": 1.0,
+  "minutes": 46.9,
+  "seat_says": 1.0,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 2811,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 7.75,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 84,
+   "cache_read": 3541243,
+   "cache_write": 521531,
+   "output": 45647,
+   "read": 4062858
+  },
+  "seats": {
+   "core": {
+    "input": 84,
+    "cache_read": 3541243,
+    "cache_write": 521531,
+    "output": 45647,
+    "requests": 42,
+    "refused": 0,
+    "peak_context_tokens": 141976,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 42,
+      "peak_context_tokens": 141976,
+      "output": 45647,
+      "model": "claude-fable-5-2"
+     }
+    ],
+    "models": [
+     "claude-fable-5-2"
+    ],
+    "active_minutes": 46.8,
+    "working_minutes": 26.1,
+    "waits": [
+     {
+      "minutes": 10.1,
+      "cache_rewritten": 116597
+     },
+     {
+      "minutes": 10.0,
+      "cache_rewritten": 137308
+     }
+    ],
+    "cache_rewritten_after_waits": 253905
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 46.8
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 2
+   }
+  },
+  "messages": {
+   "core": 3,
+   "maya": 3
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 0
+ },
+ "contract": {
+  "first_published_minute": 49.3,
+  "publications": [
+   {
+    "minute": 49.3,
+    "gained_fields": 5,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 4,
+  "messages": 6
+ }
+}
