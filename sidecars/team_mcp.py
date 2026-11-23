@@ -1,7 +1,8 @@
 """The messaging tools at a seat: an MCP server (stdio) in front of the company's chat sidecar.
 
 The harness starts it (`python3 /opt/seedco/team_mcp.py`). Who the seat belongs to comes from SEAT and SEAT_TOKEN.
-Tools: send_message(to, text), read_messages(), wait_for_message(minutes).
+Tools: send_message(to, text), read_messages(), wait_for_message(minutes), and, where the task has submission
+(SUBMIT in the seat's environment; docs/COWORKER_SPEC.md, 3.2), submit(report).
 """
 import json
 import os
@@ -29,6 +30,13 @@ TOOLS = [
                     "nobody else is still working. Time passes while you wait, so do what you can do first.",
      "inputSchema": {"type": "object", "properties": {"minutes": {"type": "number"}}}},
 ]
+if os.environ.get("SUBMIT"):
+    TOOLS.append(
+        {"name": "submit",
+         "description": "Say that your work is finished: what is on `main` of your repository is then what is judged, and nothing more "
+                        "reaches you. If something has reached you that you have not seen, you get it instead and your work is not "
+                        "submitted: deal with it, then submit again. `report` says what you did and anything you had to assume.",
+         "inputSchema": {"type": "object", "properties": {"report": {"type": "string"}}, "required": ["report"]}})
 
 
 def call(method, path, body=None):
@@ -70,6 +78,14 @@ def use(name, args):
         return inbox(0)
     if name == "wait_for_message":
         return inbox(60 * max(1.0, min(10.0, float(args.get("minutes") or 5))))
+    if name == "submit" and os.environ.get("SUBMIT"):
+        got = call("POST", "/submit", {"name": ME, "token": TOKEN, "report": args.get("report") or ""})
+        if "error" in got:
+            return "ERROR: " + got["error"]
+        if got["final"]:
+            return "Submitted. Your work is finished: stop here."
+        return "\n\n".join(["Not submitted: this reached you first."] + ["Message from {}:\n{}".format(m["from"], m["text"]) for m in got["messages"]]
+                           + ["Deal with it, then submit again."])
     return "ERROR: unknown tool " + name
 
 

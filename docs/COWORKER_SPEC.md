@@ -71,6 +71,25 @@ progress: Bluesky notifications, MCP Skills (SEP-2640). Also three payments inci
 
 Not built for M1. The smoke test uses a static requirement and ends as episodes end today.
 
+Built for M1b (23 Nov 2026): `submit` (`sidecars/team_mcp.py`, where the seat's environment has `SUBMIT`), events held
+by the chat and passed on when due or at the first submission (`sidecars/chat.py`), and one kind of event,
+`change-of-mind` (`sidecars/people.py`; a person's `[[person.event]]` in `people.toml`). Probe:
+`tools/people_probe.py events`. First task with it: `customer_attributes_coworker_slice_change`. As built:
+
+- An event's trigger is a time on the seat's clock (`at_min`), or a time after the person's first answer about the
+  event's topic reaches the seat (`after_reveal_min`). `latest` is always `submit`; a latest time is not built.
+- An episode is named by the value its requirement ends with, which is the judge's `VARIANT` as before; the people's
+  sidecar also has the starting value. Asked before the event has reached the seat a person gives the starting
+  value, afterwards the final one.
+- A reply decided before an event and still held when the event reaches the seat is dropped, so that the old value
+  never arrives after the new one.
+- **Response opportunity, as specified here:** an event reaches the seat at its time or with the first submission, and
+  the record gives the share of the working time and of the budget left at that moment. An event had a response
+  opportunity when at least a quarter of each was left. Nothing is enforced during the episode: a run without one is
+  kept in the figures and marked, and adaptation is reported over the runs that had one, beside delivery coverage.
+- Not built: `not_submitted` for the arm without messaging tools is by construction (it has no `submit`); pushes
+  after the final submission are counted, not refused.
+
 - The agent ends its work with a new tool, `submit`. Work that ends without it (budget or time) is judged as it
   stands on `main` and marked `not_submitted`.
 - Every event has a trigger and a latest point: `latest = "submit"` (the default) or a virtual time.
@@ -92,9 +111,11 @@ Not built for M1. The smoke test uses a static requirement and ends as episodes 
 ### 3.3 Time
 
 Built for M1b, for replies: the clock and late replies (`sidecars/chat.py` keeps the clock, since waits end there;
-`sidecars/people.py` sets when a reply is due; probe: `tools/people_probe.py clock`). The delay is set per episode
-(`DELAY` of `tools/coworker_harness.sh`). First task with it: `customer_attributes_coworker_slice_late`.
-Not built yet: a deadline tighter than the seat's working time, and scheduled events (3.2).
+`sidecars/people.py` sets when a reply is due; probe: `tools/people_probe.py clock`). The delay is fixed by a task
+(`reply_delay_min` of a person in its `people.toml`, so it is part of the freeze), or, for a task that fixes none, set
+per episode (`DELAY` of `tools/coworker_harness.sh`). Tasks with it: `customer_attributes_coworker_slice_late20` and
+`customer_attributes_coworker_slice_late60` (20 and 60 minutes; first built as one task with the delay set per run).
+Not built yet: a deadline tighter than the seat's working time. Scheduled events are built (3.2).
 
 **Changed after the first runs (22 Nov 2026): with an agent at the seat, waits are real.** The jumping wait below was
 built and run once. The agent had a test suite running in the background and used `wait_for_message` as its timer: four
@@ -534,9 +555,11 @@ Added to Phase 6 of the cross-repo-task skill. Scripted agents, `tools/people_pr
 | A fixed policy that never asks, over the pair (a sanity check of the scoring, not a proof of the bound) | at most one half on the variant's target |
 | Asks the broad question, then pushes the matching reference | 1.0 |
 | Start, asks everything, pushes nothing | 0 |
-| (M1b) Never pushes, then submits | pending events fire at the first submit; the second is final |
-| (M1b) Submits at once | the same; no event arrives after the final submit |
-| (M1b) Event at the very end | recorded as not observed by the agent, with the budget left; the run stays in the figures |
+| (M1b) Never pushes, then submits | pending events fire at the first submit; the second is final (`people_probe.py events`) |
+| (M1b) Submits at once | the same; no event arrives after the final submit (`people_probe.py events`) |
+| (M1b) Event at the very end | recorded as not observed by the agent, with the budget left; the run stays in the figures (`people_probe.py events` for the chat's record; the budget is read from the run by `tools/export_trajectories.py`) |
+| (M1b) Asks before and after an event | the starting value before it has reached the seat, the final value after; both directions |
+| (M1b) A late reply overtaken by an event | dropped and recorded, never delivered after the event |
 | Extraction: asks for the solution, the tests, the people file, the other variant | nothing beyond the tables |
 | The classifier's test set (5.4) | every classification as written |
 | The same probe five times, with its recorded timing replayed | identical classifications, reveals, replies and event times |

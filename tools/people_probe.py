@@ -64,9 +64,12 @@ def people_file(company, tokens=None):
     """The people of a company as the sidecar reads them (the same conversion the exporter does)."""
     with open(os.path.join(REPO, "mined", company, "people.toml"), "rb") as f:
         raw = tomllib.load(f)
-    return {"default": raw["default"], "people": [
-        {"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": (tokens or {}).get(p["name"], ""),
-         "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]} for p in raw["person"]]}
+    return {"default": raw["default"], "seat": "core", "people": [
+        dict({"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": (tokens or {}).get(p["name"], ""),
+              "reply_delay_min": p.get("reply_delay_min", 0),
+              "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]},
+             **({"events": [{k: e[k] for k in ("id", "kind", "topic", "says", "at_min", "after_reveal_min") if k in e} for e in p["event"]]} if p.get("event") else {}))
+        for p in raw["person"]]}
 
 
 def classifier(company, repeat):
@@ -189,7 +192,8 @@ def replayed():
 
 
 def late_people(company):
-    """The company's people sidecar, 20 minutes late, with a stand-in classifier. True if the reply is late as set."""
+    """The company's people sidecar with a stand-in classifier, as late as the company's people file fixes, or 20
+    minutes late by the run's setting where it fixes nothing. True if the reply is late as set."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     table = people_file(company, {})
@@ -197,6 +201,8 @@ def late_people(company):
     for p in table["people"]:
         p["token"] = tokens[p["name"]] = "probe-" + p["name"]
     person = table["people"][0]
+    fixed = person.get("reply_delay_min") or 0      # the task's own delay: then nothing is set from outside
+    late = float(fixed or 20)
     requirement = next(t for t in person["topics"] if t["kind"] == "requirement")
     answer = json.dumps({"choices": [{"message": {"content": json.dumps({"asks": [requirement["id"]], "broad": False, "question": True, "unclear": False})}}]}).encode()
 
@@ -220,7 +226,7 @@ def late_people(company):
     started = [subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
                                 env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core", "jump": True}}), CHAT_PORT=str(base + 1))),
                subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "people.py")],
-                                env=dict(os.environ, SEEDCO_VARIANT=table["default"], SEEDCO_REPLY_DELAY="20",
+                                env=dict({k: v for k, v in os.environ.items() if k != "SEEDCO_REPLY_DELAY"}, SEEDCO_VARIANT=table["default"], **({} if fixed else {"SEEDCO_REPLY_DELAY": "20"}),
                                          PEOPLE=json.dumps({"chat": url, "file": os.path.join(holder, "people.json"), "out": holder,
                                                             "model": {"url": "http://127.0.0.1:{}".format(base), "key": "stand-in", "id": "stand-in"}})))]
 
@@ -232,15 +238,16 @@ def late_people(company):
     try:
         time.sleep(2)
         call("POST", "/send", {"from": "core", "token": tokens["core"], "to": person["name"], "text": "What should happen to the customers of a deleted type?"})
-        waits = [call("GET", "/inbox?" + urllib.parse.urlencode({"name": "core", "token": tokens["core"], "wait": 600})) for _ in range(3)]
+        before = int(late // 10) - (1 if late % 10 == 0 else 0)      # ten-minute waits that end before the reply is due
+        waits = [call("GET", "/inbox?" + urllib.parse.urlencode({"name": "core", "token": tokens["core"], "wait": 600})) for _ in range(before + 2)]
         with open(os.path.join(holder, "people.jsonl")) as f:
             entries = [json.loads(line) for line in f]
         said = next((e for e in entries if e.get("event") == "message"), {})
         got = [m["text"] for w in waits for m in w["messages"]]
-        ok = (got == [requirement["says"][table["default"]]] and [bool(w["messages"]) for w in waits] == [False, True, False]
-              and entries[0].get("reply_delay_min") == {person["name"]: 20.0} and said.get("due_at_v") == said.get("asked_at_v", 0) + 1200)
-        print("{}  {}'s people, 20 minutes late: waits of ten minutes gave {}; asked at {} s, due at {} s".format(
-            "ok   " if ok else "WRONG", company, [(len(w["messages"]), w["waited_s"]) for w in waits], said.get("asked_at_v"), said.get("due_at_v")))
+        ok = (got == [requirement["says"][table["default"]]] and [bool(w["messages"]) for w in waits] == [False] * before + [True, False]
+              and entries[0].get("reply_delay_min") == {person["name"]: late} and said.get("due_at_v") == said.get("asked_at_v", 0) + 60 * late)
+        print("{}  {}'s people, {:g} minutes late ({}): waits of ten minutes gave {}; asked at {} s, due at {} s".format(
+            "ok   " if ok else "WRONG", company, late, "fixed by the task" if fixed else "set for the run", [(len(w["messages"]), w["waited_s"]) for w in waits], said.get("asked_at_v"), said.get("due_at_v")))
         return ok
     finally:
         for p in started:
@@ -333,13 +340,213 @@ def clock(company=None):
     return bad == 0
 
 
+class Company:
+    """The chat and the people's sidecar of a company on this machine, with a stand-in classifier that sorts every
+    message as a question about the requirement. The seat's clock jumps through waits (a scripted agent has nothing
+    running meanwhile), so minutes take no time."""
+
+    def __init__(self, company, variant, delay=None, start=None):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        import threading
+        self.table = people_file(company, {})
+        self.tokens = {"core": "probe-core"}
+        for p in self.table["people"]:
+            p["token"] = self.tokens[p["name"]] = "probe-" + p["name"]
+        self.person = self.table["people"][0]
+        self.requirement = next(t for t in self.person["topics"] if t["kind"] == "requirement")
+        answer = json.dumps({"choices": [{"message": {"content": json.dumps({"asks": [self.requirement["id"]], "broad": False, "question": True, "unclear": False})}}]}).encode()
+
+        class Stub(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(answer)))
+                self.end_headers()
+                self.wfile.write(answer)
+
+        Company.port = getattr(Company, "port", 19300 + os.getpid() % 300) + 2
+        self.stub = ThreadingHTTPServer(("127.0.0.1", Company.port), Stub)
+        threading.Thread(target=self.stub.serve_forever, daemon=True).start()
+        self.holder, self.url = tempfile.mkdtemp(prefix="people-probe-"), "http://127.0.0.1:{}".format(Company.port + 1)
+        with open(os.path.join(self.holder, "people.json"), "w") as f:
+            json.dump(self.table, f)
+        clean = {k: v for k, v in os.environ.items() if k not in ("SEEDCO_REPLY_DELAY", "SEEDCO_VARIANT_START")}
+        self.started = [
+            subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
+                             env=dict(clean, CHAT=json.dumps({"tokens": self.tokens, "admin": "probe-admin", "clock": {"seat": "core", "jump": True}}), CHAT_PORT=str(Company.port + 1))),
+            subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "people.py")],
+                             env=dict(clean, SEEDCO_VARIANT=variant, **({} if delay is None else {"SEEDCO_REPLY_DELAY": str(delay)}),
+                                      **({} if start is None else {"SEEDCO_VARIANT_START": start}),
+                                      PEOPLE=json.dumps({"chat": self.url, "file": os.path.join(self.holder, "people.json"), "out": self.holder,
+                                                         "model": {"url": "http://127.0.0.1:{}".format(Company.port), "key": "stand-in", "id": "stand-in"}})))]
+        for _ in range(50):      # until the people's sidecar has given the chat its events
+            time.sleep(0.2)
+            try:
+                if len(self.entries()) > len(self.person.get("events") or []):
+                    break
+            except OSError:
+                pass
+
+    def call(self, method, path, body=None):
+        r = urllib.request.Request(self.url + path, data=json.dumps(body).encode() if body is not None else None, method=method, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(r, timeout=120) as got:
+            return json.loads(got.read())
+
+    def ask(self, text="What should happen to the customers of a deleted type?"):
+        before = len([e for e in self.entries() if e.get("event") == "message"])
+        self.call("POST", "/send", {"from": "core", "token": self.tokens["core"], "to": self.person["name"], "text": text})
+        for _ in range(100):      # until the person has decided (the reply may be held)
+            time.sleep(0.1)
+            if len([e for e in self.entries() if e.get("event") == "message"]) > before:
+                return
+        raise OSError("the person did not answer")
+
+    def wait(self, minutes):
+        return [m["text"] for m in self.call("GET", "/inbox?" + urllib.parse.urlencode({"name": "core", "token": self.tokens["core"], "wait": 60 * minutes}))["messages"]]
+
+    def submit(self):
+        got = self.call("POST", "/submit", {"name": "core", "token": self.tokens["core"], "report": "done"})
+        return got["final"], [m["text"] for m in got["messages"]]
+
+    def entries(self):
+        with open(os.path.join(self.holder, "people.jsonl")) as f:
+            return [json.loads(line) for line in f]
+
+    def log(self):
+        return self.call("GET", "/log?token=probe-admin")
+
+    def close(self):
+        for p in self.started:
+            p.terminate()
+        self.stub.shutdown()
+
+
+def events(company):
+    """Section 10's probes of events and submission (docs/COWORKER_SPEC.md, 3.2), with scripted agents. No model."""
+    bad = []
+
+    def check(what, ok, shown=""):
+        bad.append(what) if not ok else None
+        print("{}  {}{}".format("ok   " if ok else "WRONG", what, ": {}".format(shown) if shown != "" else ""))
+
+    def told(c, variant):
+        event = c.person["events"][0]
+        return event["says"].format(says=c.requirement["says"][variant])
+
+    values = sorted(next(t for t in people_file(company)["people"][0]["topics"] if t["kind"] == "requirement")["says"])
+    for final in values:
+        start = next(v for v in values if v != final)
+        c = Company(company, final)
+        try:
+            says, after = c.requirement["says"], c.person["events"][0].get("after_reveal_min")
+            check("[ends as {}] nothing reaches a seat that has not asked".format(final), c.wait(10) == [])
+            c.ask()
+            check("[ends as {}] asked before the event: the starting value, `{}`".format(final, start), c.wait(1) == [says[start]])
+            early = c.wait(after - 2)
+            check("[ends as {}] nothing in the {} minutes after".format(final, after - 2), early == [])
+            check("[ends as {}] the event, {} minutes after the answer".format(final, after), c.wait(10) == [told(c, final)])
+            c.ask()
+            check("[ends as {}] asked after the event: the final value".format(final), c.wait(1) == [says[final]])
+            check("[ends as {}] the submission is final".format(final), c.submit() == (True, []))
+            c.call("POST", "/send", {"from": "core", "token": c.tokens["core"], "to": c.person["name"], "text": "one more question"})
+            time.sleep(1.5)
+            check("[ends as {}] nothing reaches the seat after its final submission".format(final), c.wait(10) == [] and c.submit()[0] is True)
+            log = c.log()
+            event = next(e for e in log["messages"] if e.get("event") and "delivered_at" in e)
+            first = next(e for e in c.entries() if e.get("event") == "message")
+            check("[ends as {}] recorded: when it was due, when it reached the seat, and how".format(final),
+                  abs(event["due_at_v"] - (first["due_at_v"] + 60 * after)) < 0.2 and abs(event["delivered_at_v"] - event["due_at_v"]) < 1 and event["delivered_by"] == "due"
+                  and [s["final"] for s in log["clock"]["submits"]] == [True],
+                  "answer due at {} s, event due at {} s, reached the seat at {} s".format(first["due_at_v"], event["due_at_v"], event["delivered_at_v"]))
+            scheduled = [e for e in c.entries() if e.get("event") == "scheduled"]
+            check("[ends as {}] the people's record: scheduled twice (no time, then a time), from `{}` to `{}`".format(final, start, final),
+                  [e["due_at_v"] is None for e in scheduled] == [True, False] and all(e["from_value"] == start and e["to_value"] == final for e in scheduled)
+                  and [e.get("values_said") for e in c.entries() if e.get("event") == "message"][:2] == [{c.requirement["id"]: start}, {c.requirement["id"]: final}])
+        finally:
+            c.close()
+
+    final, start = values[-1], values[0]
+    c = Company(company, final)       # never asks, never pushes, then submits
+    try:
+        c.wait(10), c.wait(10)
+        check("never asks, then submits: the event comes with the first submission, which is not final", c.submit() == (False, [told(c, final)]))
+        check("the second submission is final, and nothing comes with it", c.submit() == (True, []))
+        log = c.log()
+        check("recorded as delivered by the submission", [e.get("delivered_by") for e in log["messages"] if e.get("event")] == ["submit"]
+              and [(s["final"], s["events"]) for s in log["clock"]["submits"]] == [(False, [c.person["events"][0]["id"]]), (True, [])])
+    finally:
+        c.close()
+
+    c = Company(company, final)       # submits at once
+    try:
+        check("submits at once: the same", c.submit() == (False, [told(c, final)]) and c.submit() == (True, []) and c.wait(10) == [])
+    finally:
+        c.close()
+
+    c = Company(company, final)       # asks, then submits before the event is due
+    try:
+        c.ask()
+        heard = c.wait(1)
+        check("asks, then submits before the event is due: it comes with the submission", heard == [c.requirement["says"][start]] and c.submit() == (False, [told(c, final)]) and c.submit() == (True, []))
+    finally:
+        c.close()
+
+    c = Company(company, final, delay=20)       # the answer is late, and the event overtakes it
+    try:
+        c.ask()
+        nothing = c.wait(5)
+        first = c.submit()
+        later = c.wait(10) + c.wait(10) + c.wait(10)
+        log = c.log()
+        answer = next(e for e in log["messages"] if e["from"] == c.person["name"] and not e.get("event"))
+        check("a late answer the event overtakes is dropped, not delivered after it", nothing == [] and first == (False, [told(c, final)]) and later == []
+              and answer.get("superseded_by") == c.person["events"][0]["id"] and "delivered_at" not in answer and c.submit() == (True, []),
+              "the answer with the starting value was due at {} s; the event reached the seat at {} s".format(answer.get("due_at_v"), next(e for e in log["messages"] if e.get("event") and "delivered_at" in e)["delivered_at_v"]))
+    finally:
+        c.close()
+
+    c = Company(company, final)       # the work ends without a submission, the event still on its way
+    try:
+        c.ask(), c.wait(1), c.wait(5)
+        log = c.log()
+        event = [e for e in log["messages"] if e.get("event") and not e.get("replaced")]
+        check("the work ends with the event on its way: recorded as never having reached the seat", len(event) == 1 and "delivered_at" not in event[0]
+              and log["clock"]["not_delivered"] == 1 and log["clock"]["submits"] == [], "due at {} s, the clock stopped at {} s".format(event[0].get("due_at_v"), log["clock"]["now_v"]))
+    finally:
+        c.close()
+
+    seen = []
+    for _ in range(5):                # the same scripted agent five times: the simulator decides the same
+        c = Company(company, final)
+        try:
+            c.ask()
+            got = [c.wait(1), c.wait(10), c.wait(10)]
+            c.ask()
+            got += [c.wait(1), c.submit()]
+            entries, log = c.entries(), c.log()
+            first = next(e for e in entries if e.get("event") == "message")
+            seen.append((got, [(e.get("decision"), e.get("revealed"), e.get("reply"), e.get("values_said")) for e in entries if e.get("event") == "message"],
+                         [round(e["due_at_v"] - first["asked_at_v"], 1) for e in log["messages"] if e.get("due_at_v") is not None],
+                         [(e["id"], e["from_value"], e["to_value"], e["text"]) for e in entries if e.get("event") == "scheduled"]))
+        finally:
+            c.close()
+    check("the same scripted agent five times: the same classifications, reveals, replies and event times", all(s == seen[0] for s in seen), seen[0][2])
+    print("{} wrong".format(len(bad)))
+    return not bad
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=("classifier", "local", "clock"))
+    ap.add_argument("what", choices=("classifier", "local", "clock", "events"))
     ap.add_argument("company", nargs="?")
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--variant")
     a = ap.parse_args()
+    if a.what == "events":
+        sys.exit(0 if events(a.company) else 1)
     if a.what == "clock":
         sys.exit(0 if clock(a.company) else 1)
     sys.exit(0 if (classifier(a.company, a.repeat) if a.what == "classifier" else local(a.company, a.variant)) else 1)

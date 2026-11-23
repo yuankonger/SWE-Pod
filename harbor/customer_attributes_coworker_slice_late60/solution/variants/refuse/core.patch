@@ -1,0 +1,64 @@
+diff --git a/saleor/graphql/account/mutations/customer_type/customer_type_delete.py b/saleor/graphql/account/mutations/customer_type/customer_type_delete.py
+index 7f826a6dd..c19cf0215 100644
+--- a/saleor/graphql/account/mutations/customer_type/customer_type_delete.py
++++ b/saleor/graphql/account/mutations/customer_type/customer_type_delete.py
+@@ -33,8 +33,8 @@ class CustomerTypeDelete(ModelDeleteMutation):
+ 
+     class Meta:
+         description = (
+-            "Deletes a customer type. Users of the deleted customer type are "
+-            "reassigned to the default customer type." + ADDED_IN_323
++            "Deletes a customer type. A customer type that customers still have "
++            "cannot be deleted." + ADDED_IN_323
+         )
+         model = models.CustomerType
+         object_type = CustomerType
+@@ -71,13 +71,20 @@ class CustomerTypeDelete(ModelDeleteMutation):
+         with traced_atomic_transaction():
+             # Evaluate the queryset to acquire the locks.
+             list(customer_type_qs_select_for_update().values_list("pk", flat=True))
++            # The default type is refused for being the default (clean_instance), whoever has it.
+             default_customer_type = get_default_customer_type()
+-            if str(default_customer_type.pk) != str(customer_type_pk):
+-                # Deliberate lack of CUSTOMER_UPDATED events due to
+-                # an unbounded number of users that may be affected.
+-                # CUSTOMER_TYPE_DELETED event already implies the change.
+-                models.User.objects.filter(customer_type_id=customer_type_pk).update(
+-                    customer_type=default_customer_type
++            if (
++                str(default_customer_type.pk) != str(customer_type_pk)
++                and models.User.objects.filter(customer_type_id=customer_type_pk).exists()
++            ):
++                raise ValidationError(
++                    {
++                        "id": ValidationError(
++                            "A customer type that customers still have cannot be "
++                            "deleted. Move those customers to another type first.",
++                            code=CustomerTypeDeleteErrorCode.INVALID.value,
++                        )
++                    }
+                 )
+             return super().perform_mutation(_root, info, id=id)
+ 
+diff --git a/saleor/graphql/schema.graphql b/saleor/graphql/schema.graphql
+index 557c9953b..66c267fc5 100644
+--- a/saleor/graphql/schema.graphql
++++ b/saleor/graphql/schema.graphql
+@@ -22458,7 +22458,7 @@ type Mutation {
+   ): CustomerTypeUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
+ 
+   """
+-  Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
++  Deletes a customer type. A customer type that customers still have cannot be deleted.
+   
+   Added in Saleor 3.23. 
+   
+@@ -33978,7 +33978,7 @@ input CustomerTypeUpdateInput @doc(category: "Users") {
+ }
+ 
+ """
+-Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
++Deletes a customer type. A customer type that customers still have cannot be deleted.
+ 
+ Added in Saleor 3.23. 
+ 

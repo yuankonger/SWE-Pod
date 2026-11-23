@@ -22,6 +22,20 @@ With CHAT["clock"] = {"seat": name} the chat keeps a clock for that seat (docs/C
                     says how long it took (`waited_s`).
     /log            also gives the clock: where it stands, every wait, and when each held message was delivered.
 
+Events and submission (3.2), with the clock:
+
+    /send           from a scripted person may carry "event": <id>. That message is an event: it reaches the seat when
+                    its "due_at_v" comes (none: no time of its own) and at the latest when the seat first submits.
+                    Sending an event again before it has reached the seat replaces it. When an event reaches the seat,
+                    what the same person sent earlier and is still held is dropped (`superseded_by`): it was decided
+                    before the event and would arrive after it.
+    POST /submit    {"name", "token", "report"} from the seat: its work is finished. If an event has not reached the
+                    seat yet, it does now, in the answer, and the submission is not final:
+                    {"final": false, "messages": [...]}. Otherwise {"final": true}: the seat has finished, and nothing
+                    reaches it afterwards. So no event is avoided by finishing early and none arrives after the end.
+    GET /events?name=&token=   for a scripted person: its events, each with whether it has reached the seat.
+    /log            also gives every submission.
+
 A wait is real because the rest of the company is: a test suite the agent started, a deploy CI is running. With
 "jump": true in the clock a wait returns at once and moves the clock forward instead (to the next message due, or by
 the whole wait), holding only while a person's reply is still being decided so that a jump never passes it. That is
@@ -49,7 +63,7 @@ class Clock:
 
     def __init__(self, now=time.time):
         self.wall, self.started, self.jumped, self.paused_for, self.paused_since = now, now(), 0.0, 0.0, None
-        self.held, self.waits, self.unanswered = [], [], 0
+        self.held, self.waits, self.unanswered, self.submits = [], [], 0, []
 
     def now(self):
         away = self.paused_for + (self.wall() - self.paused_since if self.paused_since is not None else 0.0)
@@ -73,11 +87,17 @@ class Clock:
         self.held = [h for h in self.held if h[0] > at]
         return [entry for _, _, entry in ready]
 
+    def events(self):
+        """The events that have not reached the seat, whatever their time, in the order they would fall due."""
+        ready = sorted(h for h in self.held if h[2].get("event"))
+        self.held = [h for h in self.held if not h[2].get("event")]
+        return [entry for _, _, entry in ready]
+
     def wait(self, seconds):
         """Jump for a wait of `seconds`: to the next held message if one is due within it, else by all of it.
         Returns how far the clock moved."""
         at = self.now()
-        ahead = [due - at for due, _, _ in self.held if due - at <= seconds]
+        ahead = [due - at for due, _, _ in self.held if due - at <= seconds]      # an event with no time of its own is never ahead
         by = round(max(0.0, min(ahead)) if ahead else seconds, 1)
         self.jumped += by
         self.waits.append({"at_v": at, "by_s": by, "asked_s": seconds, "to_a_message": bool(ahead), "jumped": True})
@@ -88,11 +108,31 @@ CLOCK = Clock() if CONFIG.get("clock") else None
 SEAT = (CONFIG.get("clock") or {}).get("seat")
 
 
-def deliver_due():
-    """Puts the held messages that are due into the seat's inbox. Under `changed`."""
-    for entry in CLOCK.due():
+NEVER = float("inf")      # the due time of an event that has no time of its own: it waits for the submission
+
+
+def deliver(entries, by="due"):
+    """Puts held messages into the seat's inbox. An event drops what its sender still has on its way. Under `changed`."""
+    for entry in entries:
+        if entry.get("superseded_by"):
+            continue
         entry.update(delivered_at=round(time.time(), 1), delivered_at_v=CLOCK.now())
         inbox[entry["to"]].append({"from": entry["from"], "text": entry["text"], "at": entry["delivered_at"]})
+        if entry.get("event"):
+            entry["delivered_by"] = by
+            for _, _, other in CLOCK.held:
+                if other["from"] == entry["from"] and not other.get("event"):
+                    other["superseded_by"] = entry["event"]
+            for other in entries:
+                if other is not entry and other["from"] == entry["from"] and not other.get("event") and "delivered_at" not in other:
+                    other["superseded_by"] = entry["event"]
+            CLOCK.held = [h for h in CLOCK.held if not h[2].get("superseded_by")]
+
+
+def deliver_due():
+    """Puts the held messages that are due into the seat's inbox. Under `changed`."""
+    if SEAT not in done:      # nothing reaches a seat that has submitted
+        deliver(CLOCK.due())
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -134,6 +174,24 @@ class Handler(BaseHTTPRequestHandler):
                     pauses.append({"name": name, "at": round(time.time(), 1), "resumed": True})
                 changed.notify_all()
                 return self.reply(200, {"ok": True})
+            if self.path.startswith("/submit"):
+                if not CLOCK or name != SEAT:
+                    return self.reply(400, {"error": "nothing to submit here"})
+                if SEAT in done:
+                    return self.reply(200, {"final": True, "again": True, "messages": []})
+                deliver_due()
+                fired = CLOCK.events()
+                deliver(fired, by="submit")
+                final = not fired
+                CLOCK.submits.append({"at": round(time.time(), 1), "at_v": CLOCK.now(), "final": final, "events": [e["event"] for e in fired],
+                                      "report": (body.get("report") or "").strip(), "unread": 0 if fired else len(inbox[name])})
+                messages = []
+                if fired:
+                    messages, inbox[name] = inbox[name], []
+                else:
+                    done.add(name)
+                changed.notify_all()
+                return self.reply(200, {"final": final, "messages": messages})
             to, text = body.get("to"), (body.get("text") or "").strip()
             if to not in TOKENS or to == name or not text:
                 return self.reply(400, {"error": "`to` must be one of {} and `text` must not be empty".format(sorted(n for n in TOKENS if n != name))})
@@ -146,7 +204,20 @@ class Handler(BaseHTTPRequestHandler):
                     CLOCK.unanswered += 1
                 elif name != SEAT:      # a person's one reply to a message: scheduled from here on, or delivered now
                     CLOCK.unanswered = max(0, CLOCK.unanswered - 1)
-            if delivered and CLOCK and to == SEAT and body.get("due_at_v") is not None and float(body["due_at_v"]) > CLOCK.now():
+            if delivered and CLOCK and to == SEAT and name != SEAT and body.get("event"):
+                entry["event"] = str(body["event"])
+                for _, _, old in CLOCK.held:      # the same event, sent again before it reached the seat: this one replaces it
+                    if old.get("event") == entry["event"] and old["from"] == name:
+                        old["replaced"] = True
+                CLOCK.held = [h for h in CLOCK.held if not h[2].get("replaced")]
+                if any(e.get("event") == entry["event"] and e["from"] == name and "delivered_at" in e for e in log):
+                    entry["delivered"] = False      # it has reached the seat already: said once
+                    return self.reply(200, {"delivered": False, "note": "that event has reached {} already".format(to)})
+                if body.get("due_at_v") is not None:
+                    entry["due_at_v"] = round(float(body["due_at_v"]), 1)
+                CLOCK.hold(entry, entry.get("due_at_v", NEVER))
+                changed.notify_all()
+            elif delivered and CLOCK and to == SEAT and body.get("due_at_v") is not None and float(body["due_at_v"]) > CLOCK.now():
                 entry["due_at_v"] = round(float(body["due_at_v"]), 1)
                 CLOCK.hold(entry, entry["due_at_v"])
                 changed.notify_all()
@@ -173,17 +244,24 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(401, {"error": "not for you"})
             with changed:
                 clock = CLOCK and {"seat": SEAT, "now_v": CLOCK.now(), "waited_s": round(sum(w["by_s"] for w in CLOCK.waits), 1),
-                                   "jumped_s": round(CLOCK.jumped, 1), "waits": CLOCK.waits, "not_delivered": len(CLOCK.held)}
+                                   "jumped_s": round(CLOCK.jumped, 1), "waits": CLOCK.waits, "not_delivered": len(CLOCK.held),
+                                   "submits": CLOCK.submits}
             return self.reply(200, dict({"messages": log, "done": sorted(done), "pauses": pauses}, **({"clock": clock} if clock else {})))
         name = q.get("name")
         if TOKENS.get(name) is None or TOKENS[name] != q.get("token"):
             return self.reply(401, {"error": "who are you?"})
+        if url.path == "/events":
+            with changed:
+                mine = [{"event": e["event"], "reached_seat": "delivered_at" in e, "at_v": e.get("delivered_at_v")}
+                        for e in log if e.get("event") and e["from"] == name and not e.get("replaced") and e.get("delivered")]
+                return self.reply(200, {"events": mine, "now_v": CLOCK.now() if CLOCK else None})
         asked = min(float(q.get("wait") or 0), 900)
         deadline = time.time() + asked
         if CLOCK and name == SEAT:      # the seat's wait ends when a held message falls due
             with changed:
                 deliver_due()
                 began, jumps, waited = CLOCK.now(), CONFIG["clock"].get("jump"), 0.0
+                asked = 0 if name in done else asked      # a seat that has submitted waits for nothing
                 while asked and not inbox[name] and time.time() < deadline and (CLOCK.unanswered or not jumps):
                     changed.wait(0.5)
                     deliver_due()

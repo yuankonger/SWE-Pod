@@ -295,8 +295,10 @@ def coworker_seats(out, owners, coworker, people):
     requirement = next(t for p in people["people"] for t in p["topics"] if t["kind"] == "requirement")
     os.makedirs(os.path.join(out, "seats", "coworker"), exist_ok=True)
     def note(arm):
-        return COWORKER_SEAT.format(owner=owner, requester=names[0], others_repos=others,
-                                    reach=COWORKER_REACH[arm].format(names=" and ".join("{} (`{}`)".format(n, n.lower()) for n in names), first=names[0]))
+        reach = COWORKER_REACH[arm].format(names=" and ".join("{} (`{}`)".format(n, n.lower()) for n in names), first=names[0])
+        if coworker.get("submit") and arm != "no_interaction":      # the tool comes with the messaging tools
+            reach += "\n" + COWORKER_SUBMIT.format(owner=owner)
+        return COWORKER_SEAT.format(owner=owner, requester=names[0], others_repos=others, reach=reach)
     notes = {arm: note(arm) for arm in COWORKER_REACH}
     for value, says in requirement["says"].items():
         notes["full-" + value] = note("partial") + COWORKER_FULL.format(first=names[0], says=says)
@@ -352,6 +354,8 @@ COWORKER_REACH = {
     "told": ("You can reach {names} with the `send_message` tool; `read_messages` shows what has reached you and `wait_for_message` waits for it.\n"
              "Before you build, ask {first} for any requirements the brief leaves out."),
 }
+COWORKER_SUBMIT = ("When your work is finished, call the `submit` tool: what is on `main` of `{owner}` then is what is judged. If something has "
+                   "reached you that you have not seen, `submit` gives it to you instead of ending your work; deal with it and submit again.")
 COWORKER_FULL = "\n\n## What {first} has also told you\n\n{says}"
 COWORKER_SOLVE = """#!/bin/bash
 # The oracle for the requirement as `{value}` has it: the feature as the real project wrote it{more}, pushed to `main`.
@@ -361,15 +365,22 @@ git add -A -f && git commit -qm "The feature" && git push -q {oracle}/{owner}.gi
 """
 
 
-def coworker_people(company, tokens):
-    """mined/<company>/people.toml as the people sidecar reads it."""
+def coworker_people(company, tokens, seat=None):
+    """mined/<company>/people.toml as the people sidecar reads it. A person's events (docs/COWORKER_SPEC.md, 3.2) are
+    there only where the task has some, and then the file also names the seat they are sent to."""
     import tomllib
     with open(mc.company_file(company, "people.toml"), "rb") as f:
         raw = tomllib.load(f)
-    return {"default": raw["default"], "people": [
-        {"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": tokens[p["name"]],
-         "reply_delay_min": p.get("reply_delay_min", 0),
-         "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]} for p in raw["person"]]}
+    def events(p):
+        found = [{k: e[k] for k in ("id", "kind", "topic", "says", "at_min", "after_reveal_min") if k in e} for e in p.get("event", [])]
+        return {"events": found} if found else {}
+    people = {"default": raw["default"], "people": [
+        dict({"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": tokens[p["name"]],
+              "reply_delay_min": p.get("reply_delay_min", 0),
+              "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]}, **events(p)) for p in raw["person"]]}
+    if any("events" in p for p in people["people"]):
+        people["seat"] = seat
+    return people
 
 
 def git_line_endings(tree: str) -> list:
@@ -501,7 +512,7 @@ def main():
             raise SystemExit("a coworker task has one seat: export it without --team")
         hashed = lambda who: hashlib.sha256("{}/{}/coworker".format(a.company, who).encode()).hexdigest()[:12]
         tokens[coworker["seat"]] = "seat-{}-{}".format(coworker["seat"], hashed(coworker["seat"]))
-        people = coworker_people(a.company, {p: "person-{}-{}".format(p, hashed(p)) for p in coworker["people"]})
+        people = coworker_people(a.company, {p: "person-{}-{}".format(p, hashed(p)) for p in coworker["people"]}, coworker["seat"])
     access = {"tokens": tokens, "access": {"ci": everything("read"), "verifier": everything("read"), "oracle": everything("write")}}
     isolated = bool(a.team and info.get("isolated"))      # each owner has its own repository and cannot read the others'
     if isolated:
@@ -550,8 +561,10 @@ def main():
     services["main"] = seat(owners[0] if a.team else coworker["seat"] if coworker else "solo")
     if coworker:
         variant = "${{VARIANT:-{}}}".format(coworker["variants"]["default"])      # set by whoever starts the run; the seat never has it
-        services["main"]["environment"].update(SEAT_ONLY=coworker["seat"], TEAM=",".join([coworker["seat"]] + list(coworker["people"])))
+        services["main"]["environment"].update(SEAT_ONLY=coworker["seat"], TEAM=",".join([coworker["seat"]] + list(coworker["people"])),
+                                               **({"SUBMIT": "1"} if coworker.get("submit") else {}))
         services["judge"]["environment"]["SEEDCO_VARIANT"] = variant
+        fixed_delay = any(p["reply_delay_min"] for p in people["people"])
         services["chat"] = {"build": build, "command": ["python3", "/opt/seedco/chat.py"],
                             "environment": {"CHAT": json.dumps({"tokens": dict({coworker["seat"]: tokens[coworker["seat"]]}, **{p["name"]: p["token"] for p in people["people"]}),
                                                                 "admin": CHAT_ADMIN, "clock": {"seat": coworker["seat"]}})}}
@@ -559,7 +572,11 @@ def main():
         # come from whoever starts the run, and are in this container's environment only.
         services["people"] = {"build": build, "command": ["python3", "/opt/seedco/people.py"], "volumes": ["${HOST_VERIFIER_LOGS_PATH:?Harbor 0.26: run with --ek auto_mounting=true, see RUNNING.md}/../people:/people-out"],
                               "depends_on": {"chat": {"condition": "service_started"}}, "extra_hosts": ["host.docker.internal:host-gateway"],
-                              "environment": {"SEEDCO_VARIANT": variant, "SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}",      # minutes; set by whoever starts the run
+                              # minutes. A task whose people file gives a delay has it fixed (it is part of the freeze);
+                              # otherwise it is set by whoever starts the run
+                              "environment": {"SEEDCO_VARIANT": variant, **({} if fixed_delay else {"SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}"}),
+                                              # the value the requirement starts with, where a person's event moves it (default: the other one)
+                                              **({"SEEDCO_VARIANT_START": "${VARIANT_START:-}"} if any("events" in p for p in people["people"]) else {}),
                                               "PEOPLE": json.dumps({"chat": "http://chat:8080", "file": "/opt/seedco/people.json", "out": "/people-out",
                                                                     "model": {"url": "${PEOPLE_MODEL_URL}", "key": "${PEOPLE_MODEL_KEY}", "id": coworker["model"]}})}}
         with open(os.path.join(env_dir, "sidecars", "people.json"), "w") as f:

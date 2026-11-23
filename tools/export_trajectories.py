@@ -101,7 +101,7 @@ def export(job, task, review=None):
             f.write(clean(text, hidden))
 
     # one trajectory per seat: Harbor's own seat, then each extra seat of a team (agent/<owner>/)
-    seats = {}
+    seats, steps_of = {}, {}
     owners = [pair.split("=", 1) for pair in str(agent["kwargs"].get("seats", "main=solo")).split(",")] if team else [["main", "solo"]]
     for service, owner in owners:
         seat_dir = os.path.join(trial, "agent") if service == "main" else os.path.join(trial, "agent", owner)
@@ -116,6 +116,7 @@ def export(job, task, review=None):
             continue
         trajectory.setdefault("agent", {})["model_name"] = model      # Harbor's converter can leave "<synthetic>"
         trajectory.setdefault("extra", {})["seat"] = owner
+        steps_of[owner] = trajectory.get("steps", [])
         put(json.dumps(trajectory, indent=1, ensure_ascii=False), owner + ".trajectory.json")
         seats[owner] = {"trajectory": owner + ".trajectory.json", "steps": len(trajectory.get("steps", [])),
                         "format": trajectory.get("schema_version"), "valid": atif_valid(trajectory)}
@@ -158,7 +159,7 @@ def export(job, task, review=None):
         if os.path.isfile(os.path.join(trial, "agent", "chat.json")):
             with open(os.path.join(trial, "agent", "chat.json")) as f:
                 talk = json.load(f)
-        replies = {(m["from"], m.get("due_at_v")): m for m in talk.get("messages", []) if m.get("due_at_v") is not None}
+        replies = {(m["from"], m.get("due_at_v")): m for m in talk.get("messages", []) if m.get("due_at_v") is not None and not m.get("event")}
         clock = talk.get("clock")
         all_waits = (clock or {}).get("waits") or (clock or {}).get("jumps") or []      # "jumps": the first freeze of the clock, whose waits jumped it
 
@@ -183,6 +184,41 @@ def export(job, task, review=None):
                  "revealed": sorted({i for e in messages for i in e.get("revealed", [])}),
                  "people_sidecar_failures": sum(1 for e in messages if e.get("failed")),
                  "variant_at_people": sorted({e.get("variant") for e in entries})}
+        # events and submission (docs/COWORKER_SPEC.md, 3.2): for every event whether and when it reached the seat (it is in
+        # a tool result the agent received), how, what was left of the time and the budget then, and what the seat did after
+        if clock and "submits" in clock:
+            import datetime
+            scheduled = {e["id"]: e for e in entries if e.get("event") == "scheduled"}       # the last schedule of each event
+            limits = [s.get("run", {}) for s in seats.values() if s.get("run")]
+            work_limit = limits[0].get("work_limit_s") if limits else None
+            cap = episode.get("cap_usd")
+            steps = [(datetime.datetime.fromisoformat(x["timestamp"].replace("Z", "+00:00")).timestamp(), (x.get("metrics") or {}).get("cost_usd") or 0)
+                     for x in next(iter(steps_of.values()), []) if x.get("timestamp")]
+
+            def event(m):
+                plan, reached = scheduled.get(m["event"], {}), m.get("delivered_at")
+                found = {"id": m["event"], "from": m["from"], "kind": plan.get("kind"), "topic": plan.get("topic"), "from_value": plan.get("from_value"),
+                         "to_value": plan.get("to_value"), "due_at_min": None if m.get("due_at_v") is None else round(m["due_at_v"] / 60, 1),
+                         "reached_seat": reached is not None}
+                if reached is None:
+                    return dict(found, note="the work ended before it was due and without a submission; the run stays in the figures")
+                spent = round(sum(c for at, c in steps if at <= reached), 2)
+                time_left = None if not work_limit else round(1 - m["delivered_at_v"] / work_limit, 2)
+                budget_left = None if not cap else round(1 - spent / cap, 2)
+                return dict(found, reached_seat_at_min=round(m["delivered_at_v"] / 60, 1), reached_seat_by=m.get("delivered_by"),
+                            pushes_before=sum(1 for at in pushes if at < reached), pushes_after=sum(1 for at in pushes if at >= reached),
+                            minutes_of_work_after=round((clock["now_v"] - m["delivered_at_v"]) / 60, 1),
+                            spent_usd_before=spent, share_of_time_left=time_left, share_of_budget_left=budget_left,
+                            # a response opportunity (3.2): a quarter of the time and of the budget were still there
+                            response_opportunity=None if time_left is None or budget_left is None else time_left >= 0.25 and budget_left >= 0.25)
+            asked["events"] = [event(m) for m in talk.get("messages", []) if m.get("event") and not m.get("replaced") and m.get("delivered")]
+            asked["replies_overtaken_by_an_event"] = sum(1 for m in talk.get("messages", []) if m.get("superseded_by"))
+            final = [x for x in clock["submits"] if x["final"]]
+            asked["submission"] = {"submitted": bool(final), "submissions": [{"at_min": round(x["at_v"] / 60, 1), "final": x["final"], "events": x["events"],
+                                                                              "report": x.get("report"), "unread_messages": x.get("unread")} for x in clock["submits"]],
+                                   "pushes_after_final_submission": sum(1 for at in pushes if final and at > final[0]["at"])}
+            if not final:
+                asked["submission"]["not_submitted"] = True      # judged as it stands on `main`
     measures = {}
     if os.path.isfile(os.path.join(job, "measures.json")):
         with open(os.path.join(job, "measures.json")) as f:
@@ -215,6 +251,10 @@ def export(job, task, review=None):
         run.update(condition="coworker/" + episode["arm"], arm=episode["arm"], variant=episode["variant"], budget_usd=episode.get("cap_usd", run["budget_usd"]),
                    judged_variant=(score.get("variant") or {}).get("value"), asked=asked,
                    reply_delay_min=episode.get("reply_delay_min", 0))
+        if episode.get("variant_start"):
+            run["variant_start"] = episode["variant_start"]
+        if asked and asked.get("submission"):
+            run["submitted"] = asked["submission"]["submitted"]
         if asked and asked["people_sidecar_failures"]:
             run["complete"] = False
             run["people_sidecar_failed"] = asked["people_sidecar_failures"]

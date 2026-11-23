@@ -439,8 +439,9 @@ TEST_FILES = re.compile(r"(^|/)(tests?|__tests__|testUtils|fixtures)/|(^|/)conft
 
 def untouched(owners):
     """The tests and test settings of the work's start that were changed, renamed or removed, leaving out what the
-    hidden tests replace: ({owner: [paths]}, {owner: [test files added]}). Files the work added are not changes to
-    what it started with; they are listed apart."""
+    hidden tests replace: ({owner: [paths]}, {owner: [test files added, or only added to]}). Files the work added are
+    not changes to what it started with, and neither is a file it only added lines to (its own tests, put beside the
+    ones that were there: no line of the start is gone); both are listed apart."""
     changed, added = {}, {}
     for owner in owners:
         at = os.path.join(SCRATCH, "history-" + owner)
@@ -451,8 +452,14 @@ def untouched(owners):
         new = subprocess.run(["git", "-C", at, "diff", "--name-only", "--diff-filter=A", first[-1], "HEAD"], capture_output=True, text=True).stdout.split("\n") if first else []
         laid = set(n[2:] if n.startswith("./") else n for n in subprocess.run(
             ["tar", "-tzf", os.path.join(TESTS, "hidden", owner + "-tests.tar.gz")], capture_output=True, text=True).stdout.split("\n"))
-        changed[owner] = sorted(n for n in names if n and TEST_FILES.search(n) and n not in laid and n not in owners[owner].get("removed_by_feature", []))
-        added[owner] = sorted(n for n in new if n and TEST_FILES.search(n) and n not in laid)
+        only_added_to = set()      # modified files in which no line of the start was removed or changed
+        for line in (subprocess.run(["git", "-C", at, "diff", "--numstat", "--diff-filter=M", first[-1], "HEAD"], capture_output=True, text=True).stdout.split("\n") if first else []):
+            parts = line.split("\t")
+            if len(parts) == 3 and parts[1] == "0" and parts[0] not in ("0", "-"):
+                only_added_to.add(parts[2])
+        mine = [n for n in names if n and TEST_FILES.search(n) and n not in laid and n not in owners[owner].get("removed_by_feature", [])]
+        changed[owner] = sorted(n for n in mine if n not in only_added_to)
+        added[owner] = sorted([n for n in new if n and TEST_FILES.search(n) and n not in laid] + [n for n in mine if n in only_added_to])
         shutil.rmtree(at, ignore_errors=True)
     return changed, added
 
@@ -653,7 +660,7 @@ def main():
             score = not any(changed.values())
             detail = "; ".join("{}: {}".format(o, ", ".join(v[:12]) + (" and {} more".format(len(v) - 12) if len(v) > 12 else "")) for o, v in changed.items() if v)
             if any(added.values()):      # for the reader: what the work added is no change, but worth knowing
-                detail = (detail + "; " if detail else "") + "added (not counted): " + "; ".join("{}: {} test files".format(o, len(v)) for o, v in added.items() if v)
+                detail = (detail + "; " if detail else "") + "added or only added to (not counted): " + "; ".join("{}: {} test files".format(o, len(v)) for o, v in added.items() if v)
         elif c["type"] == "command":
             score, detail = rubric.command(c)
         elif c["type"] == "judge":
