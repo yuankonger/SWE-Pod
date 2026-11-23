@@ -1,14 +1,14 @@
 {
- "id": "552f4a9a97da4633",
+ "id": "5986e6a6d5c5f6d9",
  "files": {
-  "DATASHEET.md": "2a38894602b5c36422b6c398f96320e64d4a3685c33b6f8cd796504df646abb3",
-  "RUNNING.md": "ee374088f40ed9e98e5d907f4dd514c1fcdc50da70aedbda12d5908014522ac5",
+  "DATASHEET.md": "30698ae1c145af6afb7f40d50200634d616b7f32005553319915b87bea30bc37",
+  "RUNNING.md": "ffe5fb4eee9f898ea6547f3ae01ed539b6816bad6b50a87485eb554774b12abe",
   "instruction.md": "997afac861e79df1dbe65eddec1b52c899ad1cf2065c0a39548609657492e1d0",
   "task.toml": "57cff135c702a272540cbd3c445aa29d60a9afac3d3ec01977dfbfac5f7014db",
   "agents/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
   "environment/Dockerfile": "14d4e39e40f15a06b4d6ca026c613c531754f4e3a47d226df13040150f32e15d",
   "environment/docker-compose.yaml": "975d6ca497b981e9fe89b4ff353061e1015659217de5acd9729b47a58c1c1970",
-  "environment/sidecars/chat.py": "a623412bdc9393badeed1ac2595f5208e5d0c53eb8e417ef5967d06e8c9c326c",
+  "environment/sidecars/chat.py": "379a7635511f1f788035f0623ef2230ab6f17630bfd52801a6ad46a8b055ea9d",
   "environment/sidecars/ci.py": "d7d2bf21604cac51d224baf30a6c8109c31131e2ea77663cc4578a70d855d9e5",
   "environment/sidecars/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
   "environment/sidecars/gitserver_app.py": "45747a4131b583e9ffa55a1d029cfe5cd8baff507f672cab8f59bd0d468ac48c",
@@ -17,12 +17,12 @@
   "environment/sidecars/mined_graphql_agreement.cjs": "18d3549f68ee58952c0d4247792dae93a10a8dae1bca5af76b3cee491cb54555",
   "environment/sidecars/model_meter.py": "c3f2722e542573b1a29c078c65bde73305fff5fad8f46c45beb0091e511b90bc",
   "environment/sidecars/people.json": "23d9e539475ffb20be9d3610944ddce543229b3ed54ed282c8b8a717ce43eca1",
-  "environment/sidecars/people.py": "25d60efec5cf9006748efb6a7a55a07f8f31818ddae4fa6b863283b3cb8f6e3f",
+  "environment/sidecars/people.py": "ece10af9a3242e27c78d8459c62cb3abebf9c8b81a7aee099fb2aed11bebe5e9",
   "environment/sidecars/seat.sh": "3e6c3644586b2e5a79a9c3704d20b92fd02b6842196fcc271ddea6750e0ae761",
   "environment/sidecars/service.py": "fe048ee6fd7e66910bb7b59b7e0cc4d83b2dca8850141fcef171a504d63450c4",
   "environment/sidecars/smoke_new_fields.cjs": "1a8b11c86f029c66c67eb14f31498d08f819acd445d55a17f933553de83be876",
   "environment/sidecars/stripe_mock.py": "677d4a68bd3052e27c7f2d0c45ca7779f436462aed97d8ef4c77fca34a0fbc8b",
-  "environment/sidecars/team_mcp.py": "8500d9f0f8b60eedaf22554383206e0c08b4cd7f953c8283e74d4c176473c897",
+  "environment/sidecars/team_mcp.py": "a038fa6450454be0448011d0d9d1a966f093e85abc53c591e047b89616a21cdb",
   "environment/work/core/.dockerignore": "e42996fbd615b1a74291ce777012f057ef4d21ecbe6e24af560fee84b6ee55e3",
   "environment/work/core/.editorconfig": "df05070b02663870231396a30bb67e02a99861aba9b620eac33f19a9c2e34294",
   "environment/work/core/.env.example": "4fd64d56fca88bebd80be5aed8e4ac1135d143250ac452ae0c217909d6210cc3",
@@ -11059,11 +11059,11 @@
   "tests/test.sh": "88446ece9eb55e33d5edfdfcc5d5ce844f8dceaa9bb4282b6dafc3daa291fcd3",
   "tests/hidden/base_schema.graphql": "16685e4a3b842a1b955464f5a3ecaacc3ae0424e1a86d2e4a7a254b6540082b1",
   "tests/hidden/core-reference.json": "2aad26b4e0d705eee89442dec2fdcef633b1c9bdf2a2e5d8bacfd19d9b0c23fd",
-  "tests/hidden/core-tests.tar.gz": "dda3cb2cf550809f80456ac8e9219ab43b17f1600a83ecf928c321a4c3459c38",
+  "tests/hidden/core-tests.tar.gz": "ea7169d19921e316fe0b31f30d20a486fafb6ff9f1503f25a03d2ef84ed14a3c",
   "tests/hidden/dashboard-reference.json": "ec7df4dacc00d74f6b5d6551699ecce9fe156000b131d023ce7173dd7dfecec5",
-  "tests/hidden/dashboard-tests.tar.gz": "9a2660c3f3dd7ac1529fde66e2e0850f9f2b3691601b561a8b45af06ed8e504f",
+  "tests/hidden/dashboard-tests.tar.gz": "d5042ae5bdac7362d4f31bbb2db13632696820b7748a5af39c506933124c541f",
   "tests/hidden/usage.json": "90e56a1f06e637657976010b8fb0c4612a2b125c309d5a3c0e3711c83cfa0f6c",
-  "tests/hidden/variants/refuse/core-tests.tar.gz": "96cfe417a00b069f3b9ddbb773517ec5be9248f30c4c10eb5112e4ccd06395e3"
+  "tests/hidden/variants/refuse/core-tests.tar.gz": "2f032ed5f9d02391d13f7b4f6c28fbe49d0b1a02837c4c6b0c59ef27eb3a1d6c"
  },
  "runners": {
   "tools/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
@@ -11074,5 +11074,5 @@
   "node:24-bookworm@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496": "not here",
   "base-core": "not here"
  },
- "frozen_at": "2026-11-22T08:52:09Z"
+ "frozen_at": "2026-11-23T03:37:22Z"
 }

@@ -48,7 +48,7 @@ def inbox(wait):
     if "error" in got:
         return "ERROR: " + got["error"]
     lines = ["Message from {}:\n{}".format(m["from"], m["text"]) for m in got["messages"]] or ["No message."]
-    if got.get("waited_s"):      # a coworker task's clock: the wait took this long, however little time it took here
+    if (got.get("waited_s") or 0) >= 30:      # a coworker task's clock: how long the wait took
         minutes = max(1, round(got["waited_s"] / 60))
         lines.insert(0, "You waited {} minute{}.".format(minutes, "" if minutes == 1 else "s"))
     away = got.get("others_paused") or {}

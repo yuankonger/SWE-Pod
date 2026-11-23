@@ -160,21 +160,23 @@ def export(job, task, review=None):
                 talk = json.load(f)
         replies = {(m["from"], m.get("due_at_v")): m for m in talk.get("messages", []) if m.get("due_at_v") is not None}
         clock = talk.get("clock")
+        all_waits = (clock or {}).get("waits") or (clock or {}).get("jumps") or []      # "jumps": the first freeze of the clock, whose waits jumped it
 
         def timing(e):
             reply = replies.get((e["person"], e.get("due_at_v")))
             if e.get("due_at_v") is None:
                 return {}
             reached = reply.get("delivered_at") if reply else None
-            waits = [j for j in (clock or {}).get("jumps", []) if e["asked_at_v"] <= j["at_v"] < e["due_at_v"]]
+            waits = [j for j in all_waits if e["asked_at_v"] <= j["at_v"] < e["due_at_v"]]
             return {"asked_at_min": round(e["asked_at_v"] / 60, 1), "reply_due_at_min": round(e["due_at_v"] / 60, 1),
                     "reply_reached_seat": reached is not None,
                     "pushes_while_reply_on_its_way": sum(1 for at in pushes if e["at"] <= at < (reached if reached is not None else float("inf"))),
                     "waits_while_reply_on_its_way": len(waits), "minutes_waited_for_it": round(sum(j["by_s"] for j in waits) / 60, 1)}
         asked = {"messages_to_people": len(messages),
                  "reply_delay_min": next((e.get("reply_delay_min") for e in entries if e.get("event") == "started"), None),
-                 "clock": clock and {"minutes": round(clock["now_v"] / 60, 1), "minutes_waited": round(clock["jumped_s"] / 60, 1),
-                                     "waits": len(clock["jumps"]), "replies_never_delivered": clock["not_delivered"]},
+                 "clock": clock and {"minutes": round(clock["now_v"] / 60, 1), "minutes_waited": round(sum(w["by_s"] for w in all_waits) / 60, 1),
+                                     "minutes_jumped": round(clock["jumped_s"] / 60, 1),      # waits that took no wall time: none, but in the clock's first freeze
+                                     "waits": len(all_waits), "replies_never_delivered": clock["not_delivered"]},
                  "exchanges": [dict({"to": e["person"], "asked": e["text"], "decision": e.get("decision"), "revealed": e.get("revealed", []),
                                      "reply": e.get("reply"), "before_first_push": None if first_push is None else e["at"] < first_push,
                                      "failed": e.get("failed")}, **timing(e)) for e in messages],

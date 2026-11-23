@@ -12,17 +12,21 @@ CHAT = {"tokens": {name: token}, "admin": token}. A message to someone who has f
 not delivered, and the sender is told so. /inbox waits up to `wait` seconds for a message, and stops waiting at
 once when nobody else is still working.
 
-With CHAT["clock"] = {"seat": name} the chat keeps a virtual clock for that seat (docs/COWORKER_SPEC.md, 3.3): one
-agent at `name`, and everyone else on the chat a scripted person (sidecars/people.py). Then:
+With CHAT["clock"] = {"seat": name} the chat keeps a clock for that seat (docs/COWORKER_SPEC.md, 3.3): one agent at
+`name`, and everyone else on the chat a scripted person (sidecars/people.py). Then:
 
-    the clock       advances with the seat's working time (wall time, less the time the seat is paused by a limit on
-                    the model service) and jumps forward when the seat waits. Messages carry it as `at_v`, in seconds.
+    the clock       is the seat's working time: wall time, less the time the seat is paused by a limit on the model
+                    service. Messages carry it as `at_v`, in seconds.
     /send           from a scripted person may carry "due_at_v": the message reaches the seat when the clock is there.
-    /inbox?wait=    from the seat never waits in real time for a reply that is scheduled: the clock jumps to the next
-                    message due, or by the whole wait when none is due within it, and the answer says how far
-                    (`waited_s`). While a person has not yet answered a message (their reply is being decided, and is
-                    not scheduled yet) the wait holds, for the seconds that takes, so a jump never passes a reply.
-    /log            also gives the clock: where it stands, every jump, and when each held message was delivered.
+    /inbox?wait=    from the seat waits in real time, as for anyone, and ends when a held message falls due. The answer
+                    says how long it took (`waited_s`).
+    /log            also gives the clock: where it stands, every wait, and when each held message was delivered.
+
+A wait is real because the rest of the company is: a test suite the agent started, a deploy CI is running. With
+"jump": true in the clock a wait returns at once and moves the clock forward instead (to the next message due, or by
+the whole wait), holding only while a person's reply is still being decided so that a jump never passes it. That is
+for agents that have nothing running while they wait (scripted ones, in probes): with an agent that has, the clock
+would run ahead of its own work, and a reply's delay could be passed in a few calls. No exported task sets it.
 """
 import json
 import os
@@ -45,7 +49,7 @@ class Clock:
 
     def __init__(self, now=time.time):
         self.wall, self.started, self.jumped, self.paused_for, self.paused_since = now, now(), 0.0, 0.0, None
-        self.held, self.jumps, self.unanswered = [], [], 0
+        self.held, self.waits, self.unanswered = [], [], 0
 
     def now(self):
         away = self.paused_for + (self.wall() - self.paused_since if self.paused_since is not None else 0.0)
@@ -76,7 +80,7 @@ class Clock:
         ahead = [due - at for due, _, _ in self.held if due - at <= seconds]
         by = round(max(0.0, min(ahead)) if ahead else seconds, 1)
         self.jumped += by
-        self.jumps.append({"at_v": at, "by_s": by, "asked_s": seconds, "to_a_message": bool(ahead)})
+        self.waits.append({"at_v": at, "by_s": by, "asked_s": seconds, "to_a_message": bool(ahead), "jumped": True})
         return by
 
 
@@ -168,24 +172,27 @@ class Handler(BaseHTTPRequestHandler):
             if q.get("token") != CONFIG["admin"]:
                 return self.reply(401, {"error": "not for you"})
             with changed:
-                clock = CLOCK and {"seat": SEAT, "now_v": CLOCK.now(), "jumped_s": round(CLOCK.jumped, 1), "jumps": CLOCK.jumps,
-                                   "not_delivered": len(CLOCK.held)}
+                clock = CLOCK and {"seat": SEAT, "now_v": CLOCK.now(), "waited_s": round(sum(w["by_s"] for w in CLOCK.waits), 1),
+                                   "jumped_s": round(CLOCK.jumped, 1), "waits": CLOCK.waits, "not_delivered": len(CLOCK.held)}
             return self.reply(200, dict({"messages": log, "done": sorted(done), "pauses": pauses}, **({"clock": clock} if clock else {})))
         name = q.get("name")
         if TOKENS.get(name) is None or TOKENS[name] != q.get("token"):
             return self.reply(401, {"error": "who are you?"})
         asked = min(float(q.get("wait") or 0), 900)
         deadline = time.time() + asked
-        if CLOCK and name == SEAT:      # the seat's wait costs virtual time, not wall time
+        if CLOCK and name == SEAT:      # the seat's wait ends when a held message falls due
             with changed:
                 deliver_due()
-                while asked and not inbox[name] and CLOCK.unanswered and time.time() < deadline:      # a reply is being decided
+                began, jumps, waited = CLOCK.now(), CONFIG["clock"].get("jump"), 0.0
+                while asked and not inbox[name] and time.time() < deadline and (CLOCK.unanswered or not jumps):
                     changed.wait(0.5)
                     deliver_due()
-                waited = 0.0
-                if asked and not inbox[name]:
+                if asked and not inbox[name] and jumps:
                     waited = CLOCK.wait(asked)
                     deliver_due()
+                elif asked and not jumps:
+                    waited = round(CLOCK.now() - began, 1)
+                    CLOCK.waits.append({"at_v": began, "by_s": waited, "asked_s": asked, "to_a_message": bool(inbox[name]), "jumped": False})
                 messages, inbox[name] = inbox[name], []
                 others = sorted(n for n in TOKENS if n != name and n not in done and n not in paused)
             return self.reply(200, {"messages": messages, "others_working": others, "others_paused": {}, "waited_s": waited})

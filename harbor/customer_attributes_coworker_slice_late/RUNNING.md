@@ -38,11 +38,11 @@ episode has an arm and a value of the requirement (DATASHEET.md). From the SWE-P
 
     arm:    full | partial | no_interaction | told
     value:  reassign | refuse
-    DELAY:  minutes of the agent's virtual time between a message to the requester and her reply (0, the default: at once)
+    DELAY:  minutes of the agent's working time between a message to the requester and her reply (0, the default: at once)
 
 The delay is `REPLY_DELAY`, passed to `docker compose` by the script; it reaches the people's container only, and the
-seat is not told of it. Time for the agent is a virtual clock the `chat` container keeps (DATASHEET.md): `wait_for_message`
-returns at once and moves the clock, so a run with a twenty-minute delay takes no longer on the wall than one without.
+seat is not told of it. The `chat` container keeps the clock (DATASHEET.md). Waits are real, so a run in which the
+agent waits out a twenty-minute delay takes twenty minutes longer.
 
 It needs `.env` at the repository's root with `OPENAI_BASE_URL` and `OPENAI_API_KEY` (the model gateway). The same
 gateway serves the people's classifier (Claude Haiku 4.5), which the `people` container asks; `VARIANT`,

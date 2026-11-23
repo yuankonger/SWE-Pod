@@ -12,10 +12,10 @@
 #             sidecar only (VARIANT, in their containers' environment), never to the seat.
 #
 #   TASK=harbor/customer_attributes_coworker  MODEL=claude-opus-5-5  CAP=25 (dollars)
-#   DELAY=0                   minutes of the agent's virtual time between a message to a person and the reply (0: at
+#   DELAY=0                   minutes of the agent's working time between a message to a person and the reply (0: at
 #                             once). It goes to the people's sidecar only; the seat is not told. Tasks exported before
-#                             the virtual clock (docs/COWORKER_SPEC.md, 3.3) reply at once whatever it says, so a delay
-#                             on one of those is refused.
+#                             the clock (docs/COWORKER_SPEC.md, 3.3) reply at once whatever it says, so a delay on one
+#                             of those is refused.
 #   HARNESS_VERSION=2.1.330   the Claude Code release every run installs (left to itself Harbor installs the newest,
 #                             which changed within a day of the first runs); written into episode.json
 #
@@ -45,7 +45,7 @@ case "$arm" in full) note="$task/seats/coworker/full-$variant.md"; messaging=tru
 python3 -c "import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1]+'/tests/config.json'))['variants']['values'] else 1)" "$task" "$variant" \
   || { echo "no such variant: $variant" >&2; exit 2; }
 seat=$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]+'/environment/docker-compose.yaml').read().split('\n',1)[1])['services']['main']['environment']['SEAT'])" "$task")
-if [ "$delay" != 0 ] && ! grep -q SEEDCO_REPLY_DELAY "$task/environment/docker-compose.yaml"; then echo "not started: $task has no virtual clock, so its people reply at once; DELAY needs a task exported with one" >&2; exit 2; fi
+if [ "$delay" != 0 ] && ! grep -q SEEDCO_REPLY_DELAY "$task/environment/docker-compose.yaml"; then echo "not started: $task has no clock, so its people reply at once; DELAY needs a task exported with one" >&2; exit 2; fi
 if [ -z "${UNFROZEN:-}" ]; then python3 tools/freeze.py verify "$task" || { echo "not started: freeze the task, or set UNFROZEN=1 for a diagnostic run" >&2; exit 3; }; fi
 mkdir -p runs/harbor/frozen "runs/harbor/$job/meter"
 { [ -z "${UNFROZEN:-}" ] && python3 -c "import json,sys; print(json.load(open(sys.argv[1]+'/FROZEN.json'))['id'])" "$task" > "runs/harbor/frozen/$job.txt" 2>/dev/null; } || echo unfrozen > "runs/harbor/frozen/$job.txt"

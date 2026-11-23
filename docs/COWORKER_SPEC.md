@@ -91,10 +91,19 @@ Not built for M1. The smoke test uses a static requirement and ends as episodes 
 
 ### 3.3 Time
 
-Built for M1b, for replies: the clock, late replies and waits that jump (`sidecars/chat.py` keeps the clock, since
-waits end there; `sidecars/people.py` sets when a reply is due; probe: `tools/people_probe.py clock`). The delay is set
-per episode (`DELAY` of `tools/coworker_harness.sh`). First task with it: `customer_attributes_coworker_slice_late`.
-Not built yet: the deadline in virtual time (the seat's limit is still wall time) and scheduled events (3.2).
+Built for M1b, for replies: the clock and late replies (`sidecars/chat.py` keeps the clock, since waits end there;
+`sidecars/people.py` sets when a reply is due; probe: `tools/people_probe.py clock`). The delay is set per episode
+(`DELAY` of `tools/coworker_harness.sh`). First task with it: `customer_attributes_coworker_slice_late`.
+Not built yet: a deadline tighter than the seat's working time, and scheduled events (3.2).
+
+**Changed after the first runs (22 Nov 2026): with an agent at the seat, waits are real.** The jumping wait below was
+built and run once. The agent had a test suite running in the background and used `wait_for_message` as its timer: four
+calls moved the clock 33 minutes in seconds, while its own work had barely moved. A clock that jumps is only the
+agent's time when nothing of the agent's is in flight (a suite, a deploy, CI), and here something nearly always is; a
+reply's delay could be passed at no cost. So the clock is working time without jumps, a wait takes its time and ends
+when a reply falls due, and what waiting costs is working time. The jumping clock stays in `sidecars/chat.py` behind
+`"jump": true` for scripted agents with nothing in flight (the probes), and no exported task sets it. The rest of this
+section describes the jumping clock as first specified.
 
 Training uses a virtual clock, in minutes:
 
@@ -120,7 +129,8 @@ or work on). That a wait past the cache lifetime costs a large re-cache is an in
 there, not something the benchmark guarantees.
 
 **Decided:** the virtual working-time clock for M1b and for training; wall-clock delays are kept for runtime
-evaluation later.
+evaluation later. **Revised 22 Nov 2026** (above): the working-time clock without jumps wherever an agent is at the
+seat; jumps for scripted agents only.
 
 ### 3.4 Partner slots
 
@@ -580,7 +590,7 @@ Decided, 20 Nov 2026:
 | | Decision |
 |---|---|
 | "Coworker agent" (section 1) | An engineer inside a software organisation, for the first version. Not an office-productivity agent. |
-| Time (3.3) | Virtual working-time clock for M1b and training; wall-clock delays later, for runtime evaluation. |
+| Time (3.3) | Working-time clock; waits are real wherever an agent is at the seat (revised 22 Nov 2026), and jump only for scripted agents. |
 | Classifier's model (5.4) | Claude Haiku 4.5, pinned by dated id, temperature 0, for M1 and M1b. A local open-weights model at M3 or M4 if release needs it. |
 | Process measures (7.2) | Diagnostic only in M1 and M1b. Revisited at M2; additive weighted targets only, never factors. |
 | Authored variants (4, 9.3) | Included where needed to guarantee paired mutual exclusion, labelled as authored in the datasheet. |

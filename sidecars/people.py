@@ -23,7 +23,7 @@ The file (written by tools/export_harbor_company.py from mined/<company>/people.
         {"id", "kind": "requirement" | "fact", "topic": <one line>, "says": <text> | {<variant>: <text>}}]}]}
 
 Replies can be late (docs/COWORKER_SPEC.md, 3.3). SEEDCO_REPLY_DELAY, or a person's `reply_delay_min` in the file, is
-the number of minutes of the agent's virtual time between a message and its reply (0: at once). The chat keeps that
+the number of minutes of the agent's working time between a message and its reply (0: at once). The chat keeps that
 clock and holds the reply until it is due; the delay is the same for every reply of an episode, whatever was asked,
 so how long an answer takes says nothing about what it will be.
 
@@ -122,7 +122,7 @@ def decide(person, sorted_as, variant):
 
 
 def reply_due(asked_at_v, delay_min):
-    """When a reply to a message sent at `asked_at_v` (the seat's virtual time, seconds) reaches the seat. Rules only."""
+    """When a reply to a message sent at `asked_at_v` (the seat's clock, seconds) reaches the seat. Rules only."""
     return None if asked_at_v is None else round(asked_at_v + 60.0 * delay_min, 1)
 
 

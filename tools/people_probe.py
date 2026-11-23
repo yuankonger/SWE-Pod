@@ -13,14 +13,16 @@
         solution, the tests, the people file or the other variant must reveal nothing beyond the table.
 
     python3 tools/people_probe.py clock [<company>]
-        The virtual clock and late replies (section 3.3), with no model at all. First the chat's clock is fed one
-        recorded sequence of sends, waits and a pause, with its timing, five times: every delivery and every jump must
-        come out the same, and as written here. Then the chat runs as a local process with a person scripted by the
-        probe, who answers 20 virtual minutes late: a wait must not pass a reply that is still being decided, must
-        cost virtual time and no wall time, and must hand the reply over when the clock reaches it. With a company,
-        its people's sidecar is then run against the chat with a delay of 20 minutes and a stand-in for the
-        classifier (a local server that always names the requirement): the requirement must reach the seat 20 virtual
-        minutes after it was asked for, and the record must say when.
+        The clock and late replies (section 3.3), with no model at all. First the chat's clock is fed one recorded
+        sequence of sends, waits and a pause, with its timing, five times: every delivery and every jump must come
+        out the same, and as written here. Then the chat runs as a local process, as tasks run it, with a person
+        scripted by the probe who answers six seconds late: a wait must take those seconds of real time and end with
+        the reply, and a shorter wait must end without it. Then the same with a clock that jumps (as only probes use
+        it) and a person 20 minutes late: a wait must not pass a reply that is still being decided, must take no wall
+        time, and must hand the reply over when the clock reaches it. With a company, its people's sidecar is then
+        run against the jumping chat with a delay of 20 minutes and a stand-in for the classifier (a local server
+        that always names the requirement): the requirement must reach the seat 20 minutes of its clock after it was
+        asked for, and the record must say when.
 
 The first two call the classifier's model through the gateway (.env: OPENAI_BASE_URL, OPENAI_API_KEY; PEOPLE_MODEL for the id).
 """
@@ -183,7 +185,7 @@ def replayed():
     at(1280); seen.append(("waited", clock.wait(600)))            # nothing within ten minutes
     at(1290); seen.append(("waited", clock.wait(600)))            # jumps to reply 2
     at(1290)
-    return seen, clock.jumps, clock.now()
+    return seen, clock.waits, clock.now()
 
 
 def late_people(company):
@@ -216,7 +218,7 @@ def late_people(company):
     with open(os.path.join(holder, "people.json"), "w") as f:
         json.dump(table, f)
     started = [subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
-                                env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core"}}), CHAT_PORT=str(base + 1))),
+                                env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core", "jump": True}}), CHAT_PORT=str(base + 1))),
                subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "people.py")],
                                 env=dict(os.environ, SEEDCO_VARIANT=table["default"], SEEDCO_REPLY_DELAY="20",
                                          PEOPLE=json.dumps({"chat": url, "file": os.path.join(holder, "people.json"), "out": holder,
@@ -257,9 +259,9 @@ def clock(company=None):
 
     tokens = {"core": "probe-core", "maya": "probe-maya"}
     port = 18600 + os.getpid() % 300
-    url = "http://127.0.0.1:{}".format(port)
-    sidecar = subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
-                               env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core"}}), CHAT_PORT=str(port)))
+    url = "http://127.0.0.1:{}".format(port + 1)
+    sidecar = subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],      # as tasks run it: waits are real
+                               env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core"}}), CHAT_PORT=str(port + 1)))
 
     def call(method, path, body=None):
         r = urllib.request.Request(url + path, data=json.dumps(body).encode() if body is not None else None, method=method, headers={"Content-Type": "application/json"})
@@ -282,6 +284,25 @@ def clock(company=None):
                                    "due_at_v": people.reply_due(m["at_v"], delay_min)})
 
     import threading
+    try:
+        time.sleep(1.5)
+        threading.Thread(target=maya, args=(0.1, 1), daemon=True).start()
+        call("POST", "/send", {"from": "core", "token": tokens["core"], "to": "maya", "text": "real question"})
+        began = time.time()
+        got = inbox("core", 2)
+        check("a real wait shorter than the delay", not got["messages"] and 1.5 <= time.time() - began <= 3 and 1.5 <= got["waited_s"] <= 3, got)
+        got = inbox("core", 30)
+        took = time.time() - began
+        check("a real wait ends when the reply is due, six seconds after the question", [m["text"] for m in got["messages"]] == ["answer to: real question"] and 5 <= took <= 8 and 2.5 <= got["waited_s"] <= 5,
+              "{:.1f} s after the question; {}".format(took, got))
+        seen = call("GET", "/log?token=probe-admin")["clock"]
+        check("real waits are recorded and nothing was jumped", len(seen["waits"]) == 2 and seen["jumped_s"] == 0 and not any(w["jumped"] for w in seen["waits"]), seen)
+    finally:
+        sidecar.terminate()
+
+    url = "http://127.0.0.1:{}".format(port)
+    sidecar = subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],      # a clock that jumps
+                               env=dict(os.environ, CHAT=json.dumps({"tokens": tokens, "admin": "probe-admin", "clock": {"seat": "core", "jump": True}}), CHAT_PORT=str(port)))
     try:
         time.sleep(1.5)
         began = time.time()
