@@ -1,0 +1,61 @@
+{
+  "owners": {
+    "core": {
+      "test_command": "pytest saleor -n 6 -q -o cache_dir=/tmp/pytest-cache",
+      "report": "junit",
+      "links": {},
+      "removed_by_feature": []
+    },
+    "dashboard": {
+      "test_command": "npx jest --silent --maxWorkers=4 --forceExit --testTimeout=30000 --json --outputFile=/out/report.json",
+      "report": "jest",
+      "links": {
+        "node_modules": "/deps/node_modules"
+      },
+      "removed_by_feature": [
+        "src/customers/components/AccountStatusCard/AccountStatusCard.module.css",
+        "src/customers/components/AccountStatusCard/AccountStatusCard.stories.tsx",
+        "src/customers/components/AccountStatusCard/AccountStatusCard.test.tsx",
+        "src/customers/components/AccountStatusCard/AccountStatusCard.tsx",
+        "src/customers/components/CustomerOrders/CustomerOrders.module.css",
+        "src/customers/components/CustomerOrders/index.ts"
+      ]
+    }
+  },
+  "git": "http://verifier:verifier-c41f09be73@git:8080",
+  "judge_token": "judge-3b9e51c07a2d",
+  "contract": {
+    "provider": "core",
+    "consumer": "dashboard",
+    "schema": "saleor/graphql/schema.graphql",
+    "copies": [
+      "schema-main.graphql",
+      "schema-staging.graphql"
+    ],
+    "regenerate": "pnpm run generate",
+    "migrate": "python manage.py migrate",
+    "print_schema": "python manage.py get_graphql_schema",
+    "serve": "python manage.py runserver 0.0.0.0:8000",
+    "url": "http://127.0.0.1:8000/graphql/",
+    "live_url": "http://core:8000/graphql/",
+    "usage": "hidden/usage.json",
+    "base_schema": "hidden/base_schema.graphql"
+  },
+  "variants": {
+    "requirement": "delete-type-with-customers",
+    "default": "reassign",
+    "values": {
+      "reassign": {},
+      "refuse": {
+        "core": {
+          "remove": [
+            "saleor.graphql.account.tests.mutations.customer_type.test_customer_type_delete::test_delete_reassigns_users_to_default"
+          ],
+          "add": [
+            "saleor.graphql.account.tests.mutations.customer_type.test_customer_type_delete::test_delete_type_in_use_is_refused"
+          ]
+        }
+      }
+    }
+  }
+}

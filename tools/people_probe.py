@@ -5,7 +5,7 @@
         Each case names the decision and the topics revealed that are right for its message. Requirements must be
         revealed exactly as named; a fact more than named passes (facts are the same in every variant). For a message
         that should reveal nothing (a near-miss, quoted text, an instruction aimed at the classifier, a statement, an unclear
-        one), any decision that reveals nothing passes. With --repeat, every case must come out the same each time.
+        one), any decision that reveals nothing passes, and so does saying only facts the case lists under `may_say`. With --repeat, every case must come out the same each time.
 
     python3 tools/people_probe.py local <company> --variant <value>
         Starts the chat and the people sidecars as local processes and speaks to them as the agent's seat would:
@@ -93,6 +93,9 @@ def classifier(company, repeat):
         needs = {t["id"] for t in person["topics"] if t["kind"] == "requirement"}
         ok = (set(revealed) & needs == set(case["revealed"]) & needs and set(case["revealed"]) <= set(revealed)
               and (decision in REVEALS_NOTHING and not revealed if nothing else decision == case["decision"]))
+        # A case may name facts that are harmless to say in reply to its message although it asks nothing (a status
+        # report that mentions what the fact is about): saying only those passes too. Never a requirement.
+        ok = ok or (nothing and bool(revealed) and set(revealed) <= set(case.get("may_say", [])) - needs)
         # The model is asked at temperature 0 and still varies a little between calls. What must not vary is what it
         # changes for the agent: which requirements are revealed, and whether anything is. The rest is counted apart.
         same = len({(tuple(sorted(set(r) & needs)), bool(r)) for d, r, _ in seen}) == 1

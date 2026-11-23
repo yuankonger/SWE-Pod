@@ -1,0 +1,51 @@
+{
+ "default": "reassign",
+ "people": [
+  {
+   "name": "maya",
+   "role": "requester",
+   "about": "Maya, the product manager who asked for this feature. She knows what is wanted, not how the code works.",
+   "token": "person-maya-b568df741ab6",
+   "reply_delay_min": 0,
+   "topics": [
+    {
+     "id": "delete-type-with-customers",
+     "kind": "requirement",
+     "topic": "what should happen when staff delete a customer type that some customers still have (a type that is in use)",
+     "says": {
+      "reassign": "When staff delete a customer type that customers still have, move those customers to the default type and then delete it. Don't refuse the deletion.",
+      "refuse": "When staff try to delete a customer type that customers still have, refuse it and return an error. The type and its customers stay as they are; staff have to move the customers to another type first."
+     }
+    },
+    {
+     "id": "default-type",
+     "kind": "fact",
+     "topic": "which type a customer gets when none is chosen, and whether the default type itself can be deleted",
+     "says": "A customer created without a type gets the default type. The default type itself can't be deleted: someone has to make another type the default first."
+    },
+    {
+     "id": "who-manages",
+     "kind": "fact",
+     "topic": "which permission staff need to manage customer types and customer attributes",
+     "says": "Managing customer types and customer attributes takes the customer-type permission. The product and page permissions don't cover it."
+    },
+    {
+     "id": "translating-values",
+     "kind": "fact",
+     "topic": "whether the values of customer attributes can be translated",
+     "says": "No. Values of customer attributes can't be translated."
+    }
+   ],
+   "events": [
+    {
+     "id": "changes-mind-on-delete",
+     "kind": "change-of-mind",
+     "topic": "delete-type-with-customers",
+     "says": "One thing about deleting a customer type that customers still have. I've talked it over with the support team, and this is what I want, whatever I said about it before. {says}",
+     "after_reveal_min": 15
+    }
+   ]
+  }
+ ],
+ "seat": "core"
+}
