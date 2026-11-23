@@ -174,6 +174,13 @@ Every owner of another system is a slot with one of three fillings:
 - **Testing a trained policy** uses partners it did not train with: the scripted fixtures, and frozen policies
   held out of training. A policy that coordinates only with its training partner has learned that partner.
 
+Built for M1b (23 Nov 2026): the `scripted` filling for one owner. A person with `role = "owner"` and a `repository`
+in `people.toml` has prepared commits (`[[person.push]]`: the real project's change to that repository, by default),
+pushed by the people's sidecar with that owner's own token when the seat's clock reaches `at_min`, and at the latest
+when the seat first submits (the owner's announcement is an event, 3.2). Probe: `tools/people_probe.py owner`. First
+task: `customer_attributes_coworker_dashboard_late`, the agent at `dashboard` and the API published at minute 40.
+Not built: a push in parts, a second push that changes the first (`moving-dependency`), `frozen` and `trainable`.
+
 What we know so far: one team run with both seats filled by a model (version 1, contract readable by both)
 matched solo and needed no coordination. Whether policy partners produce failures or gains that scripts do not is
 open; the version 2 runs are the first data on it.

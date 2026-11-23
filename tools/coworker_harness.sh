@@ -9,7 +9,8 @@
 #             no_interaction   the requirement is not stated; nobody can be reached (no messaging tools)
 #             told             as partial, and the seat's note says to ask for missing requirements before building
 #   variant   the value of the task's requirement in force in this episode. It goes to the judge and to the people's
-#             sidecar only (VARIANT, in their containers' environment), never to the seat.
+#             sidecar only (VARIANT, in their containers' environment), never to the seat. `-` on a task that has no
+#             requirement variants (one about another owner's work, say).
 #
 #   TASK=harbor/customer_attributes_coworker  MODEL=claude-opus-5-5  CAP=25 (dollars)
 #   DELAY=0                   minutes of the agent's working time between a message to a person and the reply (0: at
@@ -46,8 +47,12 @@ case "$arm" in full) note="$task/seats/coworker/full-$variant.md"; messaging=tru
                no_interaction) note="$task/seats/coworker/no_interaction.md"; messaging=false ;;
                *) echo "no such arm: $arm" >&2; exit 2 ;; esac
 [ -f "$note" ] || { echo "no seat note $note: is $variant a variant of this task?" >&2; exit 2; }
-python3 -c "import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1]+'/tests/config.json'))['variants']['values'] else 1)" "$task" "$variant" \
-  || { echo "no such variant: $variant" >&2; exit 2; }
+python3 -c "
+import json,sys
+v = json.load(open(sys.argv[1]+'/tests/config.json')).get('variants')
+sys.exit(0 if (sys.argv[2] in v['values'] if v else sys.argv[2] == '-') else 1)" "$task" "$variant" \
+  || { echo "no such variant: $variant (a task without requirement variants takes -)" >&2; exit 2; }
+[ "$variant" = "-" ] && variant=""
 seat=$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]+'/environment/docker-compose.yaml').read().split('\n',1)[1])['services']['main']['environment']['SEAT'])" "$task")
 fixed=$(python3 -c "import json,sys; d={p.get('reply_delay_min') or 0 for p in json.load(open(sys.argv[1]+'/environment/sidecars/people.json'))['people']}-{0}; print(max(d) if d else '')" "$task" 2>/dev/null || true)
 if [ -n "$fixed" ]; then

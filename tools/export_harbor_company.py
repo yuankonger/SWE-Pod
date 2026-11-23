@@ -292,15 +292,19 @@ def coworker_seats(out, owners, coworker, people):
     requirement as that variant has it; the others leave it to be asked for, or not."""
     owner, names = coworker["seat"], [p["name"].capitalize() for p in people["people"]]
     others = ", ".join("`{}`".format(o) for o in owners if o != owner)
-    requirement = next(t for p in people["people"] for t in p["topics"] if t["kind"] == "requirement")
+    requirement = next((t for p in people["people"] for t in p["topics"] if t["kind"] == "requirement"), None)
+    requester = next((p["name"].capitalize() for p in people["people"] if p["role"] == "requester"), names[0])
     os.makedirs(os.path.join(out, "seats", "coworker"), exist_ok=True)
     def note(arm):
         reach = COWORKER_REACH[arm].format(names=" and ".join("{} (`{}`)".format(n, n.lower()) for n in names), first=names[0])
         if coworker.get("submit") and arm != "no_interaction":      # the tool comes with the messaging tools
             reach += "\n" + COWORKER_SUBMIT.format(owner=owner)
-        return COWORKER_SEAT.format(owner=owner, requester=names[0], others_repos=others, reach=reach)
+        if any(p.get("pushes") for p in people["people"]):      # the other owners are at work too
+            reach = " ".join("{} (`{}`) owns `{}` and is working on this at the same time as you.".format(p["name"].capitalize(), p["name"], p["repository"])
+                             for p in people["people"] if p.get("pushes")) + " Of their work you can see what is deployed from `main` (your repository's `NOTES.md` says where each system runs) and what CI reports.\n" + reach
+        return COWORKER_SEAT.format(owner=owner, requester=requester, others_repos=others, reach=reach)
     notes = {arm: note(arm) for arm in COWORKER_REACH}
-    for value, says in requirement["says"].items():
+    for value, says in (requirement["says"] if requirement else {}).items():
         notes["full-" + value] = note("partial") + COWORKER_FULL.format(first=names[0], says=says)
     for name, text in notes.items():
         with open(os.path.join(out, "seats", "coworker", name + ".md"), "w") as f:
@@ -357,6 +361,22 @@ COWORKER_REACH = {
 COWORKER_SUBMIT = ("When your work is finished, call the `submit` tool: what is on `main` of `{owner}` then is what is judged. If something has "
                    "reached you that you have not seen, `submit` gives it to you instead of ending your work; deal with it and submit again.")
 COWORKER_FULL = "\n\n## What {first} has also told you\n\n{says}"
+COWORKER_OWNER_SOLVE = """#!/bin/bash
+# The oracle for the seat: its own repository's part of the feature as the real project wrote it, pushed to `main`.
+# Then it submits. The other owner publishes at the latest on a first submission; the oracle waits for that push and
+# submits again, which is final.
+set -e
+cd /work/{owner} && git apply --binary --whitespace=nowarn /solution/{owner}.patch
+git add -A -f && git commit -qm "The feature" && git push -q {oracle}/{owner}.git HEAD:main
+submit() {{ curl -s -m 60 -X POST -H 'Content-Type: application/json' -d "{{\\"name\\": \\"$SEAT\\", \\"token\\": \\"$SEAT_TOKEN\\", \\"report\\": \\"the oracle\\"}}" http://chat:8080/submit; echo; }}
+before() {{ git ls-remote {oracle}/$1.git main | cut -f1; }}
+{waits}"""
+COWORKER_OWNER_WAIT = """was=$(before {repo})
+submit
+for i in $(seq 180); do [ "$(before {repo})" != "$was" ] && break; sleep 5; done
+[ "$(before {repo})" != "$was" ] || {{ echo "the owner of {repo} did not publish" >&2; exit 1; }}
+submit
+"""
 COWORKER_SOLVE = """#!/bin/bash
 # The oracle for the requirement as `{value}` has it: the feature as the real project wrote it{more}, pushed to `main`.
 set -e
@@ -365,7 +385,7 @@ git add -A -f && git commit -qm "The feature" && git push -q {oracle}/{owner}.gi
 """
 
 
-def coworker_people(company, tokens, seat=None):
+def coworker_people(company, tokens, seat=None, git_url=None):
     """mined/<company>/people.toml as the people sidecar reads it. A person's events (docs/COWORKER_SPEC.md, 3.2) are
     there only where the task has some, and then the file also names the seat they are sent to."""
     import tomllib
@@ -374,11 +394,15 @@ def coworker_people(company, tokens, seat=None):
     def events(p):
         found = [{k: e[k] for k in ("id", "kind", "topic", "says", "at_min", "after_reveal_min") if k in e} for e in p.get("event", [])]
         return {"events": found} if found else {}
-    people = {"default": raw["default"], "people": [
+    def pushes(p):      # a scripted owner's prepared commits (3.4): pushed with the owner's own token, from a patch only its container keeps
+        found = [dict({k: e[k] for k in ("id", "at_min", "says", "message") if k in e},
+                      remote="{}/{}.git".format(git_url(p["name"]), p["repository"]), patch="/opt/seedco/push-{}.patch".format(e["id"])) for e in p.get("push", [])]
+        return {"repository": p["repository"], "pushes": found} if found else {}
+    people = {**({"default": raw["default"]} if "default" in raw else {}), "people": [
         dict({"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": tokens[p["name"]],
               "reply_delay_min": p.get("reply_delay_min", 0),
-              "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]}, **events(p)) for p in raw["person"]]}
-    if any("events" in p for p in people["people"]):
+              "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p.get("topic", [])]}, **events(p), **pushes(p)) for p in raw["person"]]}
+    if any("events" in p or "pushes" in p for p in people["people"]):
         people["seat"] = seat
     return people
 
@@ -512,7 +536,11 @@ def main():
             raise SystemExit("a coworker task has one seat: export it without --team")
         hashed = lambda who: hashlib.sha256("{}/{}/coworker".format(a.company, who).encode()).hexdigest()[:12]
         tokens[coworker["seat"]] = "seat-{}-{}".format(coworker["seat"], hashed(coworker["seat"]))
-        people = coworker_people(a.company, {p: "person-{}-{}".format(p, hashed(p)) for p in coworker["people"]}, coworker["seat"])
+        person_tokens = {p: "person-{}-{}".format(p, hashed(p)) for p in coworker["people"]}
+        people = coworker_people(a.company, person_tokens, coworker["seat"], lambda who: "http://{}:{}@git:8080".format(who, person_tokens[who]))
+        for p in people["people"]:      # a scripted owner is on the git server too, for its own repository
+            if p.get("pushes"):
+                tokens[p["name"]] = p["token"]
     access = {"tokens": tokens, "access": {"ci": everything("read"), "verifier": everything("read"), "oracle": everything("write")}}
     isolated = bool(a.team and info.get("isolated"))      # each owner has its own repository and cannot read the others'
     if isolated:
@@ -521,6 +549,7 @@ def main():
         access["access"].update({o: dict(everything("read"), **{o: "write"}) for o in owners})
     elif coworker:
         access["access"][coworker["seat"]] = {coworker["seat"]: "write"}
+        access["access"].update({p["name"]: {p["repository"]: "write"} for p in people["people"] if p.get("pushes")})
     else:
         access["access"]["solo"] = everything("write")
     git_url = lambda who: "http://{}:{}@git:8080".format(who, tokens[who])
@@ -560,10 +589,12 @@ def main():
 
     services["main"] = seat(owners[0] if a.team else coworker["seat"] if coworker else "solo")
     if coworker:
-        variant = "${{VARIANT:-{}}}".format(coworker["variants"]["default"])      # set by whoever starts the run; the seat never has it
+        # set by whoever starts the run; the seat never has it. A task without requirement variants has none.
+        variant = "${{VARIANT:-{}}}".format(coworker["variants"]["default"]) if coworker.get("variants") else None
         services["main"]["environment"].update(SEAT_ONLY=coworker["seat"], TEAM=",".join([coworker["seat"]] + list(coworker["people"])),
                                                **({"SUBMIT": "1"} if coworker.get("submit") else {}))
-        services["judge"]["environment"]["SEEDCO_VARIANT"] = variant
+        if variant:
+            services["judge"]["environment"]["SEEDCO_VARIANT"] = variant
         fixed_delay = any(p["reply_delay_min"] for p in people["people"])
         services["chat"] = {"build": build, "command": ["python3", "/opt/seedco/chat.py"],
                             "environment": {"CHAT": json.dumps({"tokens": dict({coworker["seat"]: tokens[coworker["seat"]]}, **{p["name"]: p["token"] for p in people["people"]}),
@@ -574,7 +605,7 @@ def main():
                               "depends_on": {"chat": {"condition": "service_started"}}, "extra_hosts": ["host.docker.internal:host-gateway"],
                               # minutes. A task whose people file gives a delay has it fixed (it is part of the freeze);
                               # otherwise it is set by whoever starts the run
-                              "environment": {"SEEDCO_VARIANT": variant, **({} if fixed_delay else {"SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}"}),
+                              "environment": {**({"SEEDCO_VARIANT": variant} if variant else {}), **({} if fixed_delay else {"SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}"}),
                                               # the value the requirement starts with, where a person's event moves it (default: the other one)
                                               **({"SEEDCO_VARIANT_START": "${VARIANT_START:-}"} if any("events" in p for p in people["people"]) else {}),
                                               "PEOPLE": json.dumps({"chat": "http://chat:8080", "file": "/opt/seedco/people.json", "out": "/people-out",
@@ -655,7 +686,16 @@ def main():
         json.dump(config, f, indent=2)
     scripts = [(os.path.join(tests, "test.sh"), TEST_SH.replace("{chat_admin}", CHAT_ADMIN)),
                (os.path.join(solution, "solve.sh"), SOLVE_SH.format(owners=" ".join(owners), oracle=git_url("oracle")))]
-    if coworker:
+    if coworker and not coworker.get("variants"):
+        # No requirement variants: one oracle, for the seat's own repository. A scripted owner publishes its part at the
+        # latest when the seat first submits, so the oracle submits, waits for that push and submits again.
+        seat_owner = coworker["seat"]
+        waits = "".join(COWORKER_OWNER_WAIT.format(oracle=git_url("oracle"), repo=p["repository"]) for p in people["people"] if p.get("pushes"))
+        scripts = scripts[:1] + [(os.path.join(solution, "solve.sh"), COWORKER_OWNER_SOLVE.format(owner=seat_owner, oracle=git_url("oracle"), waits=waits))]
+        for p in people["people"]:      # the prepared commits: the real project's change to that owner's repository
+            for push in p.get("pushes") or []:
+                shutil.copy(os.path.join(solution, p["repository"] + ".patch"), os.path.join(env_dir, "sidecars", os.path.basename(push["patch"])))
+    elif coworker:
         # Each value of the requirement: the tests that judge it (laid over the feature's), which of the feature's tests
         # they replace, and an oracle of its own. Upstream's patch is the oracle only for the value upstream built.
         variants, seat_owner = coworker["variants"], coworker["seat"]

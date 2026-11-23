@@ -64,11 +64,12 @@ def people_file(company, tokens=None):
     """The people of a company as the sidecar reads them (the same conversion the exporter does)."""
     with open(os.path.join(REPO, "mined", company, "people.toml"), "rb") as f:
         raw = tomllib.load(f)
-    return {"default": raw["default"], "seat": "core", "people": [
+    return {"default": raw.get("default"), "seat": "core", "people": [
         dict({"name": p["name"], "role": p["role"], "about": p.get("about", ""), "token": (tokens or {}).get(p["name"], ""),
               "reply_delay_min": p.get("reply_delay_min", 0),
               "topics": [{k: t[k] for k in ("id", "kind", "topic", "says")} for t in p["topic"]]},
-             **({"events": [{k: e[k] for k in ("id", "kind", "topic", "says", "at_min", "after_reveal_min") if k in e} for e in p["event"]]} if p.get("event") else {}))
+             **({"events": [{k: e[k] for k in ("id", "kind", "topic", "says", "at_min", "after_reveal_min") if k in e} for e in p["event"]]} if p.get("event") else {}),
+             **({"repository": p["repository"], "pushes": [dict(e) for e in p["push"]]} if p.get("push") else {}))
         for p in raw["person"]]}
 
 
@@ -345,7 +346,7 @@ class Company:
     message as a question about the requirement. The seat's clock jumps through waits (a scripted agent has nothing
     running meanwhile), so minutes take no time."""
 
-    def __init__(self, company, variant, delay=None, start=None):
+    def __init__(self, company, variant, delay=None, start=None, prepare=None):
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
         import threading
         self.table = people_file(company, {})
@@ -353,7 +354,7 @@ class Company:
         for p in self.table["people"]:
             p["token"] = self.tokens[p["name"]] = "probe-" + p["name"]
         self.person = self.table["people"][0]
-        self.requirement = next(t for t in self.person["topics"] if t["kind"] == "requirement")
+        self.requirement = next((t for t in self.person["topics"] if t["kind"] == "requirement"), self.person["topics"][0])
         answer = json.dumps({"choices": [{"message": {"content": json.dumps({"asks": [self.requirement["id"]], "broad": False, "question": True, "unclear": False})}}]}).encode()
 
         class Stub(BaseHTTPRequestHandler):
@@ -371,6 +372,8 @@ class Company:
         self.stub = ThreadingHTTPServer(("127.0.0.1", Company.port), Stub)
         threading.Thread(target=self.stub.serve_forever, daemon=True).start()
         self.holder, self.url = tempfile.mkdtemp(prefix="people-probe-"), "http://127.0.0.1:{}".format(Company.port + 1)
+        if prepare:
+            prepare(self.table, self.holder)
         with open(os.path.join(self.holder, "people.json"), "w") as f:
             json.dump(self.table, f)
         clean = {k: v for k, v in os.environ.items() if k not in ("SEEDCO_REPLY_DELAY", "SEEDCO_VARIANT_START")}
@@ -378,14 +381,15 @@ class Company:
             subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "chat.py")],
                              env=dict(clean, CHAT=json.dumps({"tokens": self.tokens, "admin": "probe-admin", "clock": {"seat": "core", "jump": True}}), CHAT_PORT=str(Company.port + 1))),
             subprocess.Popen([sys.executable, os.path.join(REPO, "sidecars", "people.py")],
-                             env=dict(clean, SEEDCO_VARIANT=variant, **({} if delay is None else {"SEEDCO_REPLY_DELAY": str(delay)}),
+                             env=dict(clean, **({} if variant is None else {"SEEDCO_VARIANT": variant}), **({} if delay is None else {"SEEDCO_REPLY_DELAY": str(delay)}),
                                       **({} if start is None else {"SEEDCO_VARIANT_START": start}),
-                                      PEOPLE=json.dumps({"chat": self.url, "file": os.path.join(self.holder, "people.json"), "out": self.holder,
+                                      PEOPLE=json.dumps({"chat": self.url, "file": os.path.join(self.holder, "people.json"), "out": self.holder, "poll_s": 0.5,
                                                          "model": {"url": "http://127.0.0.1:{}".format(Company.port), "key": "stand-in", "id": "stand-in"}})))]
+        planned = sum(len(p.get("events") or []) + len(p.get("pushes") or []) for p in self.table["people"])
         for _ in range(50):      # until the people's sidecar has given the chat its events
             time.sleep(0.2)
             try:
-                if len(self.entries()) > len(self.person.get("events") or []):
+                if len(self.entries()) > planned:
                     break
             except OSError:
                 pass
@@ -538,13 +542,122 @@ def events(company):
     return not bad
 
 
+def owner(company):
+    """A scripted owner's prepared commit (docs/COWORKER_SPEC.md, 3.4 and 5.3), with scripted agents and a repository on
+    this machine in place of the company's git server. No model."""
+    bad = []
+
+    def check(what, ok, shown=""):
+        bad.append(what) if not ok else None
+        print("{}  {}{}".format("ok   " if ok else "WRONG", what, ": {}".format(shown) if shown != "" else ""))
+
+    def git(*args, cwd=None):
+        return subprocess.run(["git"] + list(args), capture_output=True, text=True, cwd=cwd, check=True).stdout.strip()
+
+    def prepare(table, holder):      # the owner's repository, and a patch to it, in place of the task's
+        work, remote = os.path.join(holder, "work"), os.path.join(holder, "core.git")
+        env = ["-c", "user.name=probe", "-c", "user.email=probe@example.com"]
+        git("init", "-q", "-b", "main", work)
+        with open(os.path.join(work, "api.txt"), "w") as f:
+            f.write("the API as it is\n")
+        git("add", "-A", cwd=work)
+        subprocess.run(["git"] + env + ["commit", "-q", "-m", "start"], cwd=work, check=True,
+                       env=dict(os.environ, GIT_AUTHOR_DATE="2026-08-01T00:00:00+00:00", GIT_COMMITTER_DATE="2026-08-01T00:00:00+00:00"))
+        git("clone", "-q", "--bare", work, remote)
+        with open(os.path.join(work, "api.txt"), "a") as f:
+            f.write("customer types\n")
+        with open(os.path.join(holder, "publish.patch"), "w") as f:
+            f.write(git("diff", cwd=work) + "\n")
+        for p in table["people"]:
+            for push in p.get("pushes") or []:
+                push.update(remote=remote, patch=os.path.join(holder, "publish.patch"))
+
+    def state(c):
+        remote = os.path.join(c.holder, "core.git")
+        return git("rev-parse", "main", cwd=remote), git("show", "main:api.txt", cwd=remote).split("\n")
+
+    def pushed(c):
+        for _ in range(60):
+            found = [e for e in c.entries() if e.get("event") == "pushed"]
+            if found:
+                return found[0]
+            time.sleep(0.25)
+        return {}
+
+    sam = next(p for p in people_file(company)["people"] if p.get("pushes"))
+    plan = sam["pushes"][0]
+    at, tens = plan["at_min"], int(plan["at_min"] // 10)
+    commits = []
+    for _ in range(3):                # the owner publishes on its time
+        c = Company(company, None, prepare=prepare)
+        try:
+            start = state(c)[0]
+            early = [c.wait(10) for _ in range(tens - 1)] + [c.wait(at - 10 * (tens - 1) - 1)]
+            still = state(c)[0] == start and not [e for e in c.entries() if e.get("event") == "pushed"]
+            c.wait(1)
+            entry = pushed(c)
+            time.sleep(1)
+            said = c.wait(1)
+            commit, lines = state(c)
+            commits.append((commit, entry.get("commit"), entry.get("by"), round(entry.get("at_v", 0) / 60), tuple(said)))
+            if len(commits) == 1:
+                check("nothing is pushed and nothing is said before minute {}".format(at), still and early == [[]] * tens, early)
+                check("at minute {} the commit is on `main` of the owner's repository".format(at), commit != start and lines[-1] == "customer types" and entry.get("commit") == commit and entry.get("by") == "time",
+                      "pushed at {} s of the seat's clock".format(entry.get("at_v")))
+                check("and the owner says so", said == [plan["says"]])
+                check("the submission after it is final", c.submit() == (True, []))
+        finally:
+            c.close()
+    check("three episodes: the same commit at the same minute, said the same way", len(set(commits)) == 1, commits[0][0][:12])
+
+    c = Company(company, None, prepare=prepare)       # the seat submits before the owner has published
+    try:
+        start = state(c)[0]
+        c.wait(10)
+        first = c.submit()
+        entry = pushed(c)
+        commit, lines = state(c)
+        check("a submission before minute {} is not final and is handed the owner's message".format(at), first == (False, [plan["says"]]))
+        check("the owner then pushes at once, the same commit", commit == commits[0][0] and entry.get("by") == "submit" and entry.get("at_v", 9999) < 60 * at,
+              "pushed at {} s of the seat's clock".format(entry.get("at_v")))
+        check("the next submission is final, and the message is not said twice", c.wait(10) == [] and c.submit() == (True, []))
+    finally:
+        c.close()
+
+    c = Company(company, None, prepare=prepare)       # the work ends without a submission before the owner's time
+    try:
+        c.wait(10)
+        time.sleep(1.5)
+        check("the work ends before minute {} without a submission: nothing was pushed, and the record says so".format(at),
+              state(c)[0] == start and not [e for e in c.entries() if e.get("event") == "pushed"] and [e["id"] for e in c.entries() if e.get("event") == "push_planned"] == [plan["id"]])
+    finally:
+        c.close()
+
+    def broken(table, holder):
+        prepare(table, holder)
+        for p in table["people"]:
+            for push in p.get("pushes") or []:
+                push["patch"] = os.path.join(holder, "no-such.patch")
+    c = Company(company, None, prepare=broken)        # a push that cannot be made is the environment's failure
+    try:
+        c.submit()
+        entry = pushed(c)
+        check("a push that fails is recorded as failed", bool(entry.get("failed")) and "commit" not in entry, (entry.get("failed") or "")[:90])
+    finally:
+        c.close()
+    print("{} wrong".format(len(bad)))
+    return not bad
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=("classifier", "local", "clock", "events"))
+    ap.add_argument("what", choices=("classifier", "local", "clock", "events", "owner"))
     ap.add_argument("company", nargs="?")
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--variant")
     a = ap.parse_args()
+    if a.what == "owner":
+        sys.exit(0 if owner(a.company) else 1)
     if a.what == "events":
         sys.exit(0 if events(a.company) else 1)
     if a.what == "clock":

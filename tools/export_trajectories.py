@@ -151,7 +151,8 @@ def export(job, task, review=None):
         pushes = []
         if os.path.isfile(os.path.join(trial, "agent", "git.jsonl")):
             pushes = [json.loads(line) for line in open(os.path.join(trial, "agent", "git.jsonl")) if line.strip()]
-            pushes = sorted(e["at"] for e in pushes if e.get("action") == "push" and e.get("allowed") and e.get("agent") not in ("ci", "oracle", "verifier"))
+            scripted = {e.get("person") for e in entries if e.get("event") in ("pushed", "push_planned")}      # scripted owners push too: not the seat's
+            pushes = sorted(e["at"] for e in pushes if e.get("action") == "push" and e.get("allowed") and e.get("agent") not in ("ci", "oracle", "verifier") and e.get("agent") not in scripted)
         first_push = pushes[0] if pushes else None
         # late replies (docs/COWORKER_SPEC.md, 3.3): when each reply was due and reached the seat on the seat's virtual
         # clock, what the seat pushed while it was on its way, and how much of the clock was waiting
@@ -219,6 +220,25 @@ def export(job, task, review=None):
                                    "pushes_after_final_submission": sum(1 for at in pushes if final and at > final[0]["at"])}
             if not final:
                 asked["submission"]["not_submitted"] = True      # judged as it stands on `main`
+            # a scripted owner's prepared commits (3.4): when each was planned and made, how it came about (its time, or the
+            # seat's first submission), and what the seat did before and after
+            planned = {e["id"]: e for e in entries if e.get("event") == "push_planned"}
+            made = {e["id"]: e for e in entries if e.get("event") == "pushed"}
+            if planned:
+                def owner_push(plan):
+                    did = made.get(plan["id"])
+                    found = {"id": plan["id"], "by": plan["person"], "planned_at_min": plan["at_min"], "made": bool(did and did.get("commit"))}
+                    if not did:
+                        return dict(found, note="the work ended before its time and without a submission: it was never made")
+                    if did.get("failed"):
+                        return dict(found, failed=did["failed"])
+                    waits = [w for w in all_waits if w["at_v"] < did["at_v"]]
+                    return dict(found, made_at_min=round(did["at_v"] / 60, 1), made_because=did["by"], repository=did.get("repository"), commit=did.get("commit"),
+                                seat_pushes_before=sum(1 for at in pushes if at < did["at"]), seat_pushes_after=sum(1 for at in pushes if at >= did["at"]),
+                                seat_minutes_waited_before=round(sum(w["by_s"] for w in waits) / 60, 1),
+                                minutes_of_work_after=round((clock["now_v"] - did["at_v"]) / 60, 1))
+                asked["owner_pushes"] = [owner_push(plan) for plan in planned.values()]
+                asked["people_sidecar_failures"] += sum(1 for e in made.values() if e.get("failed"))
     measures = {}
     if os.path.isfile(os.path.join(job, "measures.json")):
         with open(os.path.join(job, "measures.json")) as f:

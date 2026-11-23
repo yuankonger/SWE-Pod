@@ -42,6 +42,16 @@ has no time of its own while nobody has asked. Until it has reached the seat the
 value, afterwards with the final one. `{says}` is the topic's sentence for the final value; the rest of the text is
 fixed and the same whichever way the requirement moves.
 
+A person can be the owner of another repository (3.4, a scripted partner): then they have prepared commits.
+
+    "pushes": [{"id", "remote": <the repository, with the owner's own token>, "patch": <file>, "message": <commit message>,
+                "at_min": <the seat's clock>, "says": <what they tell the seat>}]
+
+The owner applies the patch to `main` of their repository and pushes it when the seat's clock reaches `at_min`, and
+at the latest when the seat first submits: what they say is an event with the chat (above), so a submission that
+comes first hands it to the seat and is not final, and the owner pushes as soon as the chat reports that. The same
+patch on the same start gives the same commit in every episode. A push that fails is written as `failed`.
+
 Everything a person receives and says is appended to <out>/people.jsonl. A model call that fails after its retries
 is written there as `failed`, and the run is then incomplete whatever its score.
 Standard library only.
@@ -174,6 +184,31 @@ def event_due(event, first_answer_due_at_v):
     return None
 
 
+def push_prepared(push, name, holder):
+    """Applies a prepared commit to `main` of the owner's repository and pushes it. Returns the commit's id.
+    Raises OSError when any step fails."""
+    import shutil
+    import subprocess
+    at = os.path.join(holder, "push-" + push["id"])
+    shutil.rmtree(at, ignore_errors=True)
+    env = dict(os.environ, GIT_AUTHOR_NAME=name, GIT_AUTHOR_EMAIL=name + "@example.com", GIT_COMMITTER_NAME=name, GIT_COMMITTER_EMAIL=name + "@example.com",
+               GIT_AUTHOR_DATE="2026-08-10T12:00:00+00:00", GIT_COMMITTER_DATE="2026-08-10T12:00:00+00:00", GIT_TERMINAL_PROMPT="0")
+    try:
+        for command in (["git", "clone", "-q", push["remote"], at],
+                        ["git", "-C", at, "apply", "--binary", "--whitespace=nowarn", os.path.abspath(push["patch"])],
+                        ["git", "-C", at, "add", "-A", "-f"],
+                        ["git", "-C", at, "commit", "-q", "-m", push.get("message") or push["id"]],
+                        ["git", "-C", at, "push", "-q", "origin", "HEAD:main"]):
+            done = subprocess.run(command, capture_output=True, text=True, env=env, timeout=900)
+            if done.returncode:
+                raise OSError("{}: {}".format(" ".join(command[:4]), (done.stderr or done.stdout).strip()[-400:].replace(push["remote"], "<remote>")))
+        return subprocess.run(["git", "-C", at, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    except subprocess.TimeoutExpired as e:
+        raise OSError("timed out: {}".format(e))
+    finally:
+        shutil.rmtree(at, ignore_errors=True)
+
+
 def serve(config, people, variant, delay=None, start=None):
     out = os.path.join(config["out"], "people.jsonl")
     os.makedirs(config["out"], exist_ok=True)
@@ -217,6 +252,45 @@ def serve(config, people, variant, delay=None, start=None):
             return dict(person, topics=[dict(t, says=says(t, starts[t["id"]] if t["id"] in moved and moved[t["id"]] not in reached else variant))
                                         for t in person["topics"]])
 
+        def announce(push, due=None):
+            while True:
+                try:
+                    chat(config, "POST", "/send", dict({"from": person["name"], "token": person["token"], "to": config.get("seat") or people.get("seat"),
+                                                        "text": push["says"], "event": push["id"]}, **({} if due is None else {"due_at_v": due})))
+                    return
+                except (OSError, ValueError):
+                    time.sleep(2)
+
+        def owner():
+            """The owner's prepared commits: each pushed when the seat's clock is there, or when the seat's first submission has
+            been handed the announcement, whichever is first."""
+            pending = list(person.get("pushes") or [])
+            for push in pending:
+                announce(push)      # held by the chat with no time of its own: it goes out with a submission that comes first
+                keep({"event": "push_planned", "person": person["name"], "id": push["id"], "at_min": push["at_min"], "latest": "submit"})
+            while pending:
+                time.sleep(float(config.get("poll_s") or 3))
+                try:
+                    got = chat(config, "GET", "/events?" + urllib.parse.urlencode({"name": person["name"], "token": person["token"]}))
+                except (OSError, ValueError):
+                    continue
+                reached = {e["event"] for e in got["events"] if e["reached_seat"]}
+                for push in list(pending):
+                    by = "submit" if push["id"] in reached else "time" if got["now_v"] >= 60.0 * push["at_min"] else None
+                    if by is None:
+                        continue
+                    pending.remove(push)
+                    try:
+                        commit = push_prepared(push, person["name"], config["out"])
+                        keep({"event": "pushed", "person": person["name"], "id": push["id"], "repository": person.get("repository"), "commit": commit,
+                              "by": by, "at_v": got["now_v"], "planned_at_v": round(60.0 * push["at_min"], 1)})
+                    except OSError as e:      # the environment failed, not the agent
+                        keep({"event": "pushed", "person": person["name"], "id": push["id"], "by": by, "at_v": got["now_v"], "failed": str(e)})
+                    if by == "time":
+                        announce(push, got["now_v"])      # now due: the seat reads it when it next looks, or with its submission
+
+        if person.get("pushes"):
+            threading.Thread(target=owner, daemon=True).start()
         for event in events:
             schedule(event)
         while True:
@@ -261,7 +335,7 @@ if __name__ == "__main__":
     CONFIG = json.loads(os.environ["PEOPLE"])
     with open(CONFIG["file"]) as f:
         PEOPLE = json.load(f)
-    VARIANT = os.environ.get("SEEDCO_VARIANT") or PEOPLE["default"]
+    VARIANT = os.environ.get("SEEDCO_VARIANT") or PEOPLE.get("default")      # none: a task without requirement variants
     if not CONFIG["model"].get("key"):
         sys.exit("people: no key for the classifier's model (PEOPLE_MODEL_KEY)")
     DELAY = os.environ.get("SEEDCO_REPLY_DELAY")

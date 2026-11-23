@@ -1,0 +1,53 @@
+# The people of customer_attributes_coworker_dashboard_late (docs/COWORKER_SPEC.md, sections 3.4 and 5). The agent sits
+# at `dashboard`. Nothing differs between episodes: the task has no requirement variants. What it is about is the
+# other owner's work arriving late.
+
+[[person]]
+name = "maya"
+role = "requester"
+about = "Maya, the product manager who asked for this feature. She knows what is wanted, not how the code works."
+
+  [[person.topic]]
+  id = "default-type"
+  kind = "fact"
+  topic = "which type a customer gets when none is chosen, and whether the default type itself can be deleted"
+  says = "A customer created without a type gets the default type. The default type itself can't be deleted: someone has to make another type the default first."
+
+  [[person.topic]]
+  id = "who-manages"
+  kind = "fact"
+  topic = "which permission staff need to manage customer types and customer attributes"
+  says = "Managing customer types and customer attributes takes the customer-type permission. The product and page permissions don't cover it."
+
+  [[person.topic]]
+  id = "translating-values"
+  kind = "fact"
+  topic = "whether the values of customer attributes can be translated"
+  says = "No. Values of customer attributes can't be translated."
+
+# The owner of `core`, scripted (a partner slot filled by a script, 3.4). Sam builds the API side of the feature and
+# publishes it once: the change the Saleor project made to the API, as one commit on `main` of `core`, forty minutes
+# of the agent's working time into the episode, and at the latest when the agent first submits.
+[[person]]
+name = "sam"
+role = "owner"
+repository = "core"
+about = "Sam, the owner of `core`, who is building the API side of this feature at the same time."
+
+  [[person.push]]
+  id = "publish-api"
+  at_min = 40
+  message = "Customer types and customer attributes in the API"
+  says = "The customer types and customer attributes API is going onto `main` of `core` now. CI deploys it, which takes a few minutes; after that it is what `http://core:8000/graphql/` serves."
+
+  [[person.topic]]
+  id = "api-when"
+  kind = "fact"
+  topic = "when the API side of the feature (core's part) will be on `main` of `core`, or how far along it is"
+  says = "I'm still building the API side. I'll tell you here the moment it is on `main` of `core`; I can't give you a time."
+
+  [[person.topic]]
+  id = "api-shape"
+  kind = "fact"
+  topic = "what the API will look like: the names and shapes of the queries, mutations, types and fields core is adding"
+  says = "I'd rather not describe the API before it is on `main`: names are still moving. Once it is deployed, the schema `http://core:8000/graphql/` serves is the contract."
