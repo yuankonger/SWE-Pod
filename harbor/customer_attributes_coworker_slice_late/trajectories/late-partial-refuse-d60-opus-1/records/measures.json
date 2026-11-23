@@ -1,0 +1,109 @@
+{
+ "job": "late-partial-refuse-d60-opus-1",
+ "outcome": {
+  "reward": 0.5,
+  "minutes": 34.1,
+  "seat_says": 0.5,
+  "complete": true,
+  "stopped_from_outside": {},
+  "seat_runs": {
+   "main": {
+    "seat": "main",
+    "ended": "finished",
+    "stopped_from_outside": false,
+    "working_s": 2045,
+    "paused_s": 0,
+    "pauses": 0,
+    "work_limit_s": 14400.0,
+    "spent_usd": 1.39,
+    "ended_by_runner": []
+   }
+  },
+  "seat_disagrees_with_judge": false
+ },
+ "context": {
+  "total": {
+   "input": 74,
+   "cache_read": 1731074,
+   "cache_write": 133553,
+   "output": 18773,
+   "read": 1864701
+  },
+  "seats": {
+   "core": {
+    "input": 74,
+    "cache_read": 1731074,
+    "cache_write": 133553,
+    "output": 18773,
+    "requests": 37,
+    "refused": 0,
+    "peak_context_tokens": 70255,
+    "contexts": 1,
+    "side_contexts": 0,
+    "largest_contexts": [
+     {
+      "requests": 37,
+      "peak_context_tokens": 70255,
+      "output": 18773,
+      "model": "claude-opus-5-5"
+     }
+    ],
+    "models": [
+     "claude-opus-5-5"
+    ],
+    "active_minutes": 34.0,
+    "working_minutes": 23.8,
+    "waits": [
+     {
+      "minutes": 10.0,
+      "cache_rewritten": 63756
+     }
+    ],
+    "cache_rewritten_after_waits": 63756
+   }
+  }
+ },
+ "division": {
+  "token_share": {
+   "core": 1.0
+  },
+  "active_minutes": {
+   "core": 34.0
+  },
+  "git": {
+   "core": {
+    "pushes": {
+     "core": 1
+    },
+    "pushes_refused": {},
+    "fetches": 1
+   }
+  },
+  "messages": {
+   "core": 1,
+   "maya": 1
+  }
+ },
+ "control": {
+  "pushes_refused": 0,
+  "ci_runs": 2,
+  "ci_runs_failed": 0,
+  "model_requests_refused": 0
+ },
+ "contract": {
+  "first_published_minute": 38.2,
+  "publications": [
+   {
+    "minute": 38.2,
+    "gained_fields": 5,
+    "ci_run": 2,
+    "passed": true
+   }
+  ],
+  "caller_first_pushed_minute": null,
+  "changes_after_caller_pushed": null,
+  "ci_runs_caller_asked_what_api_lacks": [],
+  "messages_before_first_publication": 0,
+  "messages": 2
+ }
+}
