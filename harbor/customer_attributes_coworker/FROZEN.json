@@ -1,14 +1,14 @@
 {
- "id": "666eff2ee7e2b88a",
+ "id": "bf942a3366909f05",
  "files": {
-  "DATASHEET.md": "a0035656af974a6b89694534a6b33b1bd2dc4cea8d32ca6a42cc67051f6c515b",
+  "DATASHEET.md": "9ff06dec4065a86437ae915469e1ed52e25a3206f69728737f3825c6758d23c5",
   "RUNNING.md": "bb91a9318b8ce2903784116ce80d2db5a15be28e056f38787dffd14e8621a987",
   "instruction.md": "7e02658e5f892c9e87348f0998dc3ae596a369d68ccbc80d18b7822d7d15ceb6",
   "task.toml": "e1b201329502bad76465ed605f66d1a151b8987e95cb20a9ea4c27167b321fae",
   "agents/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
   "environment/Dockerfile": "bbc299af710b8a6ea9849d5b704f19ca9d79d3565c234cca49fd446bdb2f47d5",
-  "environment/docker-compose.yaml": "939d0b0ea003aa1355f803b1df28df092b3612cec214c2fb260120e9705828ff",
-  "environment/sidecars/chat.py": "aed21a3ae2c1f1ddaf20fd662871485c27df876688f506bea45d14c96e789973",
+  "environment/docker-compose.yaml": "58468aa52aca1ace3e3c68a3c4284e675b462719d282883792c7c5d7e16952dc",
+  "environment/sidecars/chat.py": "c182f54b519e102c97c4ce2947413016c995ff65eed9337190480e21b8c53e66",
   "environment/sidecars/ci.py": "d7d2bf21604cac51d224baf30a6c8109c31131e2ea77663cc4578a70d855d9e5",
   "environment/sidecars/fetch_schema.cjs": "4fb8e8c73675e930c42b834817c1dbcc1d243977a6766fc252ed08a0c03fa3ae",
   "environment/sidecars/gitserver_app.py": "45747a4131b583e9ffa55a1d029cfe5cd8baff507f672cab8f59bd0d468ac48c",
@@ -16,13 +16,13 @@
   "environment/sidecars/judge.py": "c3cb8211c4711652ba8fb36b68723ed3ed946c0fb10f5b24dc411ee22d16ad4a",
   "environment/sidecars/mined_graphql_agreement.cjs": "18d3549f68ee58952c0d4247792dae93a10a8dae1bca5af76b3cee491cb54555",
   "environment/sidecars/model_meter.py": "c3f2722e542573b1a29c078c65bde73305fff5fad8f46c45beb0091e511b90bc",
-  "environment/sidecars/people.json": "d1da0cc4bf7f63b1a0183a798d6bdde9cbc3f5f927e81f6b1ac2873378075701",
-  "environment/sidecars/people.py": "776228e82fc3e1918713559702d4360bddc6a223fff47949b2dacdc886dc33fb",
+  "environment/sidecars/people.json": "0adb4a224e6c82796366aa0fddb5aeffe63fefbd0e7383e6d20fdb55666fcf0f",
+  "environment/sidecars/people.py": "1f4eec8a74b00d0f2124fce6d7dd47cc9eb52aaf6bfee52914b3a41a20bbea14",
   "environment/sidecars/seat.sh": "3e6c3644586b2e5a79a9c3704d20b92fd02b6842196fcc271ddea6750e0ae761",
   "environment/sidecars/service.py": "fe048ee6fd7e66910bb7b59b7e0cc4d83b2dca8850141fcef171a504d63450c4",
   "environment/sidecars/smoke_new_fields.cjs": "1a8b11c86f029c66c67eb14f31498d08f819acd445d55a17f933553de83be876",
   "environment/sidecars/stripe_mock.py": "677d4a68bd3052e27c7f2d0c45ca7779f436462aed97d8ef4c77fca34a0fbc8b",
-  "environment/sidecars/team_mcp.py": "442a42cc48257af1d5adeeb1037d75ba1393ca19e4be94e72eef5d853ddf2068",
+  "environment/sidecars/team_mcp.py": "39817a4e80042663a9c340e2189691e46cdaa62dcab01fd499043edc6b514df6",
   "environment/work/core/.dockerignore": "e42996fbd615b1a74291ce777012f057ef4d21ecbe6e24af560fee84b6ee55e3",
   "environment/work/core/.editorconfig": "df05070b02663870231396a30bb67e02a99861aba9b620eac33f19a9c2e34294",
   "environment/work/core/.env.example": "4fd64d56fca88bebd80be5aed8e4ac1135d143250ac452ae0c217909d6210cc3",
@@ -34,7 +34,7 @@
   "environment/work/core/CHANGELOG.md": "f3d0c472eb25186def0d05022cd800b22bb0631294b835ca096a022b30808a45",
   "environment/work/core/CONTRIBUTING.md": "de4c234bacc5e60e9bacfba7627ce02f62412bfb8f1078c77954e80ee20a532a",
   "environment/work/core/Dockerfile": "cb5b6e06682f5945af9aa9749abca56e44f42f9aac42da200e95c84a77079356",
-  "environment/work/core/INTERFACE.md": "5b5cdc708b4a4ddb556f002023d711ad6c992c50a87089b004cf15c05dcb74be",
+  "environment/work/core/INTERFACE.md": "90dccecdb5758ce3d2ebc88a73e7ef847413a1c607541a3eea292551d675290b",
   "environment/work/core/LICENSE": "70e2aa4451206e213dc32078c07ca703c7c2b6e9a8e63803ee11db4deea7313b",
   "environment/work/core/NOTES.md": "403414853fad8fa320278517dd10024dd6182316eadb5d368c245126ea4145fa",
   "environment/work/core/README.md": "6b285440fe799c8620470efc081157777636d822be759aa8bd812a9855548944",
@@ -11022,15 +11022,15 @@
   "tests/mined_graphql_agreement.cjs": "18d3549f68ee58952c0d4247792dae93a10a8dae1bca5af76b3cee491cb54555",
   "tests/rubric.py": "d5a5ca23a0bd2c07b19b1f6d9e4ae510c9f207c83b689c04fe1a46548c69921a",
   "tests/rubric.toml": "f6448a49ea0182b9f2197288ef76fb7495c09e60127f81f7320d3c9bfae232b5",
-  "tests/score.py": "0b30963c6c460beb9b847c73ecd3e2c64c50831b1dbc0b409ce9b5626b0c6ec6",
+  "tests/score.py": "1ccb1d279d0be8a7fcd90d4db310bf855a8ce51c63737bb09ac0e78c6a8e36eb",
   "tests/test.sh": "88446ece9eb55e33d5edfdfcc5d5ce844f8dceaa9bb4282b6dafc3daa291fcd3",
   "tests/hidden/base_schema.graphql": "d2367ce7934b7c7532e6a72d368583f9323b0319c208c09f76ea77ba3664ea1e",
   "tests/hidden/core-reference.json": "774cd40fdf43742fb8a290b588a81d831b4fa142ab01b5078520c5dee278b6f0",
-  "tests/hidden/core-tests.tar.gz": "7c377f7c2bd548a0b167edfd6ab46a36a77666c1036deddd459e97a8c6b71b34",
+  "tests/hidden/core-tests.tar.gz": "eac2f8fb39cd6c1f85afd3737c9a92db0971a57be0578dfd4915b9906246c0b2",
   "tests/hidden/dashboard-reference.json": "ec7df4dacc00d74f6b5d6551699ecce9fe156000b131d023ce7173dd7dfecec5",
-  "tests/hidden/dashboard-tests.tar.gz": "40fc1b0764685cc5857609df2f80a2dc0fb2c64e34fc49a7f138fe63b4177941",
+  "tests/hidden/dashboard-tests.tar.gz": "b5dd0d19fd368b5ca7270bd8f3327c425748209cf49a8ea7cc7c3bf9a7a5c671",
   "tests/hidden/usage.json": "90e56a1f06e637657976010b8fb0c4612a2b125c309d5a3c0e3711c83cfa0f6c",
-  "tests/hidden/variants/refuse/core-tests.tar.gz": "10d9269cf67957a6ab2b6162e87056489bd89ef878c8d4a61101188543d5fc09"
+  "tests/hidden/variants/refuse/core-tests.tar.gz": "e86591431a992b49126e168023ff5810960cbfbc421cc84282054b5a953f62ec"
  },
  "runners": {
   "tools/harbor_team.py": "761fc95119c8bdc948a089d0a554175363d72eacd95c3dd9bfb609208fa5393c",
@@ -11041,5 +11041,5 @@
   "node:24-bookworm@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496": "not here",
   "base-core": "not here"
  },
- "frozen_at": "2026-11-20T23:45:34Z"
+ "frozen_at": "2026-11-24T00:33:45Z"
 }

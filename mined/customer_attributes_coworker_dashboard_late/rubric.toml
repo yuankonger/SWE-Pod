@@ -88,7 +88,11 @@ kind = "guard"
 type = "tests"
 repository = "dashboard"
 set = "preserved"
-note = """The share that still pass of the staff application's tests that passed as the work started (5,568)."""
+exclude = '''^src/auth/hooks/useAuthProvider\.test\.ts::useAuthProvider handleLogin should handle (other login errors|Apollo error)$'''
+note = """The share that still pass of the staff application's tests that passed as the work started (5,566). Two
+tests of `useAuthProvider handleLogin` are left out because they are flaky: `should handle Apollo error` failed in
+this task's first validation run with the reference solution, and `should handle other login errors` in one of
+three validation runs of `customer_attributes_coworker_slice`, each with nothing changed that they test."""
 
 # ---------------------------------------------------------------- fit: the two repositories against each other
 

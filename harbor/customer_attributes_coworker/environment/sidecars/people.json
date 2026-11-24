@@ -6,6 +6,7 @@
    "role": "requester",
    "about": "Maya, the product manager who asked for this feature. She knows what is wanted, not how the code works.",
    "token": "person-maya-04ce454a01f5",
+   "reply_delay_min": 0,
    "topics": [
     {
      "id": "delete-type-with-customers",

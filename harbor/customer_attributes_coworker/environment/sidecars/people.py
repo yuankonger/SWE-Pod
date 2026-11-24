@@ -22,6 +22,26 @@ The file (written by tools/export_harbor_company.py from mined/<company>/people.
     {"default": <variant>, "people": [{"name", "token", "role", "topics": [
         {"id", "kind": "requirement" | "fact", "topic": <one line>, "says": <text> | {<variant>: <text>}}]}]}
 
+Replies can be late (docs/COWORKER_SPEC.md, 3.3). SEEDCO_REPLY_DELAY, or a person's `reply_delay_min` in the file, is
+the number of minutes of the agent's working time between a message and its reply (0: at once). The chat keeps that
+clock and holds the reply until it is due; the delay is the same for every reply of an episode, whatever was asked,
+so how long an answer takes says nothing about what it will be.
+
+A person can have events (3.2): things they say unasked. The one kind so far is `change-of-mind`: the person moves a
+requirement from the value the episode starts with to the value it ends with, which is the one judged.
+
+    "events": [{"id", "kind": "change-of-mind", "topic": <id of a requirement of theirs>, "says": <text with {says}>,
+                "at_min": <the seat's clock> | "after_reveal_min": <minutes after their first answer about the topic
+                reaches the seat>}]
+    SEEDCO_VARIANT          the value in force at the end (as without events: it is what the judge scores)
+    SEEDCO_VARIANT_START    the value in force at the start (default: the other one, where the requirement has two)
+
+The event is given to the chat when the sidecar starts, and again with its time once the person has answered about
+the topic. The chat holds it until that time and passes it on at the latest when the seat first submits, so an event
+has no time of its own while nobody has asked. Until it has reached the seat the person answers with the starting
+value, afterwards with the final one. `{says}` is the topic's sentence for the final value; the rest of the text is
+fixed and the same whichever way the requirement moves.
+
 Everything a person receives and says is appended to <out>/people.jsonl. A model call that fails after its retries
 is written there as `failed`, and the run is then incomplete whatever its score.
 Standard library only.
@@ -116,6 +136,11 @@ def decide(person, sorted_as, variant):
     return "noted", [], REPLY_NOTED
 
 
+def reply_due(asked_at_v, delay_min):
+    """When a reply to a message sent at `asked_at_v` (the seat's clock, seconds) reaches the seat. Rules only."""
+    return None if asked_at_v is None else round(asked_at_v + 60.0 * delay_min, 1)
+
+
 def chat(config, method, path, body=None):
     request = urllib.request.Request(config["chat"] + path, data=json.dumps(body).encode() if body is not None else None, method=method,
                                      headers={"Content-Type": "application/json"})
@@ -123,7 +148,33 @@ def chat(config, method, path, body=None):
         return json.loads(r.read())
 
 
-def serve(config, people, variant):
+def starting_values(people, variant, start=None):
+    """{topic id: the value in force until that topic's change-of-mind event reaches the seat}. Rules only."""
+    values = {}
+    for person in people["people"]:
+        by_id = {t["id"]: t for t in person["topics"]}
+        for event in person.get("events") or []:
+            if event["kind"] != "change-of-mind":
+                raise ValueError("no such kind of event: {}".format(event["kind"]))
+            others = [v for v in by_id[event["topic"]]["says"] if v != variant]
+            if start is None and len(others) != 1:
+                raise ValueError("SEEDCO_VARIANT_START is needed: {} has {} other values".format(event["topic"], len(others)))
+            if start is not None and start not in by_id[event["topic"]]["says"]:
+                raise ValueError("no such value of {}: {}".format(event["topic"], start))
+            values[event["topic"]] = start if start is not None else others[0]
+    return values
+
+
+def event_due(event, first_answer_due_at_v):
+    """When an event is due on the seat's clock, or None while it has no time of its own. Rules only."""
+    if event.get("at_min") is not None:
+        return round(60.0 * event["at_min"], 1)
+    if event.get("after_reveal_min") is not None and first_answer_due_at_v is not None:
+        return round(first_answer_due_at_v + 60.0 * event["after_reveal_min"], 1)
+    return None
+
+
+def serve(config, people, variant, delay=None, start=None):
     out = os.path.join(config["out"], "people.jsonl")
     os.makedirs(config["out"], exist_ok=True)
     lock = threading.Lock()
@@ -132,9 +183,42 @@ def serve(config, people, variant):
         with lock, open(out, "a") as f:
             f.write(json.dumps(dict(entry, at=round(time.time(), 1), variant=variant)) + "\n")
 
-    keep({"event": "started", "people": [p["name"] for p in people["people"]]})
+    delays = {p["name"]: float(delay if delay is not None else p.get("reply_delay_min") or 0) for p in people["people"]}
+    starts = starting_values(people, variant, start)
+    keep({"event": "started", "people": [p["name"] for p in people["people"]], "reply_delay_min": delays,
+          **({"starts_as": starts} if starts else {})})
 
     def one(person):
+        def send(to, text, asked_at_v):
+            due = reply_due(asked_at_v, delays[person["name"]])
+            chat(config, "POST", "/send", dict({"from": person["name"], "token": person["token"], "to": to, "text": text},
+                                               **({} if due is None else {"due_at_v": due})))
+            return {} if due is None else {"asked_at_v": asked_at_v, "due_at_v": due}
+
+        by_id = {t["id"]: t for t in person["topics"]}
+        events, answered = person.get("events") or [], set()
+
+        def schedule(event, first_answer_due_at_v=None):
+            due = event_due(event, first_answer_due_at_v)
+            text = event["says"].format(says=says(by_id[event["topic"]], variant))
+            while True:
+                try:
+                    got = chat(config, "POST", "/send", dict({"from": person["name"], "token": person["token"], "to": config.get("seat") or people.get("seat"),
+                                                              "text": text, "event": event["id"]}, **({} if due is None else {"due_at_v": due})))
+                    break
+                except (OSError, ValueError):
+                    time.sleep(2)
+            keep({"event": "scheduled", "person": person["name"], "id": event["id"], "kind": event["kind"], "topic": event["topic"],
+                  "from_value": starts[event["topic"]], "to_value": variant, "due_at_v": due, "latest": "submit", "text": text, "held": got.get("delivered")})
+
+        def now(reached):
+            """The person as they are now: each topic an event moves has the starting value until the event has reached the seat."""
+            moved = {e["topic"]: e["id"] for e in events}
+            return dict(person, topics=[dict(t, says=says(t, starts[t["id"]] if t["id"] in moved and moved[t["id"]] not in reached else variant))
+                                        for t in person["topics"]])
+
+        for event in events:
+            schedule(event)
         while True:
             try:
                 got = chat(config, "GET", "/inbox?" + urllib.parse.urlencode({"name": person["name"], "token": person["token"], "wait": 30}))
@@ -146,13 +230,24 @@ def serve(config, people, variant):
                 try:
                     sorted_as, raw = classify(m["text"], person["topics"], config["model"])
                 except OSError as e:      # the environment failed, not the agent: said plainly, and recorded as such
-                    keep(dict(entry, failed=str(e)))
-                    chat(config, "POST", "/send", {"from": person["name"], "token": person["token"], "to": m["from"],
-                                                   "text": "I can't answer right now (a problem on my side, not yours)."})
+                    keep(dict(entry, failed=str(e), **send(m["from"], "I can't answer right now (a problem on my side, not yours).", m.get("at_v"))))
                     continue
-                decision, revealed, reply = decide(person, sorted_as, variant)
-                chat(config, "POST", "/send", {"from": person["name"], "token": person["token"], "to": m["from"], "text": reply})
-                keep(dict(entry, classification=sorted_as, classifier_said=raw, decision=decision, revealed=revealed, reply=reply))
+                reached = set()
+                if events:
+                    try:
+                        reached = {e["event"] for e in chat(config, "GET", "/events?" + urllib.parse.urlencode({"name": person["name"], "token": person["token"]}))["events"] if e["reached_seat"]}
+                    except (OSError, ValueError, KeyError) as e:
+                        keep(dict(entry, failed="the chat did not say which events have reached the seat: {}".format(e), **send(m["from"], "I can't answer right now (a problem on my side, not yours).", m.get("at_v"))))
+                        continue
+                decision, revealed, reply = decide(now(reached), sorted_as, variant)
+                when = send(m["from"], reply, m.get("at_v"))
+                keep(dict(entry, classification=sorted_as, classifier_said=raw, decision=decision, revealed=revealed, reply=reply, **when,
+                          **({"values_said": {i: (variant if e["id"] in reached else starts[i]) for e in events for i in [e["topic"]] if i in revealed}} if events else {})))
+                for event in events:      # the first answer about the topic gives its event a time
+                    if event["topic"] in revealed and event["id"] not in answered and event["id"] not in reached:
+                        answered.add(event["id"])
+                        if event.get("after_reveal_min") is not None:
+                            schedule(event, when.get("due_at_v", m.get("at_v")))
             if not got.get("messages"):
                 time.sleep(1)       # the chat returns at once when nobody else is working: do not spin
 
@@ -169,4 +264,5 @@ if __name__ == "__main__":
     VARIANT = os.environ.get("SEEDCO_VARIANT") or PEOPLE["default"]
     if not CONFIG["model"].get("key"):
         sys.exit("people: no key for the classifier's model (PEOPLE_MODEL_KEY)")
-    serve(CONFIG, PEOPLE, VARIANT)
+    DELAY = os.environ.get("SEEDCO_REPLY_DELAY")
+    serve(CONFIG, PEOPLE, VARIANT, float(DELAY) if DELAY not in (None, "") else None, os.environ.get("SEEDCO_VARIANT_START") or None)

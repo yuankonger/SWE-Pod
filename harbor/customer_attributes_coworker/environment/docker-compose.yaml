@@ -195,7 +195,7 @@
         "/opt/seedco/chat.py"
       ],
       "environment": {
-        "CHAT": "{\"tokens\": {\"core\": \"seat-core-0feceb5af5ff\", \"maya\": \"person-maya-04ce454a01f5\"}, \"admin\": \"chat-admin-5d02e7\"}"
+        "CHAT": "{\"tokens\": {\"core\": \"seat-core-0feceb5af5ff\", \"maya\": \"person-maya-04ce454a01f5\"}, \"admin\": \"chat-admin-5d02e7\", \"clock\": {\"seat\": \"core\"}}"
       },
       "image": "seedco-task-customer-attributes-coworker:1",
       "pull_policy": "never",
@@ -226,6 +226,7 @@
       ],
       "environment": {
         "SEEDCO_VARIANT": "${VARIANT:-reassign}",
+        "SEEDCO_REPLY_DELAY": "${REPLY_DELAY:-}",
         "PEOPLE": "{\"chat\": \"http://chat:8080\", \"file\": \"/opt/seedco/people.json\", \"out\": \"/people-out\", \"model\": {\"url\": \"${PEOPLE_MODEL_URL}\", \"key\": \"${PEOPLE_MODEL_KEY}\", \"id\": \"claude-haiku-4-5-20251001\"}}"
       },
       "image": "seedco-task-customer-attributes-coworker:1",

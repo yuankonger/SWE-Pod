@@ -78,7 +78,34 @@ that criterion's own score, beside whether the agent asked and what it was told.
 
 ## Evidence so far
 
-See the freeze's record for validation without a model. No evaluated model has run on it yet.
+Validation without a model: both reference solutions pass every target under their own value; the untouched start
+fails them.
+
+Three runs on an earlier freeze (`c61107a13e092d9c`), Claude Fable 5.2, value `reassign`, one run an arm:
+
+| Arm | Requirement's test | Feature tests | Reward | Cost |
+|---|---|---|---|---|
+| `full` | passed | 189 of 202 | 0.95 | $19.63 |
+| `partial` | passed (asked before its first push) | 183 of 202 | 0.92 | $24.88 |
+| `no_interaction` | passed (`reassign` is this model's default) | 184 of 202 | 0.93 | $15.99 |
+
+**What those runs showed about the tests, and what was changed (23 Nov 2026).** The 13 to 19 feature tests each run
+failed were read one by one. All but one assert behaviour that neither the brief nor `INTERFACE.md` stated, where the
+agent had made another reasonable choice:
+
+| Tests | What upstream's tests assert | What the agents built |
+|---|---|---|
+| 8, in all three runs | a user with no type is read as having the default type and stays without one; `User.customerType` and `assignedAttributes` are for the user and holders of `MANAGE_USERS` | every user given the default type, so a null type was not handled; the fields open to more staff |
+| 9 to 12 | `customerType` and `customerTypes` are open to any staff user and app, closed to customers and anonymous requests | a permission required of staff (two runs), or open to everyone (one run) |
+| 1 each | the exact message of one error; a `translation` query that returns null; values kept when a customer's type changes | another message; an error; values removed |
+
+These were failures of the task, not of the work: the tests were checking choices the agent could not have known.
+The six behaviours are now stated in `INTERFACE.md` under "What the tests check to the letter", like the others
+there. The three runs above were scored before that and their feature scores are not comparable with later runs;
+their requirement results stand. The one remaining failure was the agent's own: one run changed an existing error of
+`productUpdate` and failed an existing test.
+
+No run has been made on the current freeze.
 
 ## Known limits
 
